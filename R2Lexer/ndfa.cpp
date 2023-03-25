@@ -1,3 +1,19 @@
+/****************************************************
+ * @Copyright © 2021-2023 Lyuyk. All rights reserved.
+ *
+ * @FileName: ndfa.cpp
+ * @Brief: NFA、DFA类源文件
+ * @Module Function:
+ *
+ * @Current Version: 1.2
+ * @Author: Lyuyk
+ * @Modifier: Lyuyk
+ * @Finished Date: 2023/3/3
+ *
+ * @Version History: 1.1
+ *                   1.2 current version
+ *
+ ****************************************************/
 #include "ndfa.h"
 #include <QDebug>
 

@@ -2,7 +2,7 @@
  * @Copyright © 2021-2023 Lyuyk. All rights reserved.
  *
  * @FileName: ndfa.h
- * @Brief: NFA、DFA图结构
+ * @Brief: NFA、DFA类头文件
  * @Module Function:
  *
  * @Current Version: 1.2
@@ -107,12 +107,12 @@ public:
 
 
     NFAGraph createNFA(int sum);
-    NFAGraph createNFA(QChar start, QChar end);
-    NFAGraph createNFA(int start,int end);
+    NFAGraph createNFA(QChar start, QChar end);//建立一个NFA节点
+    NFAGraph createNFA(int start,int end);//建立一个从
     void add(NFANode *n1, NFANode *n2, QChar ch);//n1、n2节点间添加非eps边
     void add(NFANode *n1, NFANode *n2);//n1、n2节点间添加eps边
 
-    QSet<int> e_closure(QSet<int> s); //
+    QSet<int> e_closure(QSet<int> s); //求
     QSet<int> move_e_cloure(QSet<int> s, QChar ch);
     bool isEnd(NFAGraph n, QSet<int> s);
     int findSetNum(int count, int n);
@@ -122,6 +122,8 @@ public:
     void DFA2mDFA();//DFA的最小化
 
 private:
+    QSet<QString> reserveWords;//保留字集合
+
 
     QSet<QString> OpCharSet;//操作符集合
     QSet<int> dividedSet[ARR_MAX_NUM]; //划分出来的集合数组（最小化DFA时用到的）
