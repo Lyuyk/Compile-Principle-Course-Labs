@@ -37,7 +37,7 @@ NDFA::NDFA()
         NFAStateArr[i].stateNum=i;
         NFAStateArr[i].val='#';
         NFAStateArr[i].tState=-1;
-        NFAStateArr[i].eSUnion.clear();
+        NFAStateArr[i].epsToSet.clear();
     }
     for(int i=0;i<ARR_MAX_NUM;i++)
     {
@@ -49,7 +49,7 @@ NDFA::NDFA()
         for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
         {
             DFAStateArr[i].edges[j].input='#';
-            DFAStateArr[i].edges[j].tgtState=-1;
+            DFAStateArr[i].edges[j].toState=-1;
         }
     }
     for(int i=0;i<ARR_MAX_NUM;i++)
@@ -62,7 +62,7 @@ NDFA::NDFA()
         for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
         {
             mDFANodeArr[i].edges[j].input='#';
-            mDFANodeArr[i].edges[j].tgtState=-1;
+            mDFANodeArr[i].edges[j].toState=-1;
         }
     }
 }
@@ -87,7 +87,7 @@ void NDFA::init()
         NFAStateArr[i].stateNum=i;
         NFAStateArr[i].val='#';
         NFAStateArr[i].tState=-1;
-        NFAStateArr[i].eSUnion.clear();
+        NFAStateArr[i].epsToSet.clear();
     }
     for(int i=0;i<ARR_MAX_NUM;i++)
     {
@@ -99,7 +99,7 @@ void NDFA::init()
         for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
         {
             DFAStateArr[i].edges[j].input='#';
-            DFAStateArr[i].edges[j].tgtState=-1;
+            DFAStateArr[i].edges[j].toState=-1;
         }
     }
     for(int i=0;i<ARR_MAX_NUM;i++)
@@ -112,7 +112,7 @@ void NDFA::init()
         for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
         {
             mDFANodeArr[i].edges[j].input='#';
-            mDFANodeArr[i].edges[j].tgtState=-1;
+            mDFANodeArr[i].edges[j].toState=-1;
         }
     }
 }
@@ -144,12 +144,12 @@ void NDFA::printNFA(QTableWidget *table)
         //epsilon转换集合
         QString epsSetStr="";
         QSet<int>::iterator it;
-        for(it=NFAStateArr[row].eSUnion.begin();it!=NFAStateArr[row].eSUnion.end();it++)
+        for(it=NFAStateArr[row].epsToSet.begin();it!=NFAStateArr[row].epsToSet.end();it++)
         {
             epsSetStr+=QString::number(*it)+",";
         }
         table->setItem(row,epsColN,new QTableWidgetItem(epsSetStr));
-        qDebug()<<"NFAStateArr[row].eSUnion:"<<NFAStateArr[row].eSUnion;
+        qDebug()<<"NFAStateArr[row].eSUnion:"<<NFAStateArr[row].epsToSet;
         qDebug()<<"eps"+epsSetStr;
 
         //非epsilon转换
@@ -202,7 +202,7 @@ void NDFA::printDFA(QTableWidget *table)
         {
             //转到状态的列标
             int colN=OpStrList.indexOf(DFAStateArr[rowN].edges[i].input);
-            int toStateN=DFAStateArr[rowN].edges[i].tgtState;
+            int toStateN=DFAStateArr[rowN].edges[i].toState;
             table->setItem(rowN,colN,new QTableWidgetItem(QString::number(toStateN)));
         }
 
@@ -247,7 +247,7 @@ void NDFA::printMDFA(QTableWidget *table)
             //转到状态的列标
             int colN=OpStrList.indexOf(mDFANodeArr[rowN].edges[i].input);
             qDebug()<<"colN"<<colN;
-            int toStateN=mDFANodeArr[rowN].edges[i].tgtState;
+            int toStateN=mDFANodeArr[rowN].edges[i].toState;
             table->setItem(rowN,colN,new QTableWidgetItem(QString::number(toStateN)));
         }
 
@@ -341,7 +341,7 @@ QString NDFA::in2Suffix(QString s)
     for(int i = 0; i < s.size(); i++)
     {
         //操作数不处理
-        if(s.at(i) >= 'a' && s.at(i) <= 'z')
+        if(s.at(i).isLower())
         {
             str += s.at(i);
         }
@@ -408,9 +408,6 @@ QString NDFA::in2Suffix(QString s)
         str += ch;
     }
 
-//    ui->plainTextEdit_console->insertPlainText("infix regex(origin):"+s+'\n');
-//    ui->plainTextEdit_console->insertPlainText("suffix(processed):"+str+'\n');
-
     return str;
 }
 
@@ -427,8 +424,8 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
             OpCharSet.insert(s.at(i));
             NFAGraph n = createNFA(NFAStateNum);
             NFAStateNum += 2;//开始与结束节点
-            //NFA的头指向尾，弧上的值为s.at(i)
-            add(n.startNode, n.endNode, s.at(i));
+
+            add(n.startNode, n.endNode, s.at(i));//NFA的头指向尾，弧上的值为s.at(i)
 
             NfaStack.push(n);
         }
@@ -562,15 +559,10 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QChar ch)
  */
 void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2)
 {
-    n1->eSUnion.insert(n2->stateNum);
+    n1->epsToSet.insert(n2->stateNum);
 }
 
-/**
- * @brief MainWindow::e_cloure
- *
- * @param s
- * @return
- */
+
 /**
  * @brief NDFA::e_closure
  * 求一个状态集的ε-cloure
@@ -593,7 +585,7 @@ QSet<int> NDFA::e_closure(QSet<int> s)
         int OpTmp=eStack.top(); //从栈中弹出一个元素
         eStack.pop();
 
-        for(const auto &iter : qAsConst(NFAStateArr[OpTmp].eSUnion))//遍历它能够通过epsilon转换到的状态集合
+        for(const auto &iter : qAsConst(NFAStateArr[OpTmp].epsToSet))//遍历它能够通过epsilon转换到的状态集合
         {
             if(!newSet.contains(iter))/*若当前的元素没有在集合中出现，则将其加入集合中*/
             {
@@ -700,7 +692,7 @@ void NDFA::NFA2DFA()
                 DFAStateArr[DFAStateNum].em_closure_NFA=tmpS;
 
                 DFAStateArr[num].edges[DFAStateArr[num].edgeCount].input=*it;
-                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].tgtState=DFAStateNum;
+                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=DFAStateNum;
                 DFAStateArr[num].edgeCount++;
 
                 DFAG.tranArr[num][it->toLatin1()-'a']=DFAStateNum;//更新状态转移矩阵
@@ -719,7 +711,7 @@ void NDFA::NFA2DFA()
                     if(tmpS==DFAStateArr[i].em_closure_NFA)
                     {
                         DFAStateArr[num].edges[DFAStateArr[num].edgeCount].input=*it;
-                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].tgtState=i;
+                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=i;
                         DFAStateArr[num].edgeCount++;
 
                         DFAG.tranArr[num][it->toLatin1()-'a']=i;//更新转移矩阵
@@ -797,10 +789,10 @@ void NDFA::DFA2mDFA()
                             epFlag=false; //则标志为false
 
                             //计算该状态转换到的状态集的标号
-                            int tranSetNum=findSetNum(mDFAStateNum,DFAStateArr[*iter].edges[j].tgtState);
+                            int tranSetNum=findSetNum(mDFAStateNum,DFAStateArr[*iter].edges[j].toState);
 
                             int curSetNum=0;//遍历缓冲区，查找是否存在到达这个标号的状态集
-                            while((tmpStSet[curSetNum].stateSetNum!=tranSetNum)&&(curSetNum<cacheSetNum))
+                            while((tmpStSet[curSetNum].toStateSetNum!=tranSetNum)&&(curSetNum<cacheSetNum))
                             {
                                 curSetNum++;
                             }
@@ -808,7 +800,7 @@ void NDFA::DFA2mDFA()
                             if(curSetNum==cacheSetNum)
                             {
                                 //缓冲区中新建一个状态集
-                                tmpStSet[cacheSetNum].stateSetNum=tranSetNum;//将该状态集所能转换到的状态集标号为tranSetNum
+                                tmpStSet[cacheSetNum].toStateSetNum=tranSetNum;//将该状态集所能转换到的状态集标号为tranSetNum
                                 tmpStSet[cacheSetNum].DFAStateSet.insert(*iter);//将当前状态添加到该状态集合中
 
                                 cacheSetNum++;//缓冲区状态集计数增加
@@ -825,14 +817,14 @@ void NDFA::DFA2mDFA()
                     {
                         /*寻找缓冲区中是否存在转换到标号为-1的状态集，这里规定如果不存在转换弧，则它所到达的状态集标号为-1*/
                         int curSetNum=0;
-                        while((tmpStSet[curSetNum].stateSetNum!=-1)&&(curSetNum<cacheSetNum))
+                        while((tmpStSet[curSetNum].toStateSetNum!=-1)&&(curSetNum<cacheSetNum))
                         {
                             curSetNum++;
                         }
 
                         if(curSetNum==cacheSetNum)//若不存在这样的状态集
                         {
-                            tmpStSet[cacheSetNum].stateSetNum=-1;//将该状态集转移到状态集标号-1
+                            tmpStSet[cacheSetNum].toStateSetNum=-1;//将该状态集转移到状态集标号-1
                             tmpStSet[cacheSetNum].DFAStateSet.insert(*iter);
 
                             cacheSetNum++;//缓冲区状态集计数增加
@@ -897,12 +889,12 @@ void NDFA::DFA2mDFA()
                 //遍历划分好的状态集合，找出该弧转移到的状态现在属于哪个集合
                 for(int t=0;t<mDFAStateNum;t++)
                 {
-                    if(dividedSet[t].contains(DFAStateArr[*itr].edges[j].tgtState))
+                    if(dividedSet[t].contains(DFAStateArr[*itr].edges[j].toState))
                     {
                         bool hadEdge=false;
                         for(int l=0;l<mDFANodeArr[i].edgeCount;l++)
                         {
-                            if((mDFANodeArr[i].edges[l].input==DFAStateArr[*itr].edges[j].input)&&(mDFANodeArr[i].edges[l].tgtState==t))
+                            if((mDFANodeArr[i].edges[l].input==DFAStateArr[*itr].edges[j].input)&&(mDFANodeArr[i].edges[l].toState==t))
                             {
                                 hadEdge=true;//标志为真
                             }
@@ -911,7 +903,7 @@ void NDFA::DFA2mDFA()
                         if(!hadEdge)//若该弧不存在，则创建一条新的弧
                         {
                             mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].input=DFAStateArr[*itr].edges[j].input;
-                            mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].tgtState=t;//该弧转移到的状态为这个状态集合的标号
+                            mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].toState=t;//该弧转移到的状态为这个状态集合的标号
 
                             mDFAG.tranArr[i][DFAStateArr[*itr].edges[j].input.toLatin1()-'a']=t; //更新转移矩阵
 
