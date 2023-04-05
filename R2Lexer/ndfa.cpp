@@ -276,16 +276,15 @@ QString NDFA::preProcess(QString &s)
 
     while(i < length)
     {
-        if((s.at(i) >= 'a' && s.at(i) <= 'z') || (s.at(i) == '*') || (s.at(i) == ')'))
+        if((s.at(i).isLower()) || (s.at(i) == '*') || (s.at(i) == ')'))
         {
-            if((s[i + 1] >= 'a' && s[i + 1] <= 'z') || s[i + 1] == '(')
+            if((s[i + 1].isLower()) || s[i + 1] == '(')
             {
 
                 insert(s, i+1 , '&');
                 length ++;
             }
         }
-
         i++;
     }
 }
@@ -335,8 +334,8 @@ QString NDFA::in2Suffix(QString s)
 {
     preProcess(s);			/*对字符串进行预处理*/
 
-    QString str;				/*要输出的后缀字符串*/
-    QStack<QChar> oper;		/*运算符栈*/
+    QString str;		    /*要输出的后缀字符串*/
+    QStack<QChar> opStack;	/*运算符栈*/
 
     for(int i = 0; i < s.size(); i++)
     {
@@ -345,65 +344,58 @@ QString NDFA::in2Suffix(QString s)
         {
             str += s.at(i);
         }
-        else							/*遇到运算符时*/
+        else  /*遇到运算符时*/
         {
-
-            if(s.at(i) == '(')			/*遇到左括号压入栈中*/
+            if(s.at(i) == '(')		/*遇到左括号压入栈中*/
             {
-                oper.push(s.at(i));
+                opStack.push(s.at(i));
             }
-
             else if(s.at(i) == ')')	/*遇到右括号时*/
             {
-
-                QChar ch = oper.top();
-                while(ch != '(')		/*将栈中元素出栈，直到栈顶为左括号*/
+                QChar ch = opStack.top();
+                while(ch != '(')	/*将栈中元素出栈，直到栈顶为左括号*/
                 {
-
                     str += ch;
-
-                    oper.pop();
-                    ch = oper.top();
+                    opStack.pop();
+                    ch = opStack.top();
                 }
-
-                oper.pop();				/*最后将左括号出栈*/
+                opStack.pop();		/*最后将左括号出栈*/
             }
             else					/*遇到其他操作符时*/
             {
-                if(!oper.empty())			/*如果栈不为空*/
+                if(!opStack.empty())			/*如果栈不为空*/
                 {
-
-                    QChar ch = oper.top();
+                    QChar ch = opStack.top();
                     while(priority(ch) >= priority(s.at(i)))	/*弹出栈中优先级大于等于当前运算符的运算符*/
                     {
 
                         str +=	ch;
-                        oper.pop();
+                        opStack.pop();
 
-                        if(oper.empty())	/*如果栈为空则结束循环*/
+                        if(opStack.empty())	/*如果栈为空则结束循环*/
                         {
                             break;
                         }
-                        else ch = oper.top();
+                        else ch = opStack.top();
                     }
 
-                    oper.push(s.at(i));		/*再将当前运算符入栈*/
+                    opStack.push(s.at(i));		/*再将当前运算符入栈*/
                 }
 
                 else				/*如果栈为空，直接将运算符入栈*/
                 {
-                    oper.push(s.at(i));
+                    opStack.push(s.at(i));
                 }
             }
         }
     }
 
     /*最后如果栈不为空，则出栈并输出到字符串*/
-    while(!oper.empty())
+    while(!opStack.empty())
     {
 
-        QChar ch = oper.top();
-        oper.pop();
+        QChar ch = opStack.top();
+        opStack.pop();
 
         str += ch;
     }
@@ -411,6 +403,12 @@ QString NDFA::in2Suffix(QString s)
     return str;
 }
 
+/**
+ * @brief NDFA::strToNfa
+ * 将正则表达式转换为NFA
+ * @param s
+ * @return
+ */
 NDFA::NFAGraph NDFA::strToNfa(QString s)
 {
     //存NFA的栈
@@ -419,7 +417,7 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
     for(int i = 0; i < s.size(); i++)
     {
         //操作数的处理
-        if(s.at(i) >= 'a' && s.at(i) <= 'z')
+        if(s.at(i).isLower())
         {
             OpCharSet.insert(s.at(i));
             NFAGraph n = createNFA(NFAStateNum);
