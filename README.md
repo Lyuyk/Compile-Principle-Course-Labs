@@ -4,12 +4,12 @@ Compile Principle Course Projects &amp; Labs
 
 ## Labs
 
-Contains the following 4 labs
+Contains the following 4 labs ( 2022-Fall )
 
-- [x] Lab1: Compress & decompress the C++ files 
-- [x] Lab2: Convert regular expression to minimized DFA
-- [x] Lab3: Grammar problem processor
-- [x] Lab4: Extends TINY grammar & syntax tree’s generation
+- [x] Lab1 (DNCompress) : Compress & decompress the C++ files 
+- [x] Lab2 (R2DFA) : Convert regular expressions to minimized DFA
+- [x] Lab3 (GPProcessor) : Grammar problem processor
+- [x] Lab4 (eTINY) : Extends TINY’s grammar & syntax tree’s generation
 
 ### Environment
 
@@ -19,7 +19,7 @@ MinGW 11.2.0 64bit
 
 ## Projects
 
-Contains the following 3 tasks
+Contains the following 3 tasks ( 2023-Spring )
 
 - [ ] Task1: Convert regular expression( high-level language’s) to minimized DFA, and generate a scanner program(using C++)
 - [ ] Task2: Process BNF Grammar’s problem
