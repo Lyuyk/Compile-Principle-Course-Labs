@@ -2,11 +2,46 @@
 
 
 
-## Task 1
+## Task 1 (TINY’s) Regex to Lexer
 
-Regex to Scanner
+   The system needs to provide an interface that allows the user to open a text file of all words in a language, convert the resulting lexical analysis program (which needs to be described in C) to compile an executable program from the source program requested above, and test it with a source program in that high-level programming language. A source program in this high-level programming language is tested and the word code of this source program is output. A window needs to be provided so that the user can view the word code.
+
+​        以文本文件的方式输入某一高级程序设计语言的所有单词对应的正则表达式，系统需要提供一个操作界面，让用户打开某一语言的所有单词对应正则表达式文本文件，转换得到的词法分析程序（该分析程序需要用 C 语言描述）对上述要求得到的源程序进行编译生成一个可执行程序，并以该高级程序设计语言的一个源程序进行测试，输出该该源程序的单词编码。需要提供窗口以便用户可以查看该单词编码。
 
 
+
+## 项目设计
+
+### 正则转NFA
+
+- 连接运算的处理
+
+  > 连接运算在正则表达式中的表示中是不需要字符的，也即是说没有运算符。如果不对这种情况进行处理，则会导致识别转换过程中出现问题：运算符栈没有运算符放入的话，出栈的时候字符栈有些字符就不能够出栈。我们这里使用&字符处理两个相连接的字母。
+
+- Thompson方法将正则表达式转换为NFA：
+
+  > 为每个基本正则表达式构造一个基本的NFA子图，尔后根据正则表达式将各子NFA连接起来
+
+  以下为基本的正则表达式以及其NFA子图：
+
+  - digit/letter/$\epsilon$
+  - 连接
+  - 选择 |
+  - 闭包 *
+  - 正闭包 +
+  - 可选 ?
+
+- 运算符优先级处理
+
+  
+
+
+
+### NFA转DFA
+
+
+
+### 最小化DFA
 
 最小化DFA求解流程
 
