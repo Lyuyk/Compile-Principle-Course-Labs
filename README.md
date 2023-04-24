@@ -25,26 +25,26 @@ Contains the following 3 tasks ( 2023-Spring )
 
 - [ ] Task1: Convert regular expression( high-level language’s) to  generate a lexical analysis program ( Use C )
 
-  - Test with regular expressions of the TINY language
+  - [ ] Test with regular expressions of the TINY language
 
-  - Display NFA with state transition table or diagram
+  - [x] Display NFA with state transition table or diagram
 
-  - Display DFA with state transition table or diagram
+  - [x] Display DFA with state transition table or diagram
 
-  - Display minimized DFA with state transition table or diagram
+  - [x] Display minimized DFA with state transition table or diagram
 
-  - Generate a lexical analysis program based on the minimized DFA ( Use C )
+  - [ ] Generate a lexical analysis program based on the minimized DFA ( Use C )
 
-  - Compile this lexical analysis source program with a C/C++ compiler and generate an executable program
+  - [ ] Compile this lexical analysis source program with a C/C++ compiler and generate an executable program
 
-  - Test with TINY language：
+  - [ ] Test with TINY language：
 
     > Test with a source program of the high-level programming language, and output the word code of the source program. A window needs to be provided so that the user can view the word code.
 
 - [ ] Task2: Process BNF Grammar’s problem
-  - [ ] Simplify the grammar (Presented in table form)
-  - [ ] Eliminate the left recursion & left common factor (Presented in table form)
-  - [ ] Solve the first set & follow set (Presented in table forms)
+  - [x] Simplify the grammar (Presented in table form)
+  - [x] Eliminate the left recursion & left common factor (Presented in table form)
+  - [x] Solve the first set & follow set (Presented in table forms)
   - [ ] Construct LL(1) analysis table (Presented in table form)
   - [ ] Use LL(1) for (TINY Language’s) syntax analysis & then generate a syntax tree (Presented in tree form)
   
