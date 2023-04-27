@@ -12,6 +12,27 @@
 
 ## 项目设计
 
+### 功能结构图
+
+```mermaid
+flowchart TB
+r2a(Lex生成器)-->e(输入正则表达式)
+r2a-->op(打开正则表达式文件)
+r2a-->s(保存正则表达式文件)
+
+e-->tr(正则表达式转NFA)
+tr-->trr(NFA转DFA)
+trr-->trrr(最小化DFA)
+trrr-->trrrr(DFA生成Lexer代码)
+tr-->显示NFA
+trr-->显示DFA
+trrr-->显示最小化DFA
+trrrr-->trrrrr(输出代码的单词编码)
+trrrr-->显示生成Lexer代码
+```
+
+
+
 ### 正则转NFA
 
 - 连接运算的处理
@@ -25,10 +46,22 @@
   以下为基本的正则表达式以及其NFA子图：
 
   - digit/letter/$\epsilon$
+
+    ```mermaid
+    flowchart LR
+    title
+    ```
+
+    
+
   - 连接
+
   - 选择 |
+
   - 闭包 *
+
   - 正闭包 +
+
   - 可选 ?
 
 - 运算符优先级处理
