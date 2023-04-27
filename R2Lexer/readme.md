@@ -23,7 +23,7 @@ r2a-->s(保存正则表达式文件)
 e-->tr(正则表达式转NFA)
 tr-->trr(NFA转DFA)
 trr-->trrr(最小化DFA)
-trrr-->trrrr(DFA生成Lexer代码)
+trrr-->trrrr(DFA生成Lexer源程序)
 tr-->显示NFA
 trr-->显示DFA
 trrr-->显示最小化DFA
