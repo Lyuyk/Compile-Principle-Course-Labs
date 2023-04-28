@@ -49,20 +49,95 @@ trrrr-->显示生成Lexer代码
 
     ```mermaid
     flowchart LR
-    title
+    start-->s((0))--a-->ss(((1)))
+    ```
+
+  - 连接
+
+    ```mermaid
+    flowchart LR
+    subgraph NFA1
+    s(( ))-."r".-ss(( ))
+    end
+    subgraph NFA2
+    ss--ɛ-->ss3(( ))
+    ss3-."s".-ss4((( )))
+    end
+    
+    ```
+
+  - 选择 |
+
+    ```mermaid
+    flowchart LR
+    st(( ))--ɛ-->s
+    st--ɛ-->ss3
+    
+    subgraph NFA1
+    s(( ))-."r".-ss(( ))
+    end
+    
+    subgraph NFA2
+    ss3(( ))-."s".-ss4((( )))
+    end
+    
+    ss4--ɛ-->ss5((( )))
+    ss--ɛ-->ss5
+    ```
+
+  - 闭包 *
+
+    ```mermaid
+    flowchart LR
+    st(( ))--ɛ-->s
+    
+    
+    subgraph " "
+    ss--ɛ-->s
+    s(( ))-."r".-ss(( ))
+    end
+    
+    
+    
+    ss--ɛ-->ss5((( )))
+    st--ɛ-->ss5
+    ```
+
+  - 正闭包 +
+
+    ```mermaid
+    flowchart LR
+    st(( ))--ɛ-->s
+    
+    
+    subgraph " "
+    ss--ɛ-->s
+    s(( ))-."r".-ss(( ))
+    end
+    
+    
+    
+    ss--ɛ-->ss5((( )))
+    
     ```
 
     
 
-  - 连接
-
-  - 选择 |
-
-  - 闭包 *
-
-  - 正闭包 +
-
   - 可选 ?
+
+    ```mermaid
+    flowchart LR
+    st(( ))--ɛ-->s
+    
+    subgraph " "
+    s(( ))-."r".-ss(( ))
+    end
+    
+    ss--ɛ-->ss5((( )))
+    st--ɛ-->ss5
+    ```
+
+    
 
 - 运算符优先级处理
 
@@ -71,6 +146,8 @@ trrrr-->显示生成Lexer代码
 
 
 ### NFA转DFA
+
+
 
 
 
@@ -84,4 +161,6 @@ start((开始))-->init(初始化)-->div(终态与非终态划分)-->for(遍历�
 if--是-->for
 if--否-->ediv(划分结束)--此时有最小化DFA-->p(处理DFA初态与终态)-->pfor(遍历DFA的所有节点)-->pffor(遍历节点的所有状态集)-->e[为最小DFA节点间构造边]
 ```
+
+### 由DFA生成Lexer源代码及源程序
 
