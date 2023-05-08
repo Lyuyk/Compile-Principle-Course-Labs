@@ -149,6 +149,13 @@ trrrr-->显示生成Lexer代码
 
 
 
+NFA转DFA求解流程如下示：
+
+```mermaid
+flowchart LR
+s((开始))-->初始化-->求解初态的ɛ闭包--加入初态到搜索队列中-->BFS后节点建立DFA-->ji'suan
+```
+
 
 
 ### 最小化DFA
