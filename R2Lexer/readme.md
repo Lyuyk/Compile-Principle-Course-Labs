@@ -2,7 +2,7 @@
 
 
 
-## Task 1 (TINY’s) Regex to Lexer
+# Task 1 (TINY’s) Regex to Lexer
 
    The system needs to provide an interface that allows the user to open a text file of all words in a language, convert the resulting lexical analysis program (which needs to be described in C) to compile an executable program from the source program requested above, and test it with a source program in that high-level programming language. A source program in this high-level programming language is tested and the word code of this source program is output. A window needs to be provided so that the user can view the word code.
 
@@ -32,6 +32,8 @@ trrrr-->显示生成Lexer代码
 ```
 
 
+
+## 项目实现
 
 ### 正则转NFA
 
