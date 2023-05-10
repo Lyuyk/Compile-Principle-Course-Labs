@@ -42,6 +42,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_2NFA,&QAction::triggered,this,&MainWindow::on_pushButton_2NFA_clicked);
     connect(ui->action_2DFA,&QAction::triggered,this,&MainWindow::on_pushButton_2DFA_clicked);
     connect(ui->action_mDFA,&QAction::triggered,this,&MainWindow::on_pushButton_mDFA_clicked);
+    connect(ui->action_Lexer,&QAction::triggered,this,&MainWindow::on_pushButton_Lexer_clicked);
 
     /*表格属性设置*/
     ui->tableWidget_NFA->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -54,6 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
     /*按键操作初始化*/
     ui->pushButton_2DFA->setDisabled(true);
     ui->pushButton_mDFA->setDisabled(true);
+    ui->pushButton_Lexer->setDisabled(true);
 
     /*一些参数的初始化*/
     regexStr="";
@@ -237,3 +239,9 @@ void MainWindow::on_pushButton_clearConsole_clicked()
     regexStr="";
 
 }
+
+void MainWindow::on_pushButton_Lexer_clicked()
+{
+
+}
+

@@ -62,81 +62,18 @@
       </font>
      </property>
      <property name="currentIndex">
-      <number>4</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
        <string>正则表达式</string>
       </attribute>
-      <widget class="QGroupBox" name="groupBox_4">
-       <property name="geometry">
-        <rect>
-         <x>650</x>
-         <y>150</y>
-         <width>131</width>
-         <height>131</height>
-        </rect>
-       </property>
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-         <pointsize>10</pointsize>
-         <stylestrategy>PreferAntialias</stylestrategy>
-        </font>
-       </property>
-       <property name="toolTip">
-        <string extracomment="打开正则表达式文件"/>
-       </property>
-       <property name="title">
-        <string>文件</string>
-       </property>
-       <widget class="QPushButton" name="pushButton_openRegexFile">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>40</y>
-          <width>111</width>
-          <height>31</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>微软雅黑</family>
-          <pointsize>10</pointsize>
-          <stylestrategy>PreferAntialias</stylestrategy>
-         </font>
-        </property>
-        <property name="text">
-         <string>打开</string>
-        </property>
-       </widget>
-       <widget class="QPushButton" name="pushButton_saveRegexToFile">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>90</y>
-          <width>111</width>
-          <height>31</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>微软雅黑</family>
-          <pointsize>10</pointsize>
-          <stylestrategy>PreferAntialias</stylestrategy>
-         </font>
-        </property>
-        <property name="text">
-         <string>保存</string>
-        </property>
-       </widget>
-      </widget>
       <widget class="QPlainTextEdit" name="plainTextEdit_Regex">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>10</y>
-         <width>631</width>
+         <width>781</width>
          <height>431</height>
         </rect>
        </property>
@@ -151,7 +88,8 @@
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string/>
+        <string>
+</string>
        </property>
       </widget>
      </widget>
@@ -234,9 +172,9 @@
     <property name="geometry">
      <rect>
       <x>860</x>
-      <y>210</y>
+      <y>250</y>
       <width>131</width>
-      <height>211</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="font">
@@ -266,7 +204,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Regex-&gt;NFA</string>
+      <string>正则转NFA</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_2DFA">
@@ -286,7 +224,7 @@
       </font>
      </property>
      <property name="text">
-      <string>NFA-&gt;DFA</string>
+      <string>NFA转DFA</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_mDFA">
@@ -306,14 +244,14 @@
       </font>
      </property>
      <property name="text">
-      <string>DFA-&gt;mDFA</string>
+      <string>最小化DFA</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_clearConsole">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
+       <y>220</y>
        <width>111</width>
        <height>31</height>
       </rect>
@@ -327,6 +265,26 @@
      </property>
      <property name="text">
       <string>复位</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_Lexer">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>160</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>微软雅黑</family>
+       <pointsize>10</pointsize>
+       <stylestrategy>PreferAntialias</stylestrategy>
+      </font>
+     </property>
+     <property name="text">
+      <string>生成Lexer</string>
      </property>
     </widget>
    </widget>
@@ -373,6 +331,69 @@
      </property>
     </widget>
    </widget>
+   <widget class="QGroupBox" name="groupBox_4">
+    <property name="geometry">
+     <rect>
+      <x>860</x>
+      <y>60</y>
+      <width>131</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+      <stylestrategy>PreferAntialias</stylestrategy>
+     </font>
+    </property>
+    <property name="toolTip">
+     <string extracomment="打开正则表达式文件"/>
+    </property>
+    <property name="title">
+     <string>文件</string>
+    </property>
+    <widget class="QPushButton" name="pushButton_openRegexFile">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>40</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>微软雅黑</family>
+       <pointsize>10</pointsize>
+       <stylestrategy>PreferAntialias</stylestrategy>
+      </font>
+     </property>
+     <property name="text">
+      <string>打开</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_saveRegexToFile">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>80</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>微软雅黑</family>
+       <pointsize>10</pointsize>
+       <stylestrategy>PreferAntialias</stylestrategy>
+      </font>
+     </property>
+     <property name="text">
+      <string>保存</string>
+     </property>
+    </widget>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
@@ -403,8 +424,8 @@
     <addaction name="action_2NFA"/>
     <addaction name="action_2DFA"/>
     <addaction name="action_mDFA"/>
-    <addaction name="actionLexer"/>
-    <addaction name="actiond"/>
+    <addaction name="action_Lexer"/>
+    <addaction name="action_runLexer"/>
    </widget>
    <widget class="QMenu" name="menu_3">
     <property name="title">
@@ -537,7 +558,7 @@
     <string>Ctrl+Shift+Q</string>
    </property>
   </action>
-  <action name="actionLexer">
+  <action name="action_Lexer">
    <property name="text">
     <string>生成词法分析程序</string>
    </property>
@@ -548,9 +569,15 @@
     </font>
    </property>
   </action>
-  <action name="actiond">
+  <action name="action_runLexer">
    <property name="text">
     <string>运行词法分析程序</string>
+   </property>
+   <property name="font">
+    <font>
+     <family>微软雅黑</family>
+     <pointsize>10</pointsize>
+    </font>
    </property>
   </action>
  </widget>

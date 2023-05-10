@@ -49,6 +49,8 @@ private slots:
 
     void on_pushButton_clearConsole_clicked();
 
+    void on_pushButton_Lexer_clicked();
+
 private:
     Ui::MainWindow *ui;
 
