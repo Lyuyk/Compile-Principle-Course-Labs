@@ -24,9 +24,9 @@
     <property name="geometry">
      <rect>
       <x>930</x>
-      <y>230</y>
+      <y>240</y>
       <width>321</width>
-      <height>471</height>
+      <height>461</height>
      </rect>
     </property>
     <property name="title">
@@ -38,7 +38,7 @@
        <x>10</x>
        <y>40</y>
        <width>301</width>
-       <height>381</height>
+       <height>371</height>
       </rect>
      </property>
      <property name="font">
@@ -55,7 +55,7 @@
      <property name="geometry">
       <rect>
        <x>200</x>
-       <y>430</y>
+       <y>420</y>
        <width>111</width>
        <height>31</height>
       </rect>
@@ -87,25 +87,12 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>1</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_edit">
       <attribute name="title">
        <string>文法编辑</string>
       </attribute>
-      <widget class="QPushButton" name="pushButton_open">
-       <property name="geometry">
-        <rect>
-         <x>750</x>
-         <y>200</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>打开</string>
-       </property>
-      </widget>
       <widget class="QPlainTextEdit" name="plainTextEdit_edit">
        <property name="geometry">
         <rect>
@@ -120,32 +107,6 @@
          <family>JetBrains Mono</family>
          <pointsize>10</pointsize>
         </font>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_save">
-       <property name="geometry">
-        <rect>
-         <x>750</x>
-         <y>260</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>保存</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_process">
-       <property name="geometry">
-        <rect>
-         <x>750</x>
-         <y>320</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>全部处理</string>
        </property>
       </widget>
       <widget class="QPushButton" name="pushButton_arrowChar">
@@ -200,17 +161,17 @@
         <string>快捷编辑：</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="pushButton_simplify">
+      <widget class="QPushButton" name="pushButton_process">
        <property name="geometry">
         <rect>
          <x>750</x>
-         <y>380</y>
+         <y>290</y>
          <width>111</width>
          <height>31</height>
         </rect>
        </property>
        <property name="text">
-        <string>化简</string>
+        <string>全部处理</string>
        </property>
       </widget>
      </widget>
@@ -223,7 +184,7 @@
         <rect>
          <x>10</x>
          <y>10</y>
-         <width>731</width>
+         <width>851</width>
          <height>581</height>
         </rect>
        </property>
@@ -235,58 +196,6 @@
        </property>
        <property name="readOnly">
         <bool>true</bool>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_check">
-       <property name="geometry">
-        <rect>
-         <x>750</x>
-         <y>300</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>文法检查</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_set">
-       <property name="geometry">
-        <rect>
-         <x>750</x>
-         <y>350</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>集合求解</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_eliminateLeftRecursion">
-       <property name="geometry">
-        <rect>
-         <x>750</x>
-         <y>180</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>消除左递归</string>
-       </property>
-      </widget>
-      <widget class="QPushButton" name="pushButton_eliminateLeftCommonFactor">
-       <property name="geometry">
-        <rect>
-         <x>750</x>
-         <y>230</y>
-         <width>111</width>
-         <height>31</height>
-        </rect>
-       </property>
-       <property name="text">
-        <string>消除左公因子</string>
        </property>
       </widget>
      </widget>
@@ -454,6 +363,36 @@
        </widget>
       </widget>
      </widget>
+     <widget class="QWidget" name="tab_LL1">
+      <attribute name="title">
+       <string>LL(1)分析表</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableWidget_LL1">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>851</width>
+         <height>591</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QWidget" name="tab_CST">
+      <attribute name="title">
+       <string>语法树</string>
+      </attribute>
+      <widget class="QTreeWidget" name="treeWidget_CST">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>851</width>
+         <height>591</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
      <widget class="QWidget" name="tab_DFA">
       <attribute name="title">
        <string>有穷自动机</string>
@@ -484,6 +423,162 @@
        </property>
       </widget>
      </widget>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_3">
+    <property name="geometry">
+     <rect>
+      <x>1080</x>
+      <y>10</y>
+      <width>171</width>
+      <height>231</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>操作3-7</string>
+    </property>
+    <widget class="QPushButton" name="pushButton_eliminateLeftCommonFactor">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>151</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>消除左公因子</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_check">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>70</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>文法检查</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_set">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>110</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>集合求解</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_LL1">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>150</y>
+       <width>151</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>生成LL(1)分析表</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_CST">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>190</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>语法分析</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_4">
+    <property name="geometry">
+     <rect>
+      <x>930</x>
+      <y>10</y>
+      <width>131</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>文法</string>
+    </property>
+    <widget class="QPushButton" name="pushButton_save">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>保存</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_open">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>打开</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QGroupBox" name="groupBox_5">
+    <property name="geometry">
+     <rect>
+      <x>930</x>
+      <y>120</y>
+      <width>131</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="title">
+     <string>操作1-2</string>
+    </property>
+    <widget class="QPushButton" name="pushButton_simplify">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>文法化简</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="pushButton_eliminateLeftRecursion">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>111</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>消除左递归</string>
+     </property>
     </widget>
    </widget>
   </widget>
