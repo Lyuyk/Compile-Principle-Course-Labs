@@ -53,7 +53,7 @@ public:
     //边结构体
     struct Edge
     {
-        QChar input;//弧上的值
+        QChar value;//弧上的值
         int toState;//指向的状态号
     };
 

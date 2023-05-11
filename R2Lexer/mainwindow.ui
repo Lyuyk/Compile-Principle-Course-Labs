@@ -62,7 +62,7 @@
       </font>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
@@ -79,8 +79,8 @@
        </property>
        <property name="font">
         <font>
-         <family>Courier New</family>
-         <pointsize>9</pointsize>
+         <family>JetBrains Mono</family>
+         <pointsize>10</pointsize>
          <stylestrategy>PreferAntialias</stylestrategy>
         </font>
        </property>
@@ -88,8 +88,10 @@
         <bool>true</bool>
        </property>
        <property name="plainText">
-        <string>
-</string>
+        <string/>
+       </property>
+       <property name="placeholderText">
+        <string>打开的正则表达式将在此处显示</string>
        </property>
       </widget>
      </widget>
@@ -106,6 +108,13 @@
          <height>431</height>
         </rect>
        </property>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono</family>
+         <pointsize>10</pointsize>
+         <stylestrategy>PreferAntialias</stylestrategy>
+        </font>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_2">
@@ -121,6 +130,13 @@
          <height>431</height>
         </rect>
        </property>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono</family>
+         <pointsize>10</pointsize>
+         <stylestrategy>PreferAntialias</stylestrategy>
+        </font>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_3">
@@ -135,6 +151,13 @@
          <width>781</width>
          <height>431</height>
         </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono</family>
+         <pointsize>10</pointsize>
+         <stylestrategy>PreferAntialias</stylestrategy>
+        </font>
        </property>
       </widget>
      </widget>
@@ -154,7 +177,7 @@
        <property name="font">
         <font>
          <family>JetBrains Mono</family>
-         <pointsize>9</pointsize>
+         <pointsize>10</pointsize>
          <stylestrategy>PreferAntialias</stylestrategy>
         </font>
        </property>
@@ -203,6 +226,9 @@
        <stylestrategy>PreferAntialias</stylestrategy>
       </font>
      </property>
+     <property name="toolTip">
+      <string>将正则表达式转换为NFA</string>
+     </property>
      <property name="text">
       <string>正则转NFA</string>
      </property>
@@ -243,6 +269,9 @@
        <stylestrategy>PreferAntialias</stylestrategy>
       </font>
      </property>
+     <property name="toolTip">
+      <string>将DFA最小化</string>
+     </property>
      <property name="text">
       <string>最小化DFA</string>
      </property>
@@ -263,6 +292,9 @@
        <stylestrategy>PreferAntialias</stylestrategy>
       </font>
      </property>
+     <property name="toolTip">
+      <string>将所有状态复原以重新开始下一个转换</string>
+     </property>
      <property name="text">
       <string>复位</string>
      </property>
@@ -282,6 +314,9 @@
        <pointsize>10</pointsize>
        <stylestrategy>PreferAntialias</stylestrategy>
       </font>
+     </property>
+     <property name="toolTip">
+      <string>生成词法分析程序</string>
      </property>
      <property name="text">
       <string>生成Lexer</string>
@@ -369,6 +404,9 @@
        <stylestrategy>PreferAntialias</stylestrategy>
       </font>
      </property>
+     <property name="toolTip">
+      <string>打开正则表达式文件</string>
+     </property>
      <property name="text">
       <string>打开</string>
      </property>
@@ -388,6 +426,9 @@
        <pointsize>10</pointsize>
        <stylestrategy>PreferAntialias</stylestrategy>
       </font>
+     </property>
+     <property name="toolTip">
+      <string>保存正则表达式到文件中</string>
      </property>
      <property name="text">
       <string>保存</string>
@@ -567,6 +608,9 @@
      <family>微软雅黑</family>
      <pointsize>10</pointsize>
     </font>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+L</string>
    </property>
   </action>
   <action name="action_runLexer">
