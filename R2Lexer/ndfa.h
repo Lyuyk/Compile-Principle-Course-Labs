@@ -126,10 +126,6 @@ private:
     DFANode mDFANodeArr[ARR_MAX_NUM];//mDFA状态数组
     DFANode DFAStateArr[ARR_MAX_NUM];//DFA状态数组
 
-    QSet<NFANode> NFASet;
-    QSet<DFANode> DFASet;
-    QSet<DFANode> mDFASet;
-
     NFAGraph NFAG;//NFA图
     DFAGraph DFAG;//NFA转换得的DFA图
     DFAGraph mDFAG;//最小化的DFA图
@@ -138,11 +134,6 @@ private:
     int DFAStateNum;//DFA状态计数
     int mDFAStateNum;//mDFA状态计数，亦是划分出来的集合数
 
-    QMap<int, QChar> i2cMap;
-    QMap<QChar, int> c2iMap;
-
-    QMap<int, QString> i2sMap;
-    QMap<QString, int> s2iMap;
 };
 
 
