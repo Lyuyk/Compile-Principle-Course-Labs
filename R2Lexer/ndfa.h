@@ -27,38 +27,37 @@
 
 #include<set>
 
-#define ARR_MAX_NUM 256 //定义存储节点数组大小上限
+#define ARR_MAX_NUM 512 //定义存储节点数组大小上限
 #define DFA_NODE_EDGE_COUNT 16 //定义DFA节点的边数上限
 
 class NDFA
 {
 
 public:
+    //NFA节点结构体
     struct NFANode
     {
         int stateNum;//当前NFA节点状态（号）
         int tState;//通过非epsilon边转换到的状态号
         QChar val;//非epsilon的NFA状态弧上的值
         QSet<int> epsToSet;//状态号集合，即当前状态通过epsilon边转移到的状态的 状态号集合
-
-        //bool isEpsilon;//是否epsilon边
-        //QSet<NFANode*> eNUnion;//状态号节点集合，即当前状态通过epsilon边转移到的状态的 状态号集合
-        //bool isEnd;//是否终态
-        //QMap<QChar, NFANode*> tMap;//状态转换表，即通过非epsilon边转换到的状态的 转换表
     };
 
+    //NFA子图结构体
     struct NFAGraph
     {
         NFANode* startNode;//NFA头指针
         NFANode* endNode;//NFA尾指针
     };
 
+    //边结构体
     struct Edge
     {
         QChar input;//弧上的值
         int toState;//指向的状态号
     };
 
+    //DFA节点结构体
     struct DFANode
     {
         int stateNum;//DFA状态号
@@ -69,15 +68,17 @@ public:
 
     };
 
+    //DFA子图结构体
     struct DFAGraph
     {
         int startState;//DFA的初态
         QSet<int> endStates;//DFA的终态集合
         QSet<QChar> endCharSet;//DFA的终结符号集合
         int tranArr[ARR_MAX_NUM][26];//DFA的转移矩阵
-        QMap<QString,QString> transArr;//DFA状态转移矩阵
+        QMap<QString,QString> transMap;//DFA状态转移矩阵
     };
 
+    //状态集结构体
     struct stateSet
     {
         QSet<int> DFAStateSet;//该状态集合的集合 包含的状态集合标号
@@ -98,7 +99,7 @@ public:
     void insert(QString &s, int n, QChar ch);
     int priority(QChar ch);//正则表达式优先级判定
     QString in2Suffix(QString s);//中缀表达式转换为后缀表达式
-    QString preProcess(QString &S);//预处理
+    QString preProcess(QString str);//预处理
 
     NFAGraph createNFA(int sum);//新建一个NFA节点
     NFAGraph createNFA(QChar start, QChar end);//建立一个NFA节点

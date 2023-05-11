@@ -258,6 +258,13 @@ void NDFA::printMDFA(QTableWidget *table)
     }
 }
 
+/**
+ * @brief NDFA::insert
+ * @param s
+ * @param n
+ * @param ch
+ * 在字符串s的n下标插入新字符ch
+ */
 void NDFA::insert(QString &s, int n, QChar ch)
 {
     s += '#';
@@ -270,9 +277,16 @@ void NDFA::insert(QString &s, int n, QChar ch)
     s[n] = ch;
 }
 
-QString NDFA::preProcess(QString &s)
+/**
+ * @brief NDFA::preProcess
+ * @param str
+ * @return s
+ * 正则表达式增加对连接操作识别的预处理，对源字符串str返回处理后的的字符串s
+ */
+QString NDFA::preProcess(QString str)
 {
-    int i = 0 , length = s.size();
+    int i = 0 , length = str.size();
+    QString s=str;
 
     while(i < length)
     {
@@ -280,18 +294,14 @@ QString NDFA::preProcess(QString &s)
         {
             if((s[i + 1].isLower()) || s[i + 1] == '(')
             {
-
-                insert(s, i+1 , '&');
+                s=s.insert(i+1,'&');
+                //insert(s, i+1 , '&');
                 length ++;
             }
         }
         i++;
     }
-}
-
-NDFA::NFAGraph NDFA::createNFA(int sum)
-{
-
+    return s;
 }
 
 int NDFA::priority(QChar ch)
@@ -411,6 +421,7 @@ QString NDFA::in2Suffix(QString s)
  */
 NDFA::NFAGraph NDFA::strToNfa(QString s)
 {
+    s=preProcess(s);
     //存NFA的栈
     QStack<NFAGraph> NfaStack;
     //符号栈
@@ -541,6 +552,22 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
     return NfaStack.top();
 }
 
+/**
+ * @brief NDFA::createNFA
+ * @param stateN
+ * @return n
+ * 建立一个初始化的NFA子图，包含开始和结尾两NFA节点
+ */
+NDFA::NFAGraph NDFA::createNFA(int stateN)
+{
+    NFAGraph n;
+
+    n.startNode=&NFAStateArr[stateN];
+    n.endNode=&NFAStateArr[stateN+1];
+
+    return n;
+}
+
 NDFA::NFAGraph NDFA::createNFA(QChar start,QChar end)
 {
     NFAGraph n;
@@ -567,6 +594,7 @@ NDFA::NFAGraph NDFA::createNFA(int start, int end)
  * @param n2
  * @param ch
  * n1--ch-->n2
+ * NFA节点n1与n2间添加一条非epsilon边，操作符为ch
  */
 void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QChar ch)
 {
@@ -579,6 +607,7 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QChar ch)
  * @param n1
  * @param n2
  * n1--eps->n2
+ * NFA节点n1与n2间添加一条epsilon边，信息记录于n1节点中
  */
 void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2)
 {
