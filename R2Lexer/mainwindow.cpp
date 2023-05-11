@@ -125,64 +125,7 @@ void MainWindow::on_pushButton_2NFA_clicked()
     regexStr=ui->plainTextEdit_Regex->toPlainText();//home
     NDFAG.strToNfa(NDFAG.in2Suffix(regexStr));
 
-//====================================================
-//    int rowCount=NFAStateNum;//记录NFA状态数
-//    int epsColN=OpCharSet.size()+1;//最后一列 epsilon 列号
-//    int colCount=OpCharSet.size()+3;
-//    QStringList OpStrList=OpCharSet.values();
-//    std::sort(OpStrList.begin(),OpStrList.end());
-//    OpStrList.push_front("状态号");
-//    OpStrList.push_back("epsilon");
-//    OpStrList.push_back("初/终态");
-
-//    //ui->plainTextEdit_console->insertPlainText("NFA states' count:"+QString::number(NFAStateNum)+'\n');
-//    //ui->plainTextEdit_console->insertPlainText("Operators' count:"+QString::number(OpCharSet.size())+'\n');
-
-//    qDebug()<<OpStrList;
-//    ui->tableWidget_NFA->setRowCount(rowCount);
-//    ui->tableWidget_NFA->setColumnCount(colCount);
-//    /*设置表头 行*/
-//    ui->tableWidget_NFA->setHorizontalHeaderLabels(OpStrList);
-//    /*设置表头 列*/
-//    for(int row=0;row<rowCount;row++)
-//    {
-//        //状态号
-//        ui->tableWidget_NFA->setItem(row,0,new QTableWidgetItem(QString::number(row)));
-//        //epsilon转换集合
-//        QString epsSetStr="";
-//        QSet<int>::iterator it;
-//        for(it=NFAStateArr[row].eSUnion.begin();it!=NFAStateArr[row].eSUnion.end();it++)
-//        {
-//            epsSetStr+=QString::number(*it)+",";
-//        }
-//        ui->tableWidget_NFA->setItem(row,epsColN,new QTableWidgetItem(epsSetStr));
-//        qDebug()<<NFAStateArr[row].eSUnion;
-//        qDebug()<<"eps"+epsSetStr;
-
-//        //非epsilon转换
-//        int colN=OpStrList.indexOf(NFAStateArr[row].val);
-//        //qDebug()<<colN;
-//        if(colN != -1)
-//        {
-//            ui->tableWidget_NFA->setItem(row,colN,new QTableWidgetItem(QString::number(NFAStateArr[row].tState)));
-//        }
-
-//        if(NFAStateArr[row].stateNum==NFAG.startNode->stateNum)
-//        {
-//            ui->tableWidget_NFA->setItem(row,epsColN+1,new QTableWidgetItem("初态"));
-//        }
-
-//        if(NFAStateArr[row].stateNum==NFAG.endNode->stateNum)
-//        {
-//            ui->tableWidget_NFA->setItem(row,epsColN+1,new QTableWidgetItem("终态"));
-//        }
-
-
-//        //控制台输出
-//        //ui->plainTextEdit_console->insertPlainText(QString::number(row)+'\n');
-//    }
-
-    NDFAG.printDFA(ui->tableWidget_NFA);
+    NDFAG.printNFA(ui->tableWidget_NFA);
 
     ui->pushButton_2DFA->setEnabled(true);//完成转换工作后可以允许NFA到DFA的转换工作
 }
