@@ -747,7 +747,7 @@ void NDFA::NFA2DFA()
 //            DFAG.endCharSet.insert(t->at(0).toLatin1());
 //        }
 //    }
-    for(const auto &ch: OpCharSet)
+    for(const auto &ch: qAsConst(OpCharSet))
     {
         if(ch.at(0).isLetter())
         {
@@ -1019,7 +1019,8 @@ void NDFA::DFA2mDFA()
 QString NDFA::mDFA2Lexer()
 {
     QString Lexer="#include<iostream>"
-                  "using namesapce std;";
+                  "using namesapce std;"
+                  "int main(){";
 
     return Lexer;
 }
