@@ -680,6 +680,13 @@ QSet<int> NDFA::move_e_cloure(QSet<int> s, QChar ch)
     return eMoveSet;
 }
 
+/**
+ * @brief NDFA::isEnd
+ * @param n
+ * @param s
+ * @return End flag
+ * 返回该状态集是否包含终态的判断结果，是则返回true，否则返回false
+ */
 bool NDFA::isEnd(NDFA::NFAGraph n, QSet<int> s)
 {
     for(const auto &it: s)/*遍历该状态所包含的NFA状态集*/
@@ -711,24 +718,40 @@ int NDFA::findSetNum(int count, int n)
     return -2;
 }
 
+/**
+ * @brief NDFA::reg2NFA
+ * @param regStr
+ * 将正则表达式转换为NFA的主函数
+ */
 void NDFA::reg2NFA(QString regStr)
 {
     QString suffixReg=in2Suffix(regStr);
     NFAG=strToNfa(suffixReg);
 }
 
+/**
+ * @brief NDFA::NFA2DFA
+ * 将NFA转换为DFA的主函数
+ */
 void NDFA::NFA2DFA()
 {
     QSet<QSet<int>> EStatesSet;
 
     memset(DFAG.tranArr,-1,sizeof(DFAG.tranArr));
 
-    QSet<QString>::iterator t;
-    for(t=OpCharSet.begin();t!=OpCharSet.end();t++)
+//    QSet<QString>::iterator t;
+//    for(t=OpCharSet.begin();t!=OpCharSet.end();t++)
+//    {
+//        if(t->at(0).toLatin1()>='a' && t->at(0).toLatin1()<='z')//check***改全部字符
+//        {
+//            DFAG.endCharSet.insert(t->at(0).toLatin1());
+//        }
+//    }
+    for(const auto &ch: OpCharSet)
     {
-        if(t->at(0).toLatin1()>='a' && t->at(0).toLatin1()<='z')//check***改全部字符
+        if(ch.at(0).isLetter())
         {
-            DFAG.endCharSet.insert(t->at(0).toLatin1());
+            DFAG.endCharSet.insert(ch.at(0));
         }
     }
     qDebug()<<DFAG.endCharSet;
