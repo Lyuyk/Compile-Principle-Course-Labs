@@ -19,54 +19,13 @@
 
 NDFA::NDFA()
 {
-    NFAStateNum=0;//状态创建计数
-    DFAStateNum=0;
-    mDFAStateNum=0;
-    OpCharSet.clear();
-    dividedSet->clear();
-
-    NFAG.startNode=NULL;
-    NFAG.endNode=NULL;
-    DFAG.endCharSet.clear();
-    DFAG.endStates.clear();
-    mDFAG.endCharSet.clear();
-    mDFAG.endStates.clear();
-
-    for(int i=0;i<ARR_MAX_NUM;i++)
-    {
-        NFAStateArr[i].stateNum=i;
-        NFAStateArr[i].val='#';
-        NFAStateArr[i].tState=-1;
-        NFAStateArr[i].epsToSet.clear();
-    }
-    for(int i=0;i<ARR_MAX_NUM;i++)
-    {
-        DFAStateArr[i].stateNum=i;
-        DFAStateArr[i].isEnd=false;
-        DFAStateArr[i].edgeCount=0;
-        DFAStateArr[i].em_closure_NFA.clear();
-
-        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
-        {
-            DFAStateArr[i].edges[j].value='#';
-            DFAStateArr[i].edges[j].toState=-1;
-        }
-    }
-    for(int i=0;i<ARR_MAX_NUM;i++)
-    {
-        mDFANodeArr[i].stateNum=i;
-        mDFANodeArr[i].isEnd=false;
-        mDFANodeArr[i].edgeCount=0;
-        mDFANodeArr[i].em_closure_NFA.clear();
-
-        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
-        {
-            mDFANodeArr[i].edges[j].value='#';
-            mDFANodeArr[i].edges[j].toState=-1;
-        }
-    }
+    init();
 }
 
+/**
+ * @brief NDFA::init
+ * 类初始化函数
+ */
 void NDFA::init()
 {
     NFAStateNum=0;//状态创建计数
@@ -82,7 +41,7 @@ void NDFA::init()
     mDFAG.endCharSet.clear();
     mDFAG.endStates.clear();
 
-    for(int i=0;i< ARR_MAX_NUM;i++)
+    for(int i=0;i<ARR_MAX_NUM;i++)
     {
         NFAStateArr[i].stateNum=i;
         NFAStateArr[i].val='#';
@@ -149,13 +108,15 @@ void NDFA::printNFA(QTableWidget *table)
         {
             epsSetStr+=QString::number(*it)+",";
         }
-        table->setItem(row,epsColN,new QTableWidgetItem(epsSetStr));
-        qDebug()<<"eSUnion:"<<NFAStateArr[row].epsToSet;
-        qDebug()<<"epsSetStr:"+epsSetStr;
+        epsSetStr.chop(1);//去掉末尾逗号
+        table->setItem(row,epsColN,new QTableWidgetItem(epsSetStr.left(1)));
+
+//        qDebug()<<"eSUnion:"<<NFAStateArr[row].epsToSet;
+//        qDebug()<<"epsSetStr:"+epsSetStr;
 
         //非epsilon转换
         int colN=OpStrList.indexOf(NFAStateArr[row].val);
-        //qDebug()<<colN;
+
         if(colN != -1)
         {
             table->setItem(row,colN,new QTableWidgetItem(QString::number(NFAStateArr[row].tState)));
@@ -173,10 +134,6 @@ void NDFA::printNFA(QTableWidget *table)
         {
             table->setItem(row,epsColN+1,new QTableWidgetItem("终态"));
         }
-
-
-        //控制台输出
-        //ui->plainTextEdit_console->insertPlainText(QString::number(row)+'\n');
     }
 }
 
@@ -937,14 +894,10 @@ void NDFA::DFA2mDFA()
                     //为每个划分创建新的DFA状态
                     for(int j=1;j<cacheSetNum;j++)
                     {
-                        QSet<int>::iterator it;
-//                        qDebug()<<tmpStSet[j].DFAStateSet;
-                        for(it=tmpStSet[j].DFAStateSet.begin();it!=tmpStSet[j].DFAStateSet.end();it++)
+                        for(const auto &it: tmpStSet[j].DFAStateSet)
                         {
-                            //int tmp=*it;
-                            dividedSet[i]-={*it};
-                            //dividedSet[i].erase(it);//这一句直接报错非法下标，不清楚原因
-                            dividedSet[mDFAStateNum].insert(*it);
+                            dividedSet[i]-={it};//dividedSet[i].erase(it);//这一句直接报错非法下标，原因：it为const型无该函数重载
+                            dividedSet[mDFAStateNum].insert(it);
                         }
                         mDFAStateNum++;//最小化DFA状态总数增加
                     }
@@ -963,32 +916,33 @@ void NDFA::DFA2mDFA()
     for(int i=0;i<mDFAStateNum;i++)
     {
         QSet<int>::iterator itr;
-        for(itr=dividedSet[i].begin();itr!=dividedSet[i].end();itr++)//遍历集合中的每一个元素
+        for(const auto &itr: dividedSet[i])//遍历集合中的每一个元素
         {
             //若当前状态为DFA的初态，则该最小化DFA状态亦为初态
-            if(*itr==DFAG.startState)
+            if(itr==DFAG.startState)
             {
                 mDFAG.startState=i;
             }
 
-            if(DFAG.endStates.contains(*itr))
+            if(DFAG.endStates.contains(itr))
             {
                 mDFANodeArr[i].isEnd=true;
                 mDFAG.endStates.insert(i);
             }
 
             //遍历该DFA状态的每条弧，为最小化DFA创建弧
-            for(int j=0;j<DFAStateArr[*itr].edgeCount;j++)
+            for(int j=0;j<DFAStateArr[itr].edgeCount;j++)
             {
                 //遍历划分好的状态集合，找出该弧转移到的状态现在属于哪个集合
                 for(int t=0;t<mDFAStateNum;t++)
                 {
-                    if(dividedSet[t].contains(DFAStateArr[*itr].edges[j].toState))
+                    if(dividedSet[t].contains(DFAStateArr[itr].edges[j].toState))
                     {
                         bool hadEdge=false;
                         for(int l=0;l<mDFANodeArr[i].edgeCount;l++)
                         {
-                            if((mDFANodeArr[i].edges[l].value==DFAStateArr[*itr].edges[j].value)&&(mDFANodeArr[i].edges[l].toState==t))
+                            if((mDFANodeArr[i].edges[l].value==DFAStateArr[itr].edges[j].value)
+                                    &&(mDFANodeArr[i].edges[l].toState==t))
                             {
                                 hadEdge=true;//标志为真
                             }
@@ -996,10 +950,10 @@ void NDFA::DFA2mDFA()
 
                         if(!hadEdge)//若该弧不存在，则创建一条新的弧
                         {
-                            mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].value=DFAStateArr[*itr].edges[j].value;
+                            mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].value=DFAStateArr[itr].edges[j].value;
                             mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].toState=t;//该弧转移到的状态为这个状态集合的标号
 
-                            mDFAG.tranArr[i][DFAStateArr[*itr].edges[j].value.toLatin1()-'a']=t; //更新转移矩阵
+                            mDFAG.tranArr[i][DFAStateArr[itr].edges[j].value.toLatin1()-'a']=t; //更新转移矩阵
 
                             mDFANodeArr[i].edgeCount++; //该状态的弧的计数增加
                         }

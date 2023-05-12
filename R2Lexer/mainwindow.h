@@ -52,6 +52,9 @@ private slots:
     void on_pushButton_Lexer_clicked();
 
 private:
+    void printConsole(QString str);
+
+private:    
     Ui::MainWindow *ui;
 
     QString regexStr;//正则表达式字符串
