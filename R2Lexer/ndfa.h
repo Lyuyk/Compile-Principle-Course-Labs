@@ -89,21 +89,21 @@ public:
     NDFA();
     void init();//初始化类
 
-    NFAGraph strToNfa(QString s);
+    NFAGraph strToNfa(QString s);//将正则表达式转换为NFA
 
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
     void printMDFA(QTableWidget *table);//输出mDFA状态转换表
 
 public:
-    void insert(QString &s, int n, QChar ch);
+    void insert(QString &s, int n, QChar ch);//实现的字符串插入函数，使用
     int priority(QChar ch);//正则表达式优先级判定
     QString in2Suffix(QString s);//中缀表达式转换为后缀表达式
     QString preProcess(QString str);//预处理
 
-    NFAGraph createNFA(int sum);//新建一个NFA节点
-    NFAGraph createNFA(QChar start, QChar end);//建立一个NFA节点
-    NFAGraph createNFA(int start,int end);//建立一个从
+    NFAGraph createNFA(int sum);//按顺序新建一个NFA子图
+    NFAGraph createNFA(QChar start, QChar end);//建立一个NFA子图
+    NFAGraph createNFA(int start,int end);//建立一个从start状态到end状态的NFA子图
     void add(NFANode *n1, NFANode *n2, QChar ch);//n1、n2节点间添加非eps边
     void add(NFANode *n1, NFANode *n2);//n1、n2节点间添加eps边
 
@@ -112,14 +112,15 @@ public:
     bool isEnd(NFAGraph n, QSet<int> s);
     int findSetNum(int count, int n);
 
-    void reg2NFA();//正则表达式转换位NFA
+    void reg2NFA(QString regStr);//正则表达式转换位NFA
     void NFA2DFA();//NFA转换为DFA
     void DFA2mDFA();//DFA的最小化
+    QString mDFA2Lexer();//最小化DFA生成Lexer
 
 private:
     QSet<QString> reserveWords;//保留字集合
-
     QSet<QString> OpCharSet;//操作符集合
+
     QSet<int> dividedSet[ARR_MAX_NUM]; //划分出来的集合数组（最小化DFA时用到的）
 
     NFANode NFAStateArr[ARR_MAX_NUM];//NFA状态数组

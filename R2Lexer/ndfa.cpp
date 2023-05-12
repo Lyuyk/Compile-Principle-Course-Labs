@@ -119,6 +119,7 @@ void NDFA::init()
 
 void NDFA::printNFA(QTableWidget *table)
 {
+    qDebug()<<"printNFA";
     int rowCount=NFAStateNum;//记录NFA状态数
     int epsColN=OpCharSet.size()+1;//最后一列 epsilon 列号
     int colCount=OpCharSet.size()+3;
@@ -140,7 +141,7 @@ void NDFA::printNFA(QTableWidget *table)
     for(int row=0;row<rowCount;row++)
     {
         //状态号
-        table->setItem(row,0,new QTableWidgetItem(i2cMap[row]));
+        table->setItem(row,0,new QTableWidgetItem(QString::number(row)));
         //epsilon转换集合
         QString epsSetStr="";
         QSet<int>::iterator it;
@@ -149,8 +150,8 @@ void NDFA::printNFA(QTableWidget *table)
             epsSetStr+=QString::number(*it)+",";
         }
         table->setItem(row,epsColN,new QTableWidgetItem(epsSetStr));
-        qDebug()<<"NFAStateArr[row].eSUnion:"<<NFAStateArr[row].epsToSet;
-        qDebug()<<"eps"+epsSetStr;
+        qDebug()<<"eSUnion:"<<NFAStateArr[row].epsToSet;
+        qDebug()<<"epsSetStr:"+epsSetStr;
 
         //非epsilon转换
         int colN=OpStrList.indexOf(NFAStateArr[row].val);
@@ -159,6 +160,9 @@ void NDFA::printNFA(QTableWidget *table)
         {
             table->setItem(row,colN,new QTableWidgetItem(QString::number(NFAStateArr[row].tState)));
         }
+
+        qDebug()<<NFAStateArr[row].stateNum;
+        qDebug()<<NFAG.startNode->stateNum;
 
         if(NFAStateArr[row].stateNum==NFAG.startNode->stateNum)
         {
@@ -410,6 +414,7 @@ QString NDFA::in2Suffix(QString s)
         str += ch;
     }
 
+    qDebug()<<"suffix:"<<str;
     return str;
 
 }
@@ -422,6 +427,7 @@ QString NDFA::in2Suffix(QString s)
  */
 NDFA::NFAGraph NDFA::strToNfa(QString s)
 {
+    qDebug()<<"strToNfa:"<<s;
     //s=preProcess(s);
     //存NFA的栈
     QStack<NFAGraph> NfaStack;
@@ -573,8 +579,8 @@ NDFA::NFAGraph NDFA::createNFA(QChar start,QChar end)
 {
     NFAGraph n;
 
-    n.startNode = &NFAStateArr[c2iMap[start]];
-    n.endNode = &NFAStateArr[c2iMap[end]];
+//    n.startNode = &NFAStateArr[c2iMap[start]];
+//    n.endNode = &NFAStateArr[c2iMap[end]];
 
     return n;
 }
@@ -613,6 +619,7 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QChar ch)
 void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2)
 {
     n1->epsToSet.insert(n2->stateNum);
+    qDebug()<<n2->stateNum<<"fk";
 }
 
 
@@ -702,6 +709,12 @@ int NDFA::findSetNum(int count, int n)
         }
     }
     return -2;
+}
+
+void NDFA::reg2NFA(QString regStr)
+{
+    QString suffixReg=in2Suffix(regStr);
+    NFAG=strToNfa(suffixReg);
 }
 
 void NDFA::NFA2DFA()
@@ -973,4 +986,17 @@ void NDFA::DFA2mDFA()
             }
         }
     }
+}
+
+/**
+ * @brief NDFA::mDFA2Lexer
+ * @return Lexer
+ * 根据最小化DFA，生成词法分析程序C语言代码，返回代码字符串
+ */
+QString NDFA::mDFA2Lexer()
+{
+    QString Lexer="#include<iostream>"
+                  "using namesapce std;";
+
+    return Lexer;
 }

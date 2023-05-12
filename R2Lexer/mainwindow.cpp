@@ -122,14 +122,15 @@ void MainWindow::on_pushButton_saveRegexToFile_clicked()
 
 void MainWindow::on_pushButton_2NFA_clicked()
 {
-    regexStr=ui->plainTextEdit_Regex->toPlainText();//home
-    NDFAG.strToNfa(NDFAG.in2Suffix(regexStr));
+    regexStr=ui->plainTextEdit_Regex->toPlainText().trimmed();//获取正则表达式
 
-    NDFAG.printNFA(ui->tableWidget_NFA);
+    NDFAG.reg2NFA(regexStr);//调用转换函数
 
+    NDFAG.printNFA(ui->tableWidget_NFA);//显示
+
+    ui->tabWidget_Graph->setCurrentIndex(1);//设置
     ui->pushButton_2DFA->setEnabled(true);//完成转换工作后可以允许NFA到DFA的转换工作
 }
-
 
 
 void MainWindow::on_pushButton_2DFA_clicked()
@@ -138,6 +139,7 @@ void MainWindow::on_pushButton_2DFA_clicked()
 
     /*======================显示处理========================*/
 
+    ui->tabWidget_Graph->setCurrentIndex(2);
     NDFAG.printDFA(ui->tableWidget_DFA);
 
     /*======================交互界面处理========================*/
@@ -159,8 +161,23 @@ void MainWindow::on_pushButton_mDFA_clicked()
     NDFAG.printMDFA(ui->tableWidget_mDFA);
 
     //切换表格
-    ui->tabWidget_Graph->setCurrentIndex(2);
+    ui->tabWidget_Graph->setCurrentIndex(3);
 
+    /*======================交互界面处理========================*/
+
+    ui->pushButton_Lexer->setEnabled(true);
+}
+
+void MainWindow::on_pushButton_Lexer_clicked()
+{
+    QString LexerStr=NDFAG.mDFA2Lexer();
+
+    /*==========显示处理=================*/
+
+    //切换表格
+    ui->tabWidget_Graph->setCurrentIndex(4);
+    //显示词法分析程序
+    ui->plainTextEdit_Lexer->setPlainText(LexerStr);
 }
 
 void MainWindow::on_pushButton_clearConsole_clicked()
@@ -177,14 +194,12 @@ void MainWindow::on_pushButton_clearConsole_clicked()
     ui->pushButton_2NFA->setEnabled(true);
     ui->pushButton_2DFA->setDisabled(true);
     ui->pushButton_mDFA->setDisabled(true);
+    ui->pushButton_Lexer->setDisabled(true);
 
     /*一些参数的初始化*/
     regexStr="";
-
+    NDFAG.init();
 }
 
-void MainWindow::on_pushButton_Lexer_clicked()
-{
 
-}
 
