@@ -38,7 +38,7 @@ public:
     struct NFANode
     {
         int stateNum;//当前NFA节点状态（号）
-        int tState;//通过非epsilon边转换到的状态号
+        int toState;//通过非epsilon边转换到的状态号
         QChar val;//非epsilon的NFA状态弧上的值
         QSet<int> epsToSet;//状态号集合，即当前状态通过epsilon边转移到的状态的 状态号集合
     };
@@ -65,6 +65,9 @@ public:
         QSet<int> em_closure_NFA;//NFA的ε-move()闭包
         Edge edges[DFA_NODE_EDGE_COUNT];//DFA状态上射出的弧/边
         bool isEnd;//是否终态
+
+        QSet<int> NFANodeSet;//存储当前DFA节点包含的NFA节点序号
+        QMap<QString, int> DFAEdgeMap;//存储当前DFA节点
 
     };
 

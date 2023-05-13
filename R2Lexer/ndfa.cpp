@@ -45,7 +45,7 @@ void NDFA::init()
     {
         NFAStateArr[i].stateNum=i;
         NFAStateArr[i].val='#';
-        NFAStateArr[i].tState=-1;
+        NFAStateArr[i].toState=-1;
         NFAStateArr[i].epsToSet.clear();
     }
     for(int i=0;i<ARR_MAX_NUM;i++)
@@ -119,7 +119,7 @@ void NDFA::printNFA(QTableWidget *table)
 
         if(colN != -1)
         {
-            table->setItem(row,colN,new QTableWidgetItem(QString::number(NFAStateArr[row].tState)));
+            table->setItem(row,colN,new QTableWidgetItem(QString::number(NFAStateArr[row].toState)));
         }
 
         qDebug()<<NFAStateArr[row].stateNum;
@@ -391,29 +391,6 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
     //符号栈
     QStack<QChar> charStack;
 
-//    for(int i=0;i<s.size();i++)
-//    {
-//        QChar cur=s.at(i);
-//        if(cur.isLower())//操作数
-//        {
-//            OpCharSet.insert(cur);
-//            NFAGraph n=createNFA(NFAStateNum);
-//            NFAStateNum+=2;
-
-//            add(n.startNode, n.endNode, cur);
-
-//            NfaStack.push(n);
-//        }
-//        else if(cur=='(')
-//        {
-//            charStack.push(cur);
-//        }
-//        else if(cur=='*')
-//        {
-
-//        }
-//    }
-
     for(int i = 0; i < s.size(); i++)
     {
         //操作数的处理
@@ -563,7 +540,7 @@ NDFA::NFAGraph NDFA::createNFA(int start, int end)
 void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QChar ch)
 {
     n1->val = ch;
-    n1->tState = n2->stateNum;
+    n1->toState = n2->stateNum;
 }
 
 /**
@@ -629,7 +606,7 @@ QSet<int> NDFA::move_e_cloure(QSet<int> s, QChar ch)
     {
         if(NFAStateArr[it].val==ch)//遍历当前集合s中的每一个元素
         {
-            eMoveSet.insert(NFAStateArr[it].tState);//若对应转换弧上的值与ch相同
+            eMoveSet.insert(NFAStateArr[it].toState);//若对应转换弧上的值与ch相同
         }
     }
 
@@ -696,14 +673,6 @@ void NDFA::NFA2DFA()
 
     memset(DFAG.tranArr,-1,sizeof(DFAG.tranArr));
 
-//    QSet<QString>::iterator t;
-//    for(t=OpCharSet.begin();t!=OpCharSet.end();t++)
-//    {
-//        if(t->at(0).toLatin1()>='a' && t->at(0).toLatin1()<='z')//check***改全部字符
-//        {
-//            DFAG.endCharSet.insert(t->at(0).toLatin1());
-//        }
-//    }
     for(const auto &ch: qAsConst(OpCharSet))
     {
         if(ch.at(0).isLetter())
@@ -730,11 +699,10 @@ void NDFA::NFA2DFA()
         int num=q.front();
         q.pop_front();//pop掉队头元素
 
-        QSet<QChar>::iterator it;
-        for(it=DFAG.endCharSet.begin();it!=DFAG.endCharSet.end();it++)
+        for(const auto &it : DFAG.endCharSet)
         {
 
-            QSet<int> tmpS=move_e_cloure(DFAStateArr[num].em_closure_NFA,*it);
+            QSet<int> tmpS=move_e_cloure(DFAStateArr[num].em_closure_NFA,it);
 
             if(!EStatesSet.contains(tmpS) && !tmpS.empty())
             {
@@ -742,11 +710,11 @@ void NDFA::NFA2DFA()
 
                 DFAStateArr[DFAStateNum].em_closure_NFA=tmpS;
 
-                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=*it;
+                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=it;
                 DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=DFAStateNum;
                 DFAStateArr[num].edgeCount++;
 
-                DFAG.tranArr[num][it->toLatin1()-'a']=DFAStateNum;//更新状态转移矩阵
+                DFAG.tranArr[num][it.toLatin1()-'a']=DFAStateNum;//更新状态转移矩阵
 
                 DFAStateArr[DFAStateNum].isEnd=isEnd(NFAG, DFAStateArr[DFAStateNum].em_closure_NFA);
 
@@ -761,11 +729,11 @@ void NDFA::NFA2DFA()
 
                     if(tmpS==DFAStateArr[i].em_closure_NFA)
                     {
-                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=*it;
+                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=it;
                         DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=i;
                         DFAStateArr[num].edgeCount++;
 
-                        DFAG.tranArr[num][it->toLatin1()-'a']=i;//更新转移矩阵
+                        DFAG.tranArr[num][it.toLatin1()-'a']=i;//更新转移矩阵
 
                         break;
                     }

@@ -198,7 +198,8 @@ void MainWindow::on_pushButton_Lexer_clicked()
  */
 void MainWindow::printConsole(QString str)
 {
-    ui->plainTextEdit_console->appendPlainText(str+'\n');
+    QString timeStr=QTime::currentTime().toString("HH:mm:ss.zzz");
+    ui->plainTextEdit_console->appendPlainText("["+timeStr+"] "+str);
 }
 
 /**
