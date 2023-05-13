@@ -53,7 +53,9 @@ void NDFA::init()
     //DFA节点数组初始化
     for(int i=0;i<ARR_MAX_SIZE;i++)
     {
+        DFAStateArr[i].init();
         DFAStateArr[i].stateNum=i;
+
         DFAStateArr[i].isEnd=false;
         DFAStateArr[i].edgeCount=0;
         DFAStateArr[i].em_closure_NFA.clear();
@@ -62,13 +64,15 @@ void NDFA::init()
         {
             DFAStateArr[i].edges[j].value='#';
             DFAStateArr[i].edges[j].toState=-1;
-        }
+        }        
     }
 
     //mDFA节点数组初始化优化
     for(int i=0;i<ARR_MAX_SIZE;i++)
     {
+        mDFANodeArr[i].init();
         mDFANodeArr[i].stateNum=i;
+
         mDFANodeArr[i].isEnd=false;
         mDFANodeArr[i].edgeCount=0;
         mDFANodeArr[i].em_closure_NFA.clear();
@@ -77,7 +81,7 @@ void NDFA::init()
         {
             mDFANodeArr[i].edges[j].value='#';
             mDFANodeArr[i].edges[j].toState=-1;
-        }
+        }        
     }
 }
 
@@ -390,112 +394,182 @@ QString NDFA::in2Suffix(QString s)
 NDFA::NFAGraph NDFA::strToNfa(QString s)
 {
     qDebug()<<"strToNfa:"<<s;
-    //s=preProcess(s);
     //存NFA的栈
     QStack<NFAGraph> NfaStack;
     //符号栈
-    QStack<QChar> charStack;
+    QStack<QChar> opStack;
 
-    for(int i = 0; i < s.size(); i++)
+    for(int i=0;i<s.size();i++)
     {
-        //操作数的处理
-        if(s.at(i).isLower())
+        switch(s[i].unicode())
         {
-            OpCharSet.insert(s.at(i));
-            NFAGraph n = createNFA(NFAStateNum);
-            NFAStateNum += 2;//开始与结束节点
+        case '|':
+        case '&':
+        {
+            //pushStkP()
+            break;
+        }
+        case '*':
+        case '+':
+        case '?':
+        {
+            //pushStkP()
+            //addCo
+            break;
+        }
+        case '(': opStack.push('(');break;
+        case ')':
+        {
+            while(!opStack.empty())
+            {
+                if(opStack.top() != '(')
+                {
+                    //opP
+                    opStack.pop();
+                }
+                else break;
+            }
+            opStack.pop();
+            //addCoO
+            break;
+        }
+        default:
+        {
+            QString tmpStr;
+            if(s[i]=='\\')
+            {
+                while(s[++i]!='\\')
+                {
+                    if(s[i]=='`')i++;
+                    tmpStr+=s[i];
+                }
+            }
+            else tmpStr=s[i];
 
-            add(n.startNode, n.endNode, s.at(i));//NFA的头指向尾，弧上的值为s.at(i)
+            NFAGraph n=createNFA(NFAStateNum);
+            NFAStateNum+=2;
+            add(n.startNode,n.endNode,tmpStr[i]);
 
             NfaStack.push(n);
+            //addCoO
         }
-        else if(s.at(i) == '*')		//闭包运算处理
-        {
-
-            NFAGraph n1 = createNFA(NFAStateNum);
-            NFAStateNum += 2;
-
-            NFAGraph n2 = NfaStack.top();
-            NfaStack.pop();
-
-            add(n2.endNode, n2.startNode);
-            add(n2.endNode, n1.endNode);
-            add(n1.startNode, n2.startNode);
-            add(n1.startNode, n1.endNode);
-
-            //新NFA入栈
-            NfaStack.push(n1);
-        }
-        else if(s.at(i) == '+')//正闭包的处理
-        {
-
-            NFAGraph n1 = createNFA(NFAStateNum);
-            NFAStateNum += 2;
-
-            NFAGraph n2 = NfaStack.top();
-            NfaStack.pop();
-
-            add(n2.endNode, n2.startNode);
-            add(n2.endNode, n1.endNode);
-            add(n1.startNode, n2.startNode);
-            //与*相比只少了一条从n1.startNode->n1.endNode的epsilon边
-            NfaStack.push(n1);
-        }
-        else if(s.at(i) == '?')//可选运算符的处理
-        {
-
-            NFAGraph n1 = createNFA(NFAStateNum);
-            NFAStateNum += 2;
-
-            NFAGraph n2 = NfaStack.top();
-            NfaStack.pop();
-
-            add(n2.endNode, n1.endNode);
-            add(n1.startNode, n2.startNode);
-            add(n1.startNode, n1.endNode);
-
-            NfaStack.push(n1);
-        }
-        else if(s.at(i) == '|')		/*遇到或运算符*/
-        {
-
-            NFAGraph n1, n2;							/*从栈中弹出两个NFA，栈顶为n2，次栈顶为n1*/
-            n2 = NfaStack.top();
-            NfaStack.pop();
-
-            n1 = NfaStack.top();
-            NfaStack.pop();
-
-            NFAGraph n = createNFA(NFAStateNum);
-            NFAStateNum +=2;
-
-            add(n.startNode, n1.startNode);
-            add(n.startNode, n2.startNode);
-            add(n1.endNode, n.endNode);
-            add(n2.endNode, n.endNode);
-
-            NfaStack.push(n);					/*最后将新生成的NFA入栈*/
-        }
-        else if(s.at(i) == '&')//连接运算的处理
-        {
-
-            NFAGraph n1, n2, n;
-
-            n2 = NfaStack.top();
-            NfaStack.pop();
-
-            n1 = NfaStack.top();
-            NfaStack.pop();
-
-            add(n1.endNode, n2.startNode);
-
-            n.startNode = n1.startNode;
-            n.endNode = n2.endNode;
-
-            NfaStack.push(n);
         }
     }
+
+//    for(int i = 0; i < s.size(); i++)
+//    {
+//        //操作数的处理
+//        if(s.at(i).isLower())
+//        {
+//            OpCharSet.insert(s.at(i));
+//            NFAGraph n = createNFA(NFAStateNum);
+//            NFAStateNum += 2;//开始与结束节点
+
+//            add(n.startNode, n.endNode, s.at(i));//NFA的头指向尾，弧上的值为s.at(i)
+
+//            NfaStack.push(n);
+//        }
+//        else if(s.at(i) == '*')		//闭包运算处理
+//        {
+
+//            NFAGraph n1 = createNFA(NFAStateNum);
+//            NFAStateNum += 2;
+
+//            NFAGraph n2 = NfaStack.top();
+//            NfaStack.pop();
+
+//            add(n2.endNode, n2.startNode);
+//            add(n2.endNode, n1.endNode);
+//            add(n1.startNode, n2.startNode);
+//            add(n1.startNode, n1.endNode);
+
+//            //新NFA入栈
+//            NfaStack.push(n1);
+//        }
+//        else if(s.at(i) == '+')//正闭包的处理
+//        {
+
+//            NFAGraph n1 = createNFA(NFAStateNum);
+//            NFAStateNum += 2;
+
+//            NFAGraph n2 = NfaStack.top();
+//            NfaStack.pop();
+
+//            add(n2.endNode, n2.startNode);
+//            add(n2.endNode, n1.endNode);
+//            add(n1.startNode, n2.startNode);
+//            //与*相比只少了一条从n1.startNode->n1.endNode的epsilon边
+//            NfaStack.push(n1);
+//        }
+//        else if(s.at(i) == '?')//可选运算符的处理
+//        {
+
+//            NFAGraph n1 = createNFA(NFAStateNum);
+//            NFAStateNum += 2;
+
+//            NFAGraph n2 = NfaStack.top();
+//            NfaStack.pop();
+
+//            add(n2.endNode, n1.endNode);
+//            add(n1.startNode, n2.startNode);
+//            add(n1.startNode, n1.endNode);
+
+//            NfaStack.push(n1);
+//        }
+//        else if(s.at(i) == '|')		/*遇到或运算符*/
+//        {
+
+//            NFAGraph n1, n2;							/*从栈中弹出两个NFA，栈顶为n2，次栈顶为n1*/
+//            n2 = NfaStack.top();
+//            NfaStack.pop();
+
+//            n1 = NfaStack.top();
+//            NfaStack.pop();
+
+//            NFAGraph n = createNFA(NFAStateNum);
+//            NFAStateNum +=2;
+
+//            add(n.startNode, n1.startNode);
+//            add(n.startNode, n2.startNode);
+//            add(n1.endNode, n.endNode);
+//            add(n2.endNode, n.endNode);
+
+//            NfaStack.push(n);					/*最后将新生成的NFA入栈*/
+//        }
+//        else if(s.at(i) == '&')//连接运算的处理
+//        {
+
+//            NFAGraph n1, n2, n;
+
+//            n2 = NfaStack.top();
+//            NfaStack.pop();
+
+//            n1 = NfaStack.top();
+//            NfaStack.pop();
+
+//            add(n1.endNode, n2.startNode);
+
+//            n.startNode = n1.startNode;
+//            n.endNode = n2.endNode;
+
+//            NfaStack.push(n);
+//        }
+//    }
     return NfaStack.top();
+}
+
+/**
+ * @brief NDFA::opPriorityMapInit
+ * 初始化操作符优先级，数值越高优先级越大
+ */
+void NDFA::opPriorityMapInit()
+{
+    opPriorityMap['(']=0;
+    opPriorityMap['|']=1;
+    opPriorityMap['&']=2;
+    opPriorityMap['*']=3;
+    opPriorityMap['+']=3;
+    opPriorityMap['?']=3;
 }
 
 /**
@@ -644,8 +718,9 @@ int NDFA::findSetNum(int count, int n)
  */
 void NDFA::reg2NFA(QString regStr)
 {
-    QString suffixReg=in2Suffix(regStr);
-    NFAG=strToNfa(suffixReg);
+//    QString suffixReg=in2Suffix(regStr);
+
+    NFAG=strToNfa(regStr);
 }
 
 /**

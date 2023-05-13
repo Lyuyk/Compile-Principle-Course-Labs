@@ -40,6 +40,7 @@ public:
         int stateNum;//当前NFA节点状态（号）
         int toState;//通过非epsilon边转换到的状态号
         QChar val;//非epsilon的NFA状态弧上的值
+        QString value;//非epsilon的NFA状态弧上的值
         QSet<int> epsToSet;//状态号集合，即当前状态通过epsilon边转移到的状态的 状态号集合
 
         void init()//初始化函数
@@ -110,6 +111,7 @@ public:
     void init();//初始化类
 
     NFAGraph strToNfa(QString s);//将正则表达式转换为NFA
+    void opPriorityMapInit();//初始化操作符优先级
 
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
@@ -122,7 +124,6 @@ public:
     QString preProcess(QString str);//预处理
 
     NFAGraph createNFA(int sum);//按顺序新建一个NFA子图
-
     void add(NFANode *n1, NFANode *n2, QChar ch);//n1、n2节点间添加非eps边
     void add(NFANode *n1, NFANode *n2);//n1、n2节点间添加eps边
 
@@ -142,7 +143,7 @@ private:
 
     QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）
 
-    QMap<QChar, int> OpPriorityMap;//存储运算符优先级
+    QMap<QChar, int> opPriorityMap;//存储运算符优先级
 
     NFANode NFAStateArr[ARR_MAX_SIZE];//NFA状态数组
     DFANode mDFANodeArr[ARR_MAX_SIZE];//mDFA状态数组
