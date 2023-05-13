@@ -5,13 +5,14 @@
  * @Brief: NFA、DFA图结构头文件
  * @Module Function:
  *
- * @Current Version: 1.2
+ * @Current Version: 1.3
  * @Author: Lyuyk
  * @Modifier: Lyuyk
- * @Finished Date: 2023/3/16
+ * @Finished Date: 2023/4/18
  *
  * @Version History: 1.1
- *                   1.2 current version
+ *                   1.2 部分结构体改动及优化
+ *                   1.3 current version
  *
  ****************************************************/
 #ifndef NDFA_H
@@ -39,7 +40,7 @@ public:
     {
         int stateNum;//当前NFA节点状态（号）
         int toState;//通过非epsilon边转换到的状态号
-        QChar val;//非epsilon的NFA状态弧上的值
+        QChar val;//非epsilon的NFA状态弧上的值//-------已弃用
         QString value;//非epsilon的NFA状态弧上的值
         QSet<int> epsToSet;//状态号集合，即当前状态通过epsilon边转移到的状态的 状态号集合
 
@@ -48,6 +49,7 @@ public:
             stateNum=-1;
             toState=-1;
             val='#';
+            value=' ';
             epsToSet.clear();
         }
     };
@@ -142,7 +144,7 @@ public:
 
 private:
     QSet<QString> reserveWords;//保留字集合
-    QSet<QString> OpCharSet;//操作符集合
+    QSet<QString> opCharSet;//操作符集合
     QSet<QChar> opSet={'(',')','|','*','+','?'};//运算符集合
 
     QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）

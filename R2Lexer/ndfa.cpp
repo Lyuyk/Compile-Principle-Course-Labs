@@ -32,7 +32,7 @@ void NDFA::init()
     NFAStateNum=0;//状态创建计数
     DFAStateNum=0;
     mDFAStateNum=0;
-    OpCharSet.clear();
+    opCharSet.clear();
     dividedSet->clear();
 
     //FA图初始化
@@ -89,9 +89,9 @@ void NDFA::printNFA(QTableWidget *table)
 {
     qDebug()<<"printNFA";
     int rowCount=NFAStateNum;//记录NFA状态数
-    int epsColN=OpCharSet.size()+1;//最后一列 epsilon 列号
-    int colCount=OpCharSet.size()+3;
-    QStringList OpStrList=OpCharSet.values();
+    int epsColN=opCharSet.size()+1;//最后一列 epsilon 列号
+    int colCount=opCharSet.size()+3;
+    QStringList OpStrList=opCharSet.values();
     std::sort(OpStrList.begin(),OpStrList.end());
     OpStrList.push_front("状态号");
     OpStrList.push_back("epsilon");
@@ -148,7 +148,7 @@ void NDFA::printNFA(QTableWidget *table)
 
 void NDFA::printDFA(QTableWidget *table)
 {
-    QStringList OpStrList=OpCharSet.values();
+    QStringList OpStrList=opCharSet.values();
     std::sort(OpStrList.begin(),OpStrList.end());
     OpStrList.push_front("状态号");
     OpStrList.push_back("初/终态");
@@ -186,7 +186,7 @@ void NDFA::printDFA(QTableWidget *table)
 
 void NDFA::printMDFA(QTableWidget *table)
 {
-    QStringList OpStrList=OpCharSet.values();
+    QStringList OpStrList=opCharSet.values();
     std::sort(OpStrList.begin(),OpStrList.end());
     //OpStrList.push_front("状态集元素");
     OpStrList.push_front("状态集号");
@@ -440,11 +440,17 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
                 while(s[++i]!='\\')
                 {
                     if(s[i]=='`')i++;
+
                     tmpStr+=s[i];
                 }
+                opCharSet.insert(tmpStr);//顺便加入操作符集合
             }
-            else tmpStr=s[i];
+            else {
+                tmpStr=s[i];
 
+                if(!opSet.contains(s[i]))
+                    opCharSet.insert(s[i]);//若是转义字符顺便加入操作符集合
+            }
             NFAGraph n=createNFA(NFAStateNum);
             NFAStateNum+=2;
             n.startNode->value=tmpStr;//生成NFA子图，非eps边
@@ -836,9 +842,7 @@ int NDFA::findSetNum(int count, int n)
  */
 void NDFA::reg2NFA(QString regStr)
 {
-//    QString suffixReg=in2Suffix(regStr);
-
-    NFAG=strToNfa(regStr);
+    NFAG=strToNfa(regStr);//调用转换函数
 }
 
 /**
@@ -847,11 +851,14 @@ void NDFA::reg2NFA(QString regStr)
  */
 void NDFA::NFA2DFA()
 {
-    QSet<QSet<int>> EStatesSet;
+    QSet<QSet<int>> EStatesSet;//存储DFA节点包含的序号
+    QSet<int> tmpSet;
+    tmpSet.insert(NFAG.startNode->stateNum);//将NFA初态节点放入集合
+
 
     memset(DFAG.tranArr,-1,sizeof(DFAG.tranArr));
 
-    for(const auto &ch: qAsConst(OpCharSet))
+    for(const auto &ch: qAsConst(opCharSet))
     {
         if(ch.at(0).isLetter())
         {
@@ -861,8 +868,7 @@ void NDFA::NFA2DFA()
     qDebug()<<DFAG.endCharSet;
     DFAG.startState=0;//DFA的初态为0
 
-    QSet<int> tmpSet;
-    tmpSet.insert(NFAG.startNode->stateNum);
+
 
     DFAStateArr[0].em_closure_NFA=e_closure(tmpSet);
     DFAStateArr[0].isEnd=isEnd(NFAG, DFAStateArr[0].em_closure_NFA);
