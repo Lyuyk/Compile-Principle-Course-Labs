@@ -112,6 +112,9 @@ public:
 
     NFAGraph strToNfa(QString s);//将正则表达式转换为NFA
     void opPriorityMapInit();//初始化操作符优先级
+    void insConnOp(QString str,int curState,QStack<QChar> &opStack,QStack<NFAGraph> &NFAStack);//判断是否需要插入连接&符号
+    void pushOpStackProcess(QChar ch,QStack<QChar> &opStack,QStack<NFAGraph> &NFAStack);//运算符入栈处理子函数
+    void opProcess(QChar ch,QStack<NFAGraph> &NFAStack);//根据运算符转换NFA处理子函数
 
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
@@ -140,6 +143,7 @@ public:
 private:
     QSet<QString> reserveWords;//保留字集合
     QSet<QString> OpCharSet;//操作符集合
+    QSet<QChar> opSet={'(',')','|','*','+','?'};//运算符集合
 
     QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）
 
