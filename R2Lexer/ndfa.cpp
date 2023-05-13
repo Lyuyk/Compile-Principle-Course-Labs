@@ -5,13 +5,14 @@
  * @Brief: NFA、DFA类源文件
  * @Module Function:
  *
- * @Current Version: 1.2
+ * @Current Version: 1.3
  * @Author: Lyuyk
  * @Modifier: Lyuyk
- * @Finished Date: 2023/3/3
+ * @Finished Date: 2023/4/21
  *
  * @Version History: 1.1
- *                   1.2 current version
+ *                   1.2 增添了部分注释，提高了部分代码的可读性
+ *                   1.3 current version
  *
  ****************************************************/
 #include "ndfa.h"
@@ -34,6 +35,7 @@ void NDFA::init()
     OpCharSet.clear();
     dividedSet->clear();
 
+    //FA图初始化
     NFAG.startNode=NULL;
     NFAG.endNode=NULL;
     DFAG.endCharSet.clear();
@@ -41,14 +43,15 @@ void NDFA::init()
     mDFAG.endCharSet.clear();
     mDFAG.endStates.clear();
 
-    for(int i=0;i<ARR_MAX_NUM;i++)
+    //NFA节点数组初始化
+    for(int i=0;i<ARR_MAX_SIZE;i++)
     {
+        NFAStateArr[i].init();
         NFAStateArr[i].stateNum=i;
-        NFAStateArr[i].val='#';
-        NFAStateArr[i].toState=-1;
-        NFAStateArr[i].epsToSet.clear();
     }
-    for(int i=0;i<ARR_MAX_NUM;i++)
+
+    //DFA节点数组初始化
+    for(int i=0;i<ARR_MAX_SIZE;i++)
     {
         DFAStateArr[i].stateNum=i;
         DFAStateArr[i].isEnd=false;
@@ -61,7 +64,9 @@ void NDFA::init()
             DFAStateArr[i].edges[j].toState=-1;
         }
     }
-    for(int i=0;i<ARR_MAX_NUM;i++)
+
+    //mDFA节点数组初始化优化
+    for(int i=0;i<ARR_MAX_SIZE;i++)
     {
         mDFANodeArr[i].stateNum=i;
         mDFANodeArr[i].isEnd=false;
@@ -509,25 +514,6 @@ NDFA::NFAGraph NDFA::createNFA(int stateN)
     return n;
 }
 
-NDFA::NFAGraph NDFA::createNFA(QChar start,QChar end)
-{
-    NFAGraph n;
-
-//    n.startNode = &NFAStateArr[c2iMap[start]];
-//    n.endNode = &NFAStateArr[c2iMap[end]];
-
-    return n;
-}
-
-NDFA::NFAGraph NDFA::createNFA(int start, int end)
-{
-    NFAGraph n;
-
-    n.startNode = &NFAStateArr[start];
-    n.endNode = &NFAStateArr[end];
-
-    return n;
-}
 
 /**
  * @brief NDFA::add
@@ -553,7 +539,6 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QChar ch)
 void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2)
 {
     n1->epsToSet.insert(n2->stateNum);
-    qDebug()<<n2->stateNum<<"fk";
 }
 
 

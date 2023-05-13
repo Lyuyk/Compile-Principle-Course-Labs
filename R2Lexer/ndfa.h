@@ -27,7 +27,7 @@
 
 #include<set>
 
-#define ARR_MAX_NUM 512 //定义存储节点数组大小上限
+#define ARR_MAX_SIZE 1024 //定义存储节点数组大小上限
 #define DFA_NODE_EDGE_COUNT 16 //定义DFA节点的边数上限
 
 class NDFA
@@ -41,6 +41,14 @@ public:
         int toState;//通过非epsilon边转换到的状态号
         QChar val;//非epsilon的NFA状态弧上的值
         QSet<int> epsToSet;//状态号集合，即当前状态通过epsilon边转移到的状态的 状态号集合
+
+        void init()//初始化函数
+        {
+            stateNum=-1;
+            toState=-1;
+            val='#';
+            epsToSet.clear();
+        }
     };
 
     //NFA子图结构体
@@ -61,6 +69,7 @@ public:
     struct DFANode
     {
         int stateNum;//DFA状态号
+
         int edgeCount;//该DFA状态节点的出度（射出的弧数）
         QSet<int> em_closure_NFA;//NFA的ε-move()闭包
         Edge edges[DFA_NODE_EDGE_COUNT];//DFA状态上射出的弧/边
@@ -69,6 +78,12 @@ public:
         QSet<int> NFANodeSet;//存储当前DFA节点包含的NFA节点序号
         QMap<QString, int> DFAEdgeMap;//存储当前DFA节点
 
+        void init()
+        {
+            stateNum=-1;
+            NFANodeSet.clear();
+            DFAEdgeMap.clear();
+        }
     };
 
     //DFA子图结构体
@@ -77,7 +92,7 @@ public:
         int startState;//DFA的初态
         QSet<int> endStates;//DFA的终态集合
         QSet<QChar> endCharSet;//DFA的终结符号集合
-        int tranArr[ARR_MAX_NUM][26];//DFA的转移矩阵
+        int tranArr[ARR_MAX_SIZE][26];//DFA的转移矩阵
         QMap<QString,QString> transMap;//DFA状态转移矩阵
     };
 
@@ -87,6 +102,8 @@ public:
         QSet<int> DFAStateSet;//该状态集合的集合 包含的状态集合标号
         int toStateSetNum;//该状态集合可以转换到的 状态集的标号
     };
+
+
 
 public:
     NDFA();
@@ -105,8 +122,7 @@ public:
     QString preProcess(QString str);//预处理
 
     NFAGraph createNFA(int sum);//按顺序新建一个NFA子图
-    NFAGraph createNFA(QChar start, QChar end);//建立一个NFA子图
-    NFAGraph createNFA(int start,int end);//建立一个从start状态到end状态的NFA子图
+
     void add(NFANode *n1, NFANode *n2, QChar ch);//n1、n2节点间添加非eps边
     void add(NFANode *n1, NFANode *n2);//n1、n2节点间添加eps边
 
@@ -124,11 +140,13 @@ private:
     QSet<QString> reserveWords;//保留字集合
     QSet<QString> OpCharSet;//操作符集合
 
-    QSet<int> dividedSet[ARR_MAX_NUM]; //划分出来的集合数组（最小化DFA时用到的）
+    QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）
 
-    NFANode NFAStateArr[ARR_MAX_NUM];//NFA状态数组
-    DFANode mDFANodeArr[ARR_MAX_NUM];//mDFA状态数组
-    DFANode DFAStateArr[ARR_MAX_NUM];//DFA状态数组
+    QMap<QChar, int> OpPriorityMap;//存储运算符优先级
+
+    NFANode NFAStateArr[ARR_MAX_SIZE];//NFA状态数组
+    DFANode mDFANodeArr[ARR_MAX_SIZE];//mDFA状态数组
+    DFANode DFAStateArr[ARR_MAX_SIZE];//DFA状态数组
 
     NFAGraph NFAG;//NFA图
     DFAGraph DFAG;//NFA转换得的DFA图
@@ -137,6 +155,7 @@ private:
     int NFAStateNum;//NFA状态计数
     int DFAStateNum;//DFA状态计数
     int mDFAStateNum;//mDFA状态计数，亦是划分出来的集合数
+
 
 };
 
