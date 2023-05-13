@@ -395,7 +395,7 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
 {
     opPriorityMapInit();//运算符优先级初始化
 
-    QStack<NFAGraph> NfaStack;//存NFA子图的栈
+    QStack<NFAGraph> NFAStack;//存NFA子图的栈
     QStack<QChar> opStack;//符号栈
 
     for(int i=0;i<s.size();i++)
@@ -405,15 +405,15 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
         case '|':
         case '&':
         {
-            //pushStkP()
+            pushOpStackProcess(s[i],opStack,NFAStack);
             break;
         }
         case '*':
         case '+':
         case '?':
         {
-            //pushStkP()
-            //addCo
+            pushOpStackProcess(s[i],opStack,NFAStack);
+            insConnOp(s,i,opStack,NFAStack);
             break;
         }
         case '(': opStack.push('(');break;
@@ -423,13 +423,13 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
             {
                 if(opStack.top() != '(')
                 {
-                    //opP
+                    opProcess(opStack.top(),NFAStack);
                     opStack.pop();
                 }
                 else break;
             }
             opStack.pop();
-            //addCoO
+            insConnOp(s,i,opStack,NFAStack);
             break;
         }
         default:
@@ -447,14 +447,20 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
 
             NFAGraph n=createNFA(NFAStateNum);
             NFAStateNum+=2;
+            n.startNode->value=tmpStr;//生成NFA子图，非eps边
             add(n.startNode,n.endNode,tmpStr[i]);
 
-            NfaStack.push(n);
-            //addCoO
+            NFAStack.push(n);
+            insConnOp(s,i,opStack,NFAStack);
         }
         }
     }
+    //读完字符串，运算符站还有元素则将其全部出栈
+    while(!opStack.empty())
+        opProcess(opStack.pop(),NFAStack);
 
+    return NFAStack.top();
+}
 //    for(int i = 0; i < s.size(); i++)
 //    {
 //        //操作数的处理
@@ -554,8 +560,8 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
 //            NfaStack.push(n);
 //        }
 //    }
-    return NfaStack.top();
-}
+
+
 
 /**
  * @brief NDFA::opPriorityMapInit
