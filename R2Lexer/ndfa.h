@@ -30,6 +30,7 @@
 #include<set>
 
 #define ARR_MAX_SIZE 1024 //定义存储节点数组大小上限
+#define ARR_TEMP_SIZE 128 //定义临时结构体数组大小
 #define DFA_NODE_EDGE_COUNT 16 //定义DFA节点的边数上限
 
 class NDFA
@@ -123,10 +124,8 @@ public:
     struct stateSet
     {
         QSet<int> DFAStateSet;//该状态集合的集合 包含的状态集合标号
-        int stateSetId;//该状态集合可以转换到的 状态集的标号
+        int stateSetId;//所属状态集合号
     };
-
-
 
 public:
     NDFA();
@@ -139,6 +138,8 @@ public:
     void opProcess(QChar ch,QStack<NFAGraph> &NFAStack);//根据运算符转换NFA处理子函数
 
     void get_e_closure(QSet<int> &tmpSet);//求epsilon闭包
+
+    int getStateId(QSet<int> set[],int cur);//查询当前DFA节点属于哪个状态集（号）
 
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
@@ -170,7 +171,7 @@ private:
     QSet<QString> opCharSet;//操作符集合
     QSet<QChar> opSet={'(',')','|','*','+','?'};//运算符集合
 
-    QSet<int> DFAEndStateSet;
+    QSet<int> DFAEndStateSet;//存储DFA终态状态号集合
     QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）
 
     QMap<QChar, int> opPriorityMap;//存储运算符优先级
@@ -183,10 +184,9 @@ private:
     //DFAGraph DFAG;//NFA转换得的DFA图
     mDFAGraph mDFAG;//最小化的DFA图
 
-    int NFAStateNum;//NFA状态计数
-    int DFAStateNum;//DFA状态计数
-    int mDFAStateNum;//mDFA状态计数，亦是划分出来的集合数
-
+    int NFAStateNum;//NFA状态下标计数（从0开始）
+    int DFAStateNum;//DFA状态下标计数（从0开始）
+    int mDFAStateNum;//mDFA状态数量计数，亦是划分出来的集合数（从1开始）
 
 };
 

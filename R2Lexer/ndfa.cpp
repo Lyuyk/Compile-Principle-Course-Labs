@@ -29,19 +29,24 @@ NDFA::NDFA()
  */
 void NDFA::init()
 {
-    NFAStateNum=0;//状态创建计数
+    //初始化FA状态计数
+    NFAStateNum=0;
     DFAStateNum=0;
     mDFAStateNum=0;
     opCharSet.clear();
+    DFAEndStateSet.clear();
+    reserveWords.clear();
     dividedSet->clear();
 
     //FA图初始化
     NFAG.startNode=NULL;
     NFAG.endNode=NULL;
+    mDFAG.startState=-1;
+    mDFAG.endStateSet.clear();
 //    DFAG.endCharSet.clear();
 //    DFAG.endStates.clear();
-    mDFAG.endCharSet.clear();
-    mDFAG.endStates.clear();
+//    mDFAG.endCharSet.clear();
+//    mDFAG.endStates.clear();
 
     //NFA节点数组初始化
     for(int i=0;i<ARR_MAX_SIZE;i++)
@@ -55,34 +60,14 @@ void NDFA::init()
     {
         DFAStateArr[i].init();
         DFAStateArr[i].stateNum=i;
-
-//        DFAStateArr[i].isEnd=false;
-//        DFAStateArr[i].edgeCount=0;
-//        DFAStateArr[i].em_closure_NFA.clear();
-
-//        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
-//        {
-//            DFAStateArr[i].edges[j].value='#';
-//            DFAStateArr[i].edges[j].toState=-1;
-//        }
     }
 
     //mDFA节点数组初始化优化
     for(int i=0;i<ARR_MAX_SIZE;i++)
     {
         mDFANodeArr[i].init();
-//        mDFANodeArr[i].stateNum=i;
-
-//        mDFANodeArr[i].isEnd=false;
-//        mDFANodeArr[i].edgeCount=0;
-//        mDFANodeArr[i].em_closure_NFA.clear();
-
-//        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
-//        {
-//            mDFANodeArr[i].edges[j].value='#';
-//            mDFANodeArr[i].edges[j].toState=-1;
-//        }
     }
+
 }
 
 void NDFA::printNFA(QTableWidget *table)
@@ -734,6 +719,22 @@ void NDFA::get_e_closure(QSet<int> &tmpSet)
 }
 
 /**
+ * @brief NDFA::getStateId
+ * @param set
+ * @param cur
+ * @return i
+ * 查询当前DFA节点属于mDFA节点的状态集号
+ */
+int NDFA::getStateId(QSet<int> set[], int cur)
+{
+    for(int i=0;i<mDFAStateNum;i++)
+    {
+        if(set[i].contains(cur))
+            return i;
+    }
+}
+
+/**
  * @brief NDFA::createNFA
  * @param stateN
  * @return n
@@ -1034,13 +1035,60 @@ void NDFA::NFA2DFA()
  */
 void NDFA::DFA2mDFA()
 {
+    mDFAStateNum=1;//未划分，状态数量为1
+    for(int i=0;i<mDFAStateNum;i++)
+    {
+        if(!DFAStateArr[i].NFANodeSet.contains(NFAG.endNode->stateNum))
+        {
+            dividedSet[1].insert(DFAStateArr[i].stateNum);//非终态集合
+            NFAStateNum=2;//设为2，终态与非终态
+        }
+        else dividedSet[0].insert(DFAStateArr[i].stateNum);
+    }
 
+    int divFlag=1;//表示是否有新状态划分出来，有则
+    while(divFlag)
+    {
+        divFlag=0;
+        for(int i=0;i<mDFAStateNum;i++)
+        {
+            for(const auto &opChar: opCharSet)
+            {
+                int count = 0;
+                stateSet t_stateSet[ARR_TEMP_SIZE];//分出的状态
+
+                for(const auto &state: dividedSet[i])//遍历当前状态集中的所有节点
+                {
+                    //若当前DFA节点能通过opChar到达另外一个节点
+                    if(DFAStateArr[state].DFAEdgeMap.contains(opChar))
+                    {
+                        //通过opChar到达的节点所属状态集合 号
+                        int id=getStateId(dividedSet,DFAStateArr[state].DFAEdgeMap[opChar]);
+                        bool haveSame=true;
+                        for(int j=0;j<count;j++)
+                        {
+                            //若暂时分出来的状态号有相同的
+                            if(t_stateSet[j].stateSetId==id)
+                            {
+                                haveSame=false;
+                                t_stateSet[j].DFAStateSet.insert(state);//加入该状态
+                                break;
+                            }
+                        }
+
+                    }
+                    else
+                    {
+                        bool flag=true;
+                    }
+                }
+            }
+        }
+    }
 }
 //    mDFAG.endCharSet=DFAG.endCharSet;//将DFA的终结符集合赋给mDFA
 //    //qDebug()<<mDFAG.endCharSet;
-
 //    memset(mDFAG.tranArr,-1,sizeof(mDFAG.tranArr)); //初始化mDFA的转移矩阵
-
 //    //首次划分，将终态与非终态分开
 //    bool allEndFlag = true;//DFA所有状态是否全为状态的标志
 //    for(int i=0;i<DFAStateNum;i++)
@@ -1049,7 +1097,6 @@ void NDFA::DFA2mDFA()
 //        {
 //            allEndFlag=false;
 //            mDFAStateNum=2;
-
 //            dividedSet[1].insert(DFAStateArr[i].stateNum); //将该状态的状态号加入dividedSet[1]集合中
 //        }
 //        else
@@ -1057,12 +1104,10 @@ void NDFA::DFA2mDFA()
 //            dividedSet[0].insert(DFAStateArr[i].stateNum); //将该状态的状态号加入dividedSet[0]集合中
 //        }
 //    }
-
 //    if(allEndFlag) //若真则所有DFA状态都为终态
 //    {
 //        mDFAStateNum=1;//第一次划分结束只有一个集合
 //    }
-
 //    bool newedDivFlag=true; //上一次是否产生新划分标志
 //    while(newedDivFlag) //只要上一次产生新的划分就继续循环
 //    {
@@ -1074,7 +1119,6 @@ void NDFA::DFA2mDFA()
 //            {
 //                int cacheSetNum=0;//当前状态集合个数初始化
 //                stateSet tmpStSet[20];//划分状态集的 缓冲区
-
 //                QSet<int>::iterator iter;
 //                for(iter=dividedSet[i].begin();iter!=dividedSet[i].end();iter++)
 //                {
@@ -1084,22 +1128,18 @@ void NDFA::DFA2mDFA()
 //                        if(DFAStateArr[*iter].edges[j].value==*it)
 //                        {
 //                            epFlag=false; //则标志为false
-
 //                            //计算该状态转换到的状态集的标号
 //                            int tranSetNum=findSetNum(mDFAStateNum,DFAStateArr[*iter].edges[j].toState);
-
 //                            int curSetNum=0;//遍历缓冲区，查找是否存在到达这个标号的状态集
 //                            while((tmpStSet[curSetNum].toStateSetNum!=tranSetNum)&&(curSetNum<cacheSetNum))
 //                            {
 //                                curSetNum++;
 //                            }
-
 //                            if(curSetNum==cacheSetNum)
 //                            {
 //                                //缓冲区中新建一个状态集
 //                                tmpStSet[cacheSetNum].toStateSetNum=tranSetNum;//将该状态集所能转换到的状态集标号为tranSetNum
 //                                tmpStSet[cacheSetNum].DFAStateSet.insert(*iter);//将当前状态添加到该状态集合中
-
 //                                cacheSetNum++;//缓冲区状态集计数增加
 //                            }
 //                            else //缓冲区中存在到达这个标号的状态集
@@ -1108,7 +1148,6 @@ void NDFA::DFA2mDFA()
 //                            }
 //                        }
 //                    }
-
 //                    //若该状态不存在与该终结符对应的转换弧
 //                    if(epFlag)
 //                    {
@@ -1118,12 +1157,10 @@ void NDFA::DFA2mDFA()
 //                        {
 //                            curSetNum++;
 //                        }
-
 //                        if(curSetNum==cacheSetNum)//若不存在这样的状态集
 //                        {
 //                            tmpStSet[cacheSetNum].toStateSetNum=-1;//将该状态集转移到状态集标号-1
 //                            tmpStSet[cacheSetNum].DFAStateSet.insert(*iter);
-
 //                            cacheSetNum++;//缓冲区状态集计数增加
 //                        }
 //                        else
@@ -1132,11 +1169,9 @@ void NDFA::DFA2mDFA()
 //                        }
 //                    }
 //                }
-
 //                if(cacheSetNum>1)//r若缓冲区中的状态集个数大于1，集表示同一个状态集中的元素可以转换到不同的状态集，需要进行划分
 //                {
 //                    divCount++; //划分计数增加
-
 //                    //为每个划分创建新的DFA状态
 //                    for(int j=1;j<cacheSetNum;j++)
 //                    {
@@ -1150,14 +1185,12 @@ void NDFA::DFA2mDFA()
 //                }
 //            }
 //        }
-
 //        //若需要划分的次数为0，则表示本次不需要进行划分
 //        if(divCount==0)
 //        {
 //            newedDivFlag=false;
 //        }
 //    }
-
 //    //遍历每一个划分好的状态集
 //    for(int i=0;i<mDFAStateNum;i++)
 //    {
@@ -1169,13 +1202,11 @@ void NDFA::DFA2mDFA()
 //            {
 //                mDFAG.startState=i;
 //            }
-
 //            if(DFAG.endStates.contains(itr))
 //            {
 //                mDFANodeArr[i].isEnd=true;
 //                mDFAG.endStates.insert(i);
 //            }
-
 //            //遍历该DFA状态的每条弧，为最小化DFA创建弧
 //            for(int j=0;j<DFAStateArr[itr].edgeCount;j++)
 //            {
@@ -1193,14 +1224,11 @@ void NDFA::DFA2mDFA()
 //                                hadEdge=true;//标志为真
 //                            }
 //                        }
-
 //                        if(!hadEdge)//若该弧不存在，则创建一条新的弧
 //                        {
 //                            mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].value=DFAStateArr[itr].edges[j].value;
 //                            mDFANodeArr[i].edges[mDFANodeArr[i].edgeCount].toState=t;//该弧转移到的状态为这个状态集合的标号
-
 //                            mDFAG.tranArr[i][DFAStateArr[itr].edges[j].value.toLatin1()-'a']=t; //更新转移矩阵
-
 //                            mDFANodeArr[i].edgeCount++; //该状态的弧的计数增加
 //                        }
 //                        break;

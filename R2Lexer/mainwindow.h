@@ -58,7 +58,9 @@ private:
     Ui::MainWindow *ui;
 
     QString regexStr;//正则表达式字符串
+    QString srcFilePath;//源程序路径
 
-    NDFA NDFAG;
+    NDFA NDFAG;//FA自动机类
+
 };
 #endif // MAINWINDOW_H
