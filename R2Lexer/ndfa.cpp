@@ -38,8 +38,8 @@ void NDFA::init()
     //FA图初始化
     NFAG.startNode=NULL;
     NFAG.endNode=NULL;
-    DFAG.endCharSet.clear();
-    DFAG.endStates.clear();
+//    DFAG.endCharSet.clear();
+//    DFAG.endStates.clear();
     mDFAG.endCharSet.clear();
     mDFAG.endStates.clear();
 
@@ -56,32 +56,32 @@ void NDFA::init()
         DFAStateArr[i].init();
         DFAStateArr[i].stateNum=i;
 
-        DFAStateArr[i].isEnd=false;
-        DFAStateArr[i].edgeCount=0;
-        DFAStateArr[i].em_closure_NFA.clear();
+//        DFAStateArr[i].isEnd=false;
+//        DFAStateArr[i].edgeCount=0;
+//        DFAStateArr[i].em_closure_NFA.clear();
 
-        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
-        {
-            DFAStateArr[i].edges[j].value='#';
-            DFAStateArr[i].edges[j].toState=-1;
-        }        
+//        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
+//        {
+//            DFAStateArr[i].edges[j].value='#';
+//            DFAStateArr[i].edges[j].toState=-1;
+//        }
     }
 
     //mDFA节点数组初始化优化
     for(int i=0;i<ARR_MAX_SIZE;i++)
     {
         mDFANodeArr[i].init();
-        mDFANodeArr[i].stateNum=i;
+//        mDFANodeArr[i].stateNum=i;
 
-        mDFANodeArr[i].isEnd=false;
-        mDFANodeArr[i].edgeCount=0;
-        mDFANodeArr[i].em_closure_NFA.clear();
+//        mDFANodeArr[i].isEnd=false;
+//        mDFANodeArr[i].edgeCount=0;
+//        mDFANodeArr[i].em_closure_NFA.clear();
 
-        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
-        {
-            mDFANodeArr[i].edges[j].value='#';
-            mDFANodeArr[i].edges[j].toState=-1;
-        }        
+//        for(int j=0;j<DFA_NODE_EDGE_COUNT;j++)
+//        {
+//            mDFANodeArr[i].edges[j].value='#';
+//            mDFANodeArr[i].edges[j].toState=-1;
+//        }
     }
 }
 

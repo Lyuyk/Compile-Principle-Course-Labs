@@ -73,10 +73,10 @@ public:
     {
         int stateNum;//DFA状态号
 
-        int edgeCount;//该DFA状态节点的出度（射出的弧数）
-        QSet<int> em_closure_NFA;//NFA的ε-move()闭包
-        Edge edges[DFA_NODE_EDGE_COUNT];//DFA状态上射出的弧/边
-        bool isEnd;//是否终态
+//        int edgeCount;//该DFA状态节点的出度（射出的弧数）
+//        QSet<int> em_closure_NFA;//NFA的ε-move()闭包
+//        Edge edges[DFA_NODE_EDGE_COUNT];//DFA状态上射出的弧/边
+//        bool isEnd;//是否终态
 
         QSet<int> NFANodeSet;//存储当前DFA节点包含的NFA节点序号
         QMap<QString, int> DFAEdgeMap;//存储当前DFA节点
@@ -89,22 +89,41 @@ public:
         }
     };
 
-    //DFA子图结构体
-    struct DFAGraph
+//    //DFA子图结构体
+//    struct DFAGraph
+//    {
+//        int startState;//DFA的初态
+//        QSet<int> endStates;//DFA的终态集合
+//        QSet<QChar> endCharSet;//DFA的终结符号集合
+//        int tranArr[ARR_MAX_SIZE][26];//DFA的转移矩阵
+//        QMap<QString,QString> transMap;//DFA状态转移矩阵
+//    };
+
+    //mDFA节点结构体
+    struct mDFANode
     {
-        int startState;//DFA的初态
-        QSet<int> endStates;//DFA的终态集合
-        QSet<QChar> endCharSet;//DFA的终结符号集合
-        int tranArr[ARR_MAX_SIZE][26];//DFA的转移矩阵
-        QMap<QString,QString> transMap;//DFA状态转移矩阵
+        QSet<int> DFAStatesSet;//存储当前最小化DFA节点包含DFA节点序号的集合
+        QMap<QString, int> mDFAEdgesMap;//当前最小化DFA节点通过某操作符到达最小化DFA节点序号
+
+        void init()
+        {
+            DFAStatesSet.clear();
+            mDFAEdgesMap.clear();
+        }
+    };
+
+    struct mDFAGraph
+    {
+        int startNode;//最小化DFA的初态
+        QSet<int> endStateSet;//最小化DFA的终态
     };
 
     //状态集结构体
-    struct stateSet
-    {
-        QSet<int> DFAStateSet;//该状态集合的集合 包含的状态集合标号
-        int toStateSetNum;//该状态集合可以转换到的 状态集的标号
-    };
+//    struct stateSet
+//    {
+//        QSet<int> DFAStateSet;//该状态集合的集合 包含的状态集合标号
+//        int toStateSetNum;//该状态集合可以转换到的 状态集的标号
+//    };
 
 
 
@@ -155,11 +174,11 @@ private:
     QMap<QChar, int> opPriorityMap;//存储运算符优先级
 
     NFANode NFAStateArr[ARR_MAX_SIZE];//NFA状态数组
-    DFANode mDFANodeArr[ARR_MAX_SIZE];//mDFA状态数组
     DFANode DFAStateArr[ARR_MAX_SIZE];//DFA状态数组
+    mDFANode mDFANodeArr[ARR_MAX_SIZE];//mDFA状态数组
 
     NFAGraph NFAG;//NFA图
-    DFAGraph DFAG;//NFA转换得的DFA图
+    //DFAGraph DFAG;//NFA转换得的DFA图
     DFAGraph mDFAG;//最小化的DFA图
 
     int NFAStateNum;//NFA状态计数
