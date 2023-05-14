@@ -879,75 +879,63 @@ void NDFA::reg2NFA(QString regStr)
  * 将NFA转换为DFA的主函数
  */
 void NDFA::NFA2DFA()
-{
-    QSet<QSet<int>> EStatesSet;//存储DFA节点包含的序号
+{    
     QSet<int> tmpSet;
     tmpSet.insert(NFAG.startNode->stateNum);//将NFA初态节点放入集合
+    get_e_closure(tmpSet);//求NFA初态节点的epsilon闭包得到DFA初态
+    DFAStateArr[DFAStateNum].NFANodeSet=tmpSet;
+    if(tmpSet.contains(NFAG.endNode->stateNum))
+        DFAEndStateSet.insert(DFAStateNum);
+    DFAStateNum++;
 
+    QSet<QSet<int>> DFAStatesSet;//存储DFA节点包含的序号
+    DFAStatesSet.insert(tmpSet);//将出台包含的序号集放入集合
+    QQueue<DFANode> q;
+    q.push_back(DFAStateArr[0]);//初态入队
 
-    memset(DFAG.tranArr,-1,sizeof(DFAG.tranArr));
-
-    for(const auto &ch: qAsConst(opCharSet))
+    while(!q.empty())
     {
-        if(ch.at(0).isLetter())
+        DFANode *tmpDFANode=&q.front();//取出队列中一个DFA节点
+        q.pop_front();
+
+        tmpSet=tmpDFANode->NFANodeSet;//取出该DFA节点所包含的序号集
+        int t_curState=tmpDFANode->stateNum;//记录当前节点序号
+
+        for(const auto &ch: opCharSet)
         {
-            DFAG.endCharSet.insert(ch.at(0));
-        }
-    }
-    qDebug()<<DFAG.endCharSet;
-    DFAG.startState=0;//DFA的初态为0
-
-
-
-    DFAStateArr[0].em_closure_NFA=e_closure(tmpSet);
-    DFAStateArr[0].isEnd=isEnd(NFAG, DFAStateArr[0].em_closure_NFA);
-
-    DFAStateNum++;//DFA计数加一
-
-    QQueue<int> q;
-    q.push_back(DFAG.startState);//将DFA的初态存入队列中
-
-    while(!q.isEmpty())
-    {
-        int num=q.front();
-        q.pop_front();//pop掉队头元素
-
-        for(const auto &it : DFAG.endCharSet)
-        {
-
-            QSet<int> tmpS=move_e_cloure(DFAStateArr[num].em_closure_NFA,it);
-
-            if(!EStatesSet.contains(tmpS) && !tmpS.empty())
+            QSet<int> chToSet;//能通过ch到达的节点的序号
+            for(const auto &value: tmpSet)//遍历当前序号集合中的所有序号
             {
-                EStatesSet.insert(tmpS);
-
-                DFAStateArr[DFAStateNum].em_closure_NFA=tmpS;
-
-                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=it;
-                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=DFAStateNum;
-                DFAStateArr[num].edgeCount++;
-
-                DFAG.tranArr[num][it.toLatin1()-'a']=DFAStateNum;//更新状态转移矩阵
-
-                DFAStateArr[DFAStateNum].isEnd=isEnd(NFAG, DFAStateArr[DFAStateNum].em_closure_NFA);
-
-                q.push_back(DFAStateNum);//将新的状态号加入队列中
-
-                DFAStateNum++;//DFA总状态数加一
+                //找出所有这样的序号
+                if(NFAStateArr[value].value==ch)
+                    chToSet.insert(NFAStateArr[value].toState);
             }
-            else //求出的状态集合与之前求出的某个状态集合相同
+
+            if(chToSet.empty())
+                continue;
+            get_e_closure(chToSet);//求上得的序号集合的epsilon闭包
+
+            if(!DFAStatesSet.contains(chToSet))
+            {
+                //若该DFA状态节点不存在
+                //新建DFA节点
+                DFAStateArr[DFAStateNum].NFANodeSet=chToSet;
+                //若包含NFA终态
+                if(chToSet.contains(NFAG.endNode->stateNum))
+                    DFAEndStateSet.insert(DFAStateNum);
+                //更新原节点的信息
+                DFAStateArr[t_curState].DFAEdgeMap[ch]=DFAStateNum;
+                DFAStatesSet.insert(chToSet);
+                q.push_back(DFAStateArr[DFAStateNum++]);//节点入队后自增
+            }
+            else
             {
                 for(int i=0;i<DFAStateNum;i++)
                 {
-
-                    if(tmpS==DFAStateArr[i].em_closure_NFA)
+                    if(DFAStateArr[i].NFANodeSet==chToSet)
                     {
-                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=it;
-                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=i;
-                        DFAStateArr[num].edgeCount++;
-
-                        DFAG.tranArr[num][it.toLatin1()-'a']=i;//更新转移矩阵
-
+                        //更新当前DFA节点状态
+                        DFAStateArr[t_curState].DFAEdgeMap[ch]=i;
                         break;
                     }
                 }
@@ -955,15 +943,84 @@ void NDFA::NFA2DFA()
         }
     }
 
-    //求出DFA的终态集合
-    for(int i=0;i<DFAStateNum;i++)//遍历该DFA的所有状态
-    {
-        if(DFAStateArr[i].isEnd==true) //若其为终态则加入到集合中
-        {
-            DFAG.endStates.insert(i);
-        }
-    }
 }
+//    memset(DFAG.tranArr,-1,sizeof(DFAG.tranArr));
+
+//    for(const auto &ch: qAsConst(opCharSet))
+//    {
+//        if(ch.at(0).isLetter())
+//        {
+//            DFAG.endCharSet.insert(ch.at(0));
+//        }
+//    }
+//    qDebug()<<DFAG.endCharSet;
+//    DFAG.startState=0;//DFA的初态为0
+
+//    DFAStateArr[0].em_closure_NFA=e_closure(tmpSet);
+//    DFAStateArr[0].isEnd=isEnd(NFAG, DFAStateArr[0].em_closure_NFA);
+
+//    DFAStateNum++;//DFA计数加一
+
+//    QQueue<int> q;
+//    q.push_back(DFAG.startState);//将DFA的初态存入队列中
+
+//    while(!q.isEmpty())
+//    {
+//        int num=q.front();
+//        q.pop_front();//pop掉队头元素
+
+//        for(const auto &it : DFAG.endCharSet)
+//        {
+
+//            QSet<int> tmpS=move_e_cloure(DFAStateArr[num].em_closure_NFA,it);
+
+//            if(!EStatesSet.contains(tmpS) && !tmpS.empty())
+//            {
+//                EStatesSet.insert(tmpS);
+
+//                DFAStateArr[DFAStateNum].em_closure_NFA=tmpS;
+
+//                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=it;
+//                DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=DFAStateNum;
+//                DFAStateArr[num].edgeCount++;
+
+//                DFAG.tranArr[num][it.toLatin1()-'a']=DFAStateNum;//更新状态转移矩阵
+
+//                DFAStateArr[DFAStateNum].isEnd=isEnd(NFAG, DFAStateArr[DFAStateNum].em_closure_NFA);
+
+//                q.push_back(DFAStateNum);//将新的状态号加入队列中
+
+//                DFAStateNum++;//DFA总状态数加一
+//            }
+//            else //求出的状态集合与之前求出的某个状态集合相同
+//            {
+//                for(int i=0;i<DFAStateNum;i++)
+//                {
+
+//                    if(tmpS==DFAStateArr[i].em_closure_NFA)
+//                    {
+//                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].value=it;
+//                        DFAStateArr[num].edges[DFAStateArr[num].edgeCount].toState=i;
+//                        DFAStateArr[num].edgeCount++;
+
+//                        DFAG.tranArr[num][it.toLatin1()-'a']=i;//更新转移矩阵
+
+//                        break;
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+//    //求出DFA的终态集合
+//    for(int i=0;i<DFAStateNum;i++)//遍历该DFA的所有状态
+//    {
+//        if(DFAStateArr[i].isEnd==true) //若其为终态则加入到集合中
+//        {
+//            DFAG.endStates.insert(i);
+//        }
+//    }
+
 
 /**
  * @brief NDFA::DFA2mDFA
