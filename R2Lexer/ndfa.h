@@ -125,7 +125,7 @@ public:
 
     int getStateId(QSet<int> set[],int cur);//查询当前DFA节点属于哪个状态集（号）
 
-    bool genCase();
+    bool genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool flag);
 
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
@@ -150,7 +150,7 @@ public:
     void reg2NFA(QString regStr);//正则表达式转换位NFA
     void NFA2DFA();//NFA转换为DFA
     void DFA2mDFA();//DFA的最小化
-    QString mDFA2Lexer();//最小化DFA生成Lexer
+    QString mDFA2Lexer(QString filePath);//最小化DFA生成Lexer
 
 private:
     QString reg_keyword;//关键字正则串

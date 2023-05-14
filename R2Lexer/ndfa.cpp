@@ -633,6 +633,43 @@ int NDFA::getStateId(QSet<int> set[], int cur)
 }
 
 /**
+ * @brief NDFA::genLexCase
+ * @param tmpList
+ * @param codeStr
+ * @param idx
+ * @param flag
+ * @return
+ *
+ */
+bool NDFA::genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool flag)
+{
+    bool rFlag=false;
+    for(int i=0;i<tmpList.size();i++)
+    {
+        QString tmpKey=tmpList[i];
+        //字母情况
+        if(tmpKey=="letter")
+        {
+            for(int j=0;j<26;j++)
+            {
+                codeStr+="\t\t\tcase \'"+QString('a'+j)+"\':\n";
+                codeStr+="\t\t\tcase \'"+QString('A'+j)+"\':\n";
+            }
+            codeStr.chop(1);//去掉末尾字符
+        }
+        else if(tmpKey=="digit")
+        {
+            //数字情况
+            for(int j=0;j<26;j++)
+            {
+
+            }
+        }
+    }
+
+}
+
+/**
  * @brief NDFA::createNFA
  * @param stateN
  * @return n
@@ -979,16 +1016,132 @@ void NDFA::DFA2mDFA()
 }
 
 
+
 /**
  * @brief NDFA::mDFA2Lexer
  * @return Lexer
  * 根据最小化DFA，生成词法分析程序C语言代码，返回代码字符串
  */
-QString NDFA::mDFA2Lexer()
+QString NDFA::mDFA2Lexer(QString filePath)
 {
-    QString Lexer="#include<iostream>"
-                  "using namesapce std;"
-                  "int main(){";
+    QStringList keywordList=reg_keyword.split('|');
+
+    QString lexCode;
+    int mDFA_sstate=mDFAG.startState;//最小化DFA的初态
+
+    lexCode+="#include<stdio.h>\n";
+    lexCode+="#include<stdlib.h>\n";
+    lexCode+="#include<string.h>\n";
+    lexCode+="#include<ctype.h>\n";
+    lexCode+="#include<unordered_map>\n";
+    //关键字映射map
+    lexCode+="std::unordered_map<std::string, unsigned char> map;\n";
+    //初始化关键字映射map
+    lexCode+="void mapInitialize(FILE* output_map_fp) {\n";
+    lexCode+="\tunsigned char value = 128;\n";
+    foreach(QString tmp,kwList){
+        lexCode+="\tmap[\""+tmp+"\"] = value;\n";
+        lexCode+="\tfprintf(output_map_fp, \"%s %c\\n\", \""+tmp+"\", value++);\n";
+    }
+    lexCode+="}\n";
+    lexCode+="void coding(FILE* input_fp,FILE* output_fp) {\n";
+    lexCode+="\tchar tmp = fgetc(input_fp);\n";
+    lexCode+="\tif (tmp == ' ' || tmp == '\\n' || tmp == '\\t'){\n";
+    lexCode+="\t\tfprintf(output_fp, \"%c\", tmp);\n";
+    lexCode+="\t\tprintf(\"%c\", tmp);\n";
+    lexCode+="\t\treturn;\n";
+    lexCode+="\t}\n";
+    lexCode+="\tungetc(tmp, input_fp);\n";
+    lexCode+="\tint state = "+QString::number(state)+";\n";
+    lexCode+="\tbool flag = false;\n";
+    lexCode+="\tbool isIndentifier = false;\n";
+    lexCode+="\tbool isAnnotation = false;\n";
+    lexCode+="\tstd::string value;\n";
+    lexCode+="\twhile (!flag) {\n";
+    lexCode+="\t\ttmp = fgetc(input_fp);\n";
+    lexCode+="\t\tswitch (state) {\n";
+    for(int i=0;i<currentNumMinDFA;i++){
+        if(MinDFANodes[i].MinDFAEdges.size()){
+            lexCode+="\t\tcase "+QString::number(i)+": {\n";
+            lexCode+="\t\t\tswitch (tmp) {\n";
+            QList<QString> tmpList=MinDFANodes[i].MinDFAEdges.keys();//该状态的所有边值
+            if(GenCase(tmpList,lexCode,i,1))lexCode+="\t\t\tdefault:state = "+QString::number(MinDFANodes[i].MinDFAEdges["~"])+"; isAnnotation = true; break;\n";
+            lexCode+="\t\t\t}\n";
+            lexCode+="\t\t\tbreak;\n";
+            lexCode+="\t\t}\n";
+        }
+    }
+    lexCode+="\t\t}\n";
+    lexCode+="\t\tvalue += tmp;\n";
+
+    QList<int> stateList=minDfa.finialState.toList();//所有终态
+    lexCode+="\t\tif (";
+    for(int i=0;i<stateList.size();i++){//到了终态不一定是真正的终态，所以要提前读一个字符判断是不是真的到终态
+        int num=stateList[i];
+        if(i)lexCode+="\t\telse if (";
+        lexCode+="state =="+QString::number(num)+") {\n";
+        lexCode+="\t\t\ttmp = fgetc(input_fp);\n";
+        lexCode+="\t\t\tswitch (tmp) {\n";
+        QList<QString> tmpList=MinDFANodes[num].MinDFAEdges.keys();//该状态的所有边值
+        GenCase(tmpList,lexCode,num,0);
+        lexCode+="\t\t\tdefault: {\n";
+        lexCode+="\t\t\t\tflag=true;\n";
+        if(tmpList.contains("letter"))lexCode+="\t\t\t\tisIndentifier = true;\n";
+        lexCode+="\t\t\t}\n";
+        lexCode+="\t\t\t}\n";
+        lexCode+="\t\t\tungetc(tmp, input_fp);\n";
+        lexCode+="\t\t}\n";
+    }
+    lexCode+="\t}\n";
+
+    lexCode+="\tif (isIndentifier)if (map[value] != 0) {\n";
+    lexCode+="\t\tfprintf(output_fp, \"%c\", map[value]);\n";
+    lexCode+="\t\tprintf(\"%c\", map[value]);\n";
+    lexCode+="\t\treturn;\n";
+    lexCode+="\t}\n";
+    lexCode+="\tif (!isAnnotation) {\n";
+    lexCode+="\t\tfprintf(output_fp, value.c_str(), sizeof(value.c_str()));\n";
+    lexCode+="\t\tprintf(value.c_str());\n";
+    lexCode+="\t}\n";
+    lexCode+="}\n";
+
+
+    QFileInfo fileInfo(filePath);
+    tempPath=fileInfo.path();
+    lexCode+="int main(int argc, char* argv[]) {\n";
+    lexCode+="\tFILE* input_fp = fopen(\""+filePath+"\", \"r\");\n";
+    lexCode+="\tif (input_fp == NULL) {\n";
+    lexCode+="\t\tprintf(\"Failed to open input file\");\n";
+    lexCode+="\t\treturn 1;\n";
+    lexCode+="\t}\n";
+
+    lexCode+="\tFILE* output_fp = fopen(\""+tempPath+"/output.txt"+"\", \"w\");\n";
+    lexCode+="\tif (output_fp == NULL) {\n";
+    lexCode+="\t\tprintf(\"Failed to open output file\");\n";
+    lexCode+="\t\tfclose(input_fp);\n";
+    lexCode+="\t\treturn 1;\n";
+    lexCode+="\t}\n";
+
+    lexCode+="\tFILE* output_map_fp = fopen(\""+tempPath+"/output_map.txt"+"\", \"w\");\n";
+    lexCode+="\tif (output_map_fp == NULL) {\n";
+    lexCode+="\t\tprintf(\"Failed to open output_map file\");\n";
+    lexCode+="\t\tfclose(input_fp);\n";
+    lexCode+="\t\tfclose(output_fp);\n";
+    lexCode+="\t\treturn 1;\n";
+    lexCode+="\t}\n";
+
+    lexCode+="\tmapInitialize(output_map_fp);\n";
+    lexCode+="\tfclose(output_map_fp);\n";
+    lexCode+="\tchar c;\n";
+    lexCode+="\twhile ((c=fgetc(input_fp)) != EOF) {\n";
+    lexCode+="\t\tungetc(c, input_fp);\n";
+    lexCode+="\t\tcoding(input_fp, output_fp);\n";
+    lexCode+="\t}\n";
+    lexCode+="\tfclose(input_fp);\n";
+    lexCode+="\tfclose(output_fp);\n";
+    lexCode+="\treturn 0;\n";
+    lexCode+="}";
+
 
     return Lexer;
 }
