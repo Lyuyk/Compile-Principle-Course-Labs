@@ -25,6 +25,7 @@
 #include<QSet>
 #include<QStack>
 #include<QTableWidget>
+#include<QPlainTextEdit>
 
 #include<set>
 
@@ -114,16 +115,16 @@ public:
 
     struct mDFAGraph
     {
-        int startNode;//最小化DFA的初态
+        int startState;//最小化DFA的初态
         QSet<int> endStateSet;//最小化DFA的终态
     };
 
     //状态集结构体
-//    struct stateSet
-//    {
-//        QSet<int> DFAStateSet;//该状态集合的集合 包含的状态集合标号
-//        int toStateSetNum;//该状态集合可以转换到的 状态集的标号
-//    };
+    struct stateSet
+    {
+        QSet<int> DFAStateSet;//该状态集合的集合 包含的状态集合标号
+        int stateSetId;//该状态集合可以转换到的 状态集的标号
+    };
 
 
 
@@ -142,6 +143,7 @@ public:
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
     void printMDFA(QTableWidget *table);//输出mDFA状态转换表
+    void printLexer(QPlainTextEdit *widget,QString str);//输出Lexer（词法分析程序）代码
 
 public:
     void insert(QString &s, int n, QChar ch);//实现的字符串插入函数，使用
@@ -179,7 +181,7 @@ private:
 
     NFAGraph NFAG;//NFA图
     //DFAGraph DFAG;//NFA转换得的DFA图
-    DFAGraph mDFAG;//最小化的DFA图
+    mDFAGraph mDFAG;//最小化的DFA图
 
     int NFAStateNum;//NFA状态计数
     int DFAStateNum;//DFA状态计数
