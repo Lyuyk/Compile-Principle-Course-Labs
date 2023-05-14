@@ -758,9 +758,9 @@ NDFA::NFAGraph NDFA::createNFA(int stateN)
  * n1--ch-->n2
  * NFA节点n1与n2间添加一条非epsilon边，操作符为ch
  */
-void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QChar ch)
+void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QString ch)
 {
-    n1->val = ch;
+    n1->value = ch;
     n1->toState = n2->stateNum;
 }
 
@@ -1064,23 +1064,49 @@ void NDFA::DFA2mDFA()
                     {
                         //通过opChar到达的节点所属状态集合 号
                         int id=getStateId(dividedSet,DFAStateArr[state].DFAEdgeMap[opChar]);
-                        bool haveSame=true;
+                        bool haveSame=false;
                         for(int j=0;j<count;j++)
                         {
                             //若暂时分出来的状态号有相同的
                             if(t_stateSet[j].stateSetId==id)
                             {
-                                haveSame=false;
+                                haveSame=true;
                                 t_stateSet[j].DFAStateSet.insert(state);//加入该状态
                                 break;
                             }
                         }
-
+                        if(!haveSame)
+                        {
+                            //若没有相同的
+                            t_stateSet[count].stateSetId=id;
+                            t_stateSet[count].DFAStateSet.insert(state);
+                            count++;//todes
+                        }
                     }
                     else
                     {
-                        bool flag=true;
+                        //若不能到达另外一个节点
+                        bool haveSame=false;
+                        for(int j=0;j<count;j++)
+                        {
+                            if(t_stateSet[j].stateSetId==-1)
+                            {
+                                haveSame=true;
+                                t_stateSet[j].DFAStateSet.insert(state);
+                                break;
+                            }
+                        }
+                        if(!haveSame)
+                        {
+                            t_stateSet[count].stateSetId=-1;
+                            t_stateSet[count].DFAStateSet.insert(state);
+                            count++;//todes
+                        }
                     }
+                }
+                if(count>1)
+                {
+
                 }
             }
         }

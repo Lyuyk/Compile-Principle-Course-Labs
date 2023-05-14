@@ -153,7 +153,7 @@ public:
     QString preProcess(QString str);//预处理
 
     NFAGraph createNFA(int sum);//按顺序新建一个NFA子图
-    void add(NFANode *n1, NFANode *n2, QChar ch);//n1、n2节点间添加非eps边
+    void add(NFANode *n1, NFANode *n2, QString ch);//n1、n2节点间添加非eps边
     void add(NFANode *n1, NFANode *n2);//n1、n2节点间添加eps边
 
     QSet<int> e_closure(QSet<int> s); //求NFA的epsilon闭包
