@@ -699,6 +699,35 @@ void NDFA::opProcess(QChar opChar, QStack<NFAGraph> &NFAStack)
 }
 
 /**
+ * @brief NDFA::get_e_closure
+ * @param tmpSet
+ * 求epsilon闭包
+ */
+void NDFA::get_e_closure(QSet<int> &tmpSet)
+{
+    QQueue<int> q;
+    for(const auto &value: tmpSet)
+        q.push_back(value);
+
+    while(!q.empty())
+    {
+        int tmpFront=q.front();
+        q.pop_front();
+
+        QSet<int> eTmpSet=NFAStateArr[tmpFront].epsToSet;
+        //将通过epsilon到达的节点序号放入集合中
+        for(const auto &value: eTmpSet)
+        {
+            if(!tmpSet.contains(value))
+            {
+                tmpSet.insert(value);
+                q.push_back(value);
+            }
+        }
+    }
+}
+
+/**
  * @brief NDFA::createNFA
  * @param stateN
  * @return n

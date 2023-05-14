@@ -118,6 +118,8 @@ public:
     void pushOpStackProcess(QChar ch,QStack<QChar> &opStack,QStack<NFAGraph> &NFAStack);//运算符入栈处理子函数
     void opProcess(QChar ch,QStack<NFAGraph> &NFAStack);//根据运算符转换NFA处理子函数
 
+    void get_e_closure(QSet<int> &tmpSet);//求epsilon闭包
+
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
     void printMDFA(QTableWidget *table);//输出mDFA状态转换表
