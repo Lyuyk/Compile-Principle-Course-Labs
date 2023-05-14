@@ -42,7 +42,6 @@ public:
     {
         int stateNum;//当前NFA节点状态（号）
         int toState;//通过非epsilon边转换到的状态号
-        QChar val;//非epsilon的NFA状态弧上的值//-------已弃用
         QString value;//非epsilon的NFA状态弧上的值
         QSet<int> epsToSet;//状态号集合，即当前状态通过epsilon边转移到的状态的 状态号集合
 
@@ -50,7 +49,6 @@ public:
         {
             stateNum=-1;
             toState=-1;
-            val='#';
             value=' ';
             epsToSet.clear();
         }
@@ -75,11 +73,6 @@ public:
     {
         int stateNum;//DFA状态号
 
-//        int edgeCount;//该DFA状态节点的出度（射出的弧数）
-//        QSet<int> em_closure_NFA;//NFA的ε-move()闭包
-//        Edge edges[DFA_NODE_EDGE_COUNT];//DFA状态上射出的弧/边
-//        bool isEnd;//是否终态
-
         QSet<int> NFANodeSet;//存储当前DFA节点包含的NFA节点序号
         QMap<QString, int> DFAEdgeMap;//存储当前DFA节点
 
@@ -91,15 +84,6 @@ public:
         }
     };
 
-//    //DFA子图结构体
-//    struct DFAGraph
-//    {
-//        int startState;//DFA的初态
-//        QSet<int> endStates;//DFA的终态集合
-//        QSet<QChar> endCharSet;//DFA的终结符号集合
-//        int tranArr[ARR_MAX_SIZE][26];//DFA的转移矩阵
-//        QMap<QString,QString> transMap;//DFA状态转移矩阵
-//    };
 
     //mDFA节点结构体
     struct mDFANode
@@ -141,6 +125,8 @@ public:
 
     int getStateId(QSet<int> set[],int cur);//查询当前DFA节点属于哪个状态集（号）
 
+    bool genCase();
+
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
     void printMDFA(QTableWidget *table);//输出mDFA状态转换表
@@ -167,9 +153,11 @@ public:
     QString mDFA2Lexer();//最小化DFA生成Lexer
 
 private:
-    QSet<QString> reserveWords;//保留字集合
+    QString reg_keyword;//关键字正则串
+    QSet<QString> keyWordSet;//关键字集合
     QSet<QString> opCharSet;//操作符集合
     QSet<QChar> opSet={'(',')','|','*','+','?'};//运算符集合
+
 
     QSet<int> DFAEndStateSet;//存储DFA终态状态号集合
     QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）
