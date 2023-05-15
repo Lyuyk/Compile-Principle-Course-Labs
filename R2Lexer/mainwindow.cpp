@@ -182,13 +182,13 @@ void MainWindow::on_pushButton_mDFA_clicked()
  */
 void MainWindow::on_pushButton_Lexer_clicked()
 {
-    QString LexerStr=NDFAG.mDFA2Lexer();
+    NDFAG.mDFA2Lexer(srcFilePath);
 
     /*==========显示处理=================*/
     //切换表格
     ui->tabWidget_Graph->setCurrentIndex(4);
     //显示词法分析程序
-    ui->plainTextEdit_Lexer->setPlainText(LexerStr);
+    NDFAG.printLexer(ui->plainTextEdit_Lexer);
 }
 
 /**

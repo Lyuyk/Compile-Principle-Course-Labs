@@ -18,6 +18,7 @@
 #ifndef NDFA_H
 #define NDFA_H
 
+#include<QFileInfo>
 #include<QList>
 #include<QMap>
 #include<QMessageBox>
@@ -130,22 +131,12 @@ public:
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
     void printMDFA(QTableWidget *table);//输出mDFA状态转换表
-    void printLexer(QPlainTextEdit *widget,QString str);//输出Lexer（词法分析程序）代码
+    void printLexer(QPlainTextEdit *widget);//输出Lexer（词法分析程序）代码
 
 public:
-    void insert(QString &s, int n, QChar ch);//实现的字符串插入函数，使用
-    int priority(QChar ch);//正则表达式优先级判定
-    QString in2Suffix(QString s);//中缀表达式转换为后缀表达式
-    QString preProcess(QString str);//预处理
-
     NFAGraph createNFA(int sum);//按顺序新建一个NFA子图
     void add(NFANode *n1, NFANode *n2, QString ch);//n1、n2节点间添加非eps边
     void add(NFANode *n1, NFANode *n2);//n1、n2节点间添加eps边
-
-    QSet<int> e_closure(QSet<int> s); //求NFA的epsilon闭包
-    QSet<int> move_e_cloure(QSet<int> s, QChar ch);//
-    bool isEnd(NFAGraph n, QSet<int> s);
-    int findSetNum(int count, int n);
 
     void reg2NFA(QString regStr);//正则表达式转换位NFA
     void NFA2DFA();//NFA转换为DFA
@@ -154,10 +145,14 @@ public:
 
 private:
     QString reg_keyword;//关键字正则串
+    QString lexerCodeStr;//词法分析器代码
+
+    QString srcFilePath;//用于测试的源程序路径
+    QString tmpFilePath;//中间生成路径
+
     QSet<QString> keyWordSet;//关键字集合
     QSet<QString> opCharSet;//操作符集合
     QSet<QChar> opSet={'(',')','|','*','+','?'};//运算符集合
-
 
     QSet<int> DFAEndStateSet;//存储DFA终态状态号集合
     QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）

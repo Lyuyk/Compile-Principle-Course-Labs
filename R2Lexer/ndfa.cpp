@@ -37,6 +37,7 @@ void NDFA::init()
     DFAEndStateSet.clear();
     keyWordSet.clear();
     reg_keyword.clear();
+    lexerCodeStr.clear();
     dividedSet->clear();
 
     //FA图初始化
@@ -143,7 +144,7 @@ void NDFA::printDFA(QTableWidget *table)
 
     //水平表头
     table->setHorizontalHeaderLabels(OpStrList);
-    table->setItem(DFAG.startState,colCount-1,new QTableWidgetItem("初态"));
+    //table->setItem(DFAG.startState,colCount-1,new QTableWidgetItem("初态"));
 
     for(int iArr=0;iArr<DFAStateNum;iArr++)
     {
@@ -210,168 +211,12 @@ void NDFA::printMDFA(QTableWidget *table)
     }
 }
 
-void NDFA::printLexer(QPlainTextEdit *widget,QString str)
+void NDFA::printLexer(QPlainTextEdit *widget)
 {
     widget->clear();
-    widget->setPlainText(str);
+    widget->setPlainText(lexerCodeStr);
 }
 
-/**
- * @brief NDFA::insert
- * @param s
- * @param n
- * @param ch
- * 在字符串s的n下标插入新字符ch
- */
-void NDFA::insert(QString &s, int n, QChar ch)
-{
-    s += '#';
-
-    for(int i = s.size() - 1; i > n; i--)
-    {
-        s[i] = s[i - 1];
-    }
-
-    s[n] = ch;
-}
-
-/**
- * @brief NDFA::preProcess
- * @param str
- * @return s
- * 正则表达式增加对连接操作识别的预处理，对源字符串str返回处理后的的字符串s
- */
-QString NDFA::preProcess(QString str)
-{
-    int i = 0 , length = str.size();
-    QString s=str;
-
-    while(i < length-1)
-    {
-        if((s.at(i).isLetter()) || (s.at(i) == '*') || (s.at(i) == ')'))
-        {
-            if((s[i + 1].isLetter()) || s[i + 1] == '(')
-            {
-                s=s.insert(i+1,'&');
-                //insert(s, i+1 , '&');
-                length++;
-            }
-        }
-        i++;
-    }
-    return s;
-}
-
-int NDFA::priority(QChar ch)
-{
-
-    if(ch == '*')
-    {
-        return 3;
-    }
-
-    if(ch == '?')
-    {
-        return 3;
-    }
-
-    if(ch == '+')
-    {
-        return 3;
-    }
-
-    if(ch == '&')
-    {
-        return 2;
-    }
-
-    if(ch == '|')
-    {
-        return 1;
-    }
-
-    if(ch == '(')
-    {
-        return 0;
-    }
-
-    return -1;
-}
-
-QString NDFA::in2Suffix(QString s)
-{
-    s=preProcess(s);			/*对字符串进行预处理*/
-
-    QString str;		    /*要输出的后缀字符串*/
-    QStack<QChar> opStack;	/*运算符栈*/
-
-    for(int i = 0; i < s.size(); i++)
-    {
-        //操作数不处理
-        if(s.at(i).isLower())
-        {
-            str += s.at(i);
-        }
-        else  /*遇到运算符时*/
-        {
-            if(s.at(i) == '(')		/*遇到左括号压入栈中*/
-            {
-                opStack.push(s.at(i));
-            }
-            else if(s.at(i) == ')')	/*遇到右括号时*/
-            {
-                QChar ch = opStack.top();
-                while(ch != '(')	/*将栈中元素出栈，直到栈顶为左括号*/
-                {
-                    str += ch;
-                    opStack.pop();
-                    ch = opStack.top();
-                }
-                opStack.pop();		/*最后将左括号出栈*/
-            }
-            else					/*遇到其他操作符时*/
-            {
-                if(!opStack.empty())			/*如果栈不为空*/
-                {
-                    QChar ch = opStack.top();
-                    while(priority(ch) >= priority(s.at(i)))	/*弹出栈中优先级大于等于当前运算符的运算符*/
-                    {
-
-                        str +=	ch;
-                        opStack.pop();
-
-                        if(opStack.empty())	/*如果栈为空则结束循环*/
-                        {
-                            break;
-                        }
-                        else ch = opStack.top();
-                    }
-
-                    opStack.push(s.at(i));		/*再将当前运算符入栈*/
-                }
-
-                else				/*如果栈为空，直接将运算符入栈*/
-                {
-                    opStack.push(s.at(i));
-                }
-            }
-        }
-    }
-
-    /*最后如果栈不为空，则出栈并输出到字符串*/
-    while(!opStack.empty())
-    {
-
-        QChar ch = opStack.top();
-        opStack.pop();
-
-        str += ch;
-    }
-
-    qDebug()<<"suffix:"<<str;
-    return str;
-
-}
 
 /**
  * @brief NDFA::strToNfa
@@ -455,7 +300,6 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
 
     return NFAStack.top();
 }
-
 
 
 /**
@@ -639,7 +483,7 @@ int NDFA::getStateId(QSet<int> set[], int cur)
  * @param idx
  * @param flag
  * @return
- *
+ *生成Lexer代码的核心子函数
  */
 bool NDFA::genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool flag)
 {
@@ -652,8 +496,8 @@ bool NDFA::genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool fl
         {
             for(int j=0;j<26;j++)
             {
-                codeStr+="\t\t\tcase \'"+QString('a'+j)+"\':\n";
-                codeStr+="\t\t\tcase \'"+QString('A'+j)+"\':\n";
+                codeStr+="\t\t\tcase \'"+QString(char('a'+j))+"\':\n";
+                codeStr+="\t\t\tcase \'"+QString(char('A'+j))+"\':\n";
             }
             codeStr.chop(1);//去掉末尾字符
         }
@@ -662,11 +506,21 @@ bool NDFA::genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool fl
             //数字情况
             for(int j=0;j<26;j++)
             {
-
+                codeStr+="\t\t\tcase \'"+QString::number(j)+"\':\n";
             }
+            codeStr.chop(1);
         }
-    }
+        else if(tmpKey=="~")
+        {
+            rFlag=true;
+            continue;
+        }
+        else codeStr+="\t\t\tcase \'"+tmpKey+"\':";
 
+        if(flag)codeStr+="state = "+QString::number(mDFANodeArr[idx].mDFAEdgesMap[tmpKey])+"; ";
+        codeStr+="break;\n";
+    }
+    return rFlag;
 }
 
 /**
@@ -709,101 +563,6 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QString ch)
 void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2)
 {
     n1->epsToSet.insert(n2->stateNum);
-}
-
-/**
- * @brief NDFA::e_closure
- * 求一个状态集的ε-closure(A)的子函数
- * @param s
- * @return
- */
-QSet<int> NDFA::e_closure(QSet<int> s)
-{
-    QSet<int> newSet;
-    QStack<int> eStack;
-
-    for(const auto &iter:s)
-    {
-        newSet.insert(iter);
-        eStack.push(iter);
-    }
-
-    while(!eStack.isEmpty())
-    {
-        int OpTmp=eStack.top(); //从栈中弹出一个元素
-        eStack.pop();
-
-        for(const auto &iter : qAsConst(NFAStateArr[OpTmp].epsToSet))//遍历它能够通过epsilon转换到的状态集合
-        {
-            if(!newSet.contains(iter))/*若当前的元素没有在集合中出现，则将其加入集合中*/
-            {
-                newSet.insert(iter);
-                eStack.push(iter);//同时压入栈中
-            }
-        }
-    }
-    return newSet;//最后得到的集合即为ε-cloure
-}
-
-/**
- * @brief NDFA::move_e_cloure
- * @param s
- * @param ch
- * @return eMoveSet
- * 求ε-closure(ch)，即当前状态s经过ch弧后得到的（扩张）状态
- */
-QSet<int> NDFA::move_e_cloure(QSet<int> s, QChar ch)
-{
-    QSet<int> eMoveSet;
-
-    for(const auto &it: s)
-    {
-        if(NFAStateArr[it].val==ch)//遍历当前集合s中的每一个元素
-        {
-            eMoveSet.insert(NFAStateArr[it].toState);//若对应转换弧上的值与ch相同
-        }
-    }
-
-    eMoveSet=e_closure(eMoveSet);//求该集合的epsilon闭包
-    return eMoveSet;
-}
-
-/**
- * @brief NDFA::isEnd
- * @param n
- * @param s
- * @return End flag
- * 返回该状态集是否包含终态的判断结果，是则返回true，否则返回false
- */
-bool NDFA::isEnd(NDFA::NFAGraph n, QSet<int> s)
-{
-    for(const auto &it: s)/*遍历该状态所包含的NFA状态集*/
-    {
-        if(it==n.endNode->stateNum)
-        {
-            return true;//如果包含NFA的终态，则该状态为终态，返回true
-        }
-    }
-    return false;
-}
-
-/**
- * @brief MainWindow::findSetNum
- * 当前的划分总数为count，返回状态n所属于的状态集合标号i
- * @param count
- * @param n
- * @return i (-2 means error occured)
- */
-int NDFA::findSetNum(int count, int n)
-{
-    for(int i=0;i<count;i++)
-    {
-        if(dividedSet[i].contains(n))
-        {
-            return i;
-        }
-    }
-    return -2;
 }
 
 /**
@@ -886,7 +645,6 @@ void NDFA::NFA2DFA()
     }
 
 }
-
 
 /**
  * @brief NDFA::DFA2mDFA
@@ -1016,7 +774,6 @@ void NDFA::DFA2mDFA()
 }
 
 
-
 /**
  * @brief NDFA::mDFA2Lexer
  * @return Lexer
@@ -1027,7 +784,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
     QStringList keywordList=reg_keyword.split('|');
 
     QString lexCode;
-    int mDFA_sstate=mDFAG.startState;//最小化DFA的初态
+    int m_state=mDFAG.startState;//最小化DFA的初态
 
     lexCode+="#include<stdio.h>\n";
     lexCode+="#include<stdlib.h>\n";
@@ -1039,7 +796,9 @@ QString NDFA::mDFA2Lexer(QString filePath)
     //初始化关键字映射map
     lexCode+="void mapInitialize(FILE* output_map_fp) {\n";
     lexCode+="\tunsigned char value = 128;\n";
-    foreach(QString tmp,kwList){
+
+    for(const auto &tmp : keywordList)
+    {
         lexCode+="\tmap[\""+tmp+"\"] = value;\n";
         lexCode+="\tfprintf(output_map_fp, \"%s %c\\n\", \""+tmp+"\", value++);\n";
     }
@@ -1052,7 +811,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\t\treturn;\n";
     lexCode+="\t}\n";
     lexCode+="\tungetc(tmp, input_fp);\n";
-    lexCode+="\tint state = "+QString::number(state)+";\n";
+    lexCode+="\tint state = "+QString::number(m_state)+";\n";
     lexCode+="\tbool flag = false;\n";
     lexCode+="\tbool isIndentifier = false;\n";
     lexCode+="\tbool isAnnotation = false;\n";
@@ -1060,12 +819,14 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\twhile (!flag) {\n";
     lexCode+="\t\ttmp = fgetc(input_fp);\n";
     lexCode+="\t\tswitch (state) {\n";
-    for(int i=0;i<currentNumMinDFA;i++){
-        if(MinDFANodes[i].MinDFAEdges.size()){
+
+    for(int i=0;i<mDFAStateNum;i++)
+    {
+        if(mDFANodeArr[i].mDFAEdgesMap.size()){
             lexCode+="\t\tcase "+QString::number(i)+": {\n";
             lexCode+="\t\t\tswitch (tmp) {\n";
-            QList<QString> tmpList=MinDFANodes[i].MinDFAEdges.keys();//该状态的所有边值
-            if(GenCase(tmpList,lexCode,i,1))lexCode+="\t\t\tdefault:state = "+QString::number(MinDFANodes[i].MinDFAEdges["~"])+"; isAnnotation = true; break;\n";
+            QList<QString> tmpList=mDFANodeArr[i].mDFAEdgesMap.keys();//该状态的所有边值
+            if(genLexCase(tmpList,lexCode,i,1))lexCode+="\t\t\tdefault:state = "+QString::number(mDFANodeArr[i].mDFAEdgesMap["~"])+"; isAnnotation = true; break;\n";
             lexCode+="\t\t\t}\n";
             lexCode+="\t\t\tbreak;\n";
             lexCode+="\t\t}\n";
@@ -1074,16 +835,19 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\t\t}\n";
     lexCode+="\t\tvalue += tmp;\n";
 
-    QList<int> stateList=minDfa.finialState.toList();//所有终态
+    QList<int> stateList(mDFAG.endStateSet.begin(), mDFAG.endStateSet.end());//所有终态
+
     lexCode+="\t\tif (";
-    for(int i=0;i<stateList.size();i++){//到了终态不一定是真正的终态，所以要提前读一个字符判断是不是真的到终态
+    for(int i=0;i<stateList.size();i++)
+    {
+        //要提前读一个字符判断是不是真的到终态，因为到了终态不一定是真正的终态
         int num=stateList[i];
         if(i)lexCode+="\t\telse if (";
         lexCode+="state =="+QString::number(num)+") {\n";
         lexCode+="\t\t\ttmp = fgetc(input_fp);\n";
         lexCode+="\t\t\tswitch (tmp) {\n";
-        QList<QString> tmpList=MinDFANodes[num].MinDFAEdges.keys();//该状态的所有边值
-        GenCase(tmpList,lexCode,num,0);
+        QList<QString> tmpList=mDFANodeArr[num].mDFAEdgesMap.keys();//该状态的所有边值
+        genLexCase(tmpList,lexCode,num,0);
         lexCode+="\t\t\tdefault: {\n";
         lexCode+="\t\t\t\tflag=true;\n";
         if(tmpList.contains("letter"))lexCode+="\t\t\t\tisIndentifier = true;\n";
@@ -1105,9 +869,8 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\t}\n";
     lexCode+="}\n";
 
-
     QFileInfo fileInfo(filePath);
-    tempPath=fileInfo.path();
+    tmpFilePath=fileInfo.path();
     lexCode+="int main(int argc, char* argv[]) {\n";
     lexCode+="\tFILE* input_fp = fopen(\""+filePath+"\", \"r\");\n";
     lexCode+="\tif (input_fp == NULL) {\n";
@@ -1115,14 +878,14 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\t\treturn 1;\n";
     lexCode+="\t}\n";
 
-    lexCode+="\tFILE* output_fp = fopen(\""+tempPath+"/output.txt"+"\", \"w\");\n";
+    lexCode+="\tFILE* output_fp = fopen(\""+tmpFilePath+"/output.txt"+"\", \"w\");\n";
     lexCode+="\tif (output_fp == NULL) {\n";
     lexCode+="\t\tprintf(\"Failed to open output file\");\n";
     lexCode+="\t\tfclose(input_fp);\n";
     lexCode+="\t\treturn 1;\n";
     lexCode+="\t}\n";
 
-    lexCode+="\tFILE* output_map_fp = fopen(\""+tempPath+"/output_map.txt"+"\", \"w\");\n";
+    lexCode+="\tFILE* output_map_fp = fopen(\""+tmpFilePath+"/output_map.txt"+"\", \"w\");\n";
     lexCode+="\tif (output_map_fp == NULL) {\n";
     lexCode+="\t\tprintf(\"Failed to open output_map file\");\n";
     lexCode+="\t\tfclose(input_fp);\n";
@@ -1142,6 +905,6 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\treturn 0;\n";
     lexCode+="}";
 
-
-    return Lexer;
+    lexerCodeStr=lexCode;
+    return lexCode;
 }
