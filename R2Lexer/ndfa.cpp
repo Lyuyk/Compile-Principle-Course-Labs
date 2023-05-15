@@ -71,17 +71,16 @@ void NDFA::init()
 void NDFA::printNFA(QTableWidget *table)
 {
     qDebug()<<"printNFA";
+
     int rowCount=NFAStateNum;//记录NFA状态数
     int epsColN=opCharSet.size()+1;//最后一列 epsilon 列号
     int colCount=opCharSet.size()+3;
+
     QStringList OpStrList=opCharSet.values();
     std::sort(OpStrList.begin(),OpStrList.end());
     OpStrList.push_front("状态号");
     OpStrList.push_back("epsilon");
     OpStrList.push_back("初/终态");
-
-    //ui->plainTextEdit_console->insertPlainText("NFA states' count:"+QString::number(NFAStateNum)+'\n');
-    //ui->plainTextEdit_console->insertPlainText("Operators' count:"+QString::number(OpCharSet.size())+'\n');
 
     qDebug()<<OpStrList;
     table->setRowCount(rowCount);
@@ -107,15 +106,12 @@ void NDFA::printNFA(QTableWidget *table)
 //        qDebug()<<"epsSetStr:"+epsSetStr;
 
         //非epsilon转换
-        int colN=OpStrList.indexOf(NFAStateArr[row].val);
+        int colN=OpStrList.indexOf(NFAStateArr[row].value);
 
         if(colN != -1)
         {
             table->setItem(row,colN,new QTableWidgetItem(QString::number(NFAStateArr[row].toState)));
         }
-
-        qDebug()<<NFAStateArr[row].stateNum;
-        qDebug()<<NFAG.startNode->stateNum;
 
         if(NFAStateArr[row].stateNum==NFAG.startNode->stateNum)
         {
@@ -169,46 +165,7 @@ void NDFA::printDFA(QTableWidget *table)
 
 void NDFA::printMDFA(QTableWidget *table)
 {
-    QStringList OpStrList=opCharSet.values();
-    std::sort(OpStrList.begin(),OpStrList.end());
-    //OpStrList.push_front("状态集元素");
-    OpStrList.push_front("状态集号");
-    OpStrList.push_back("初/终态");
 
-    int rowCount=mDFAStateNum;
-    int colCount=OpStrList.size();
-    //设置表格行列
-    table->setColumnCount(colCount);
-    table->setRowCount(rowCount);
-    //设置表头
-    table->setHorizontalHeaderLabels(OpStrList);
-
-    //输出表格内容
-    table->setHorizontalHeaderLabels(OpStrList);
-    table->setItem(mDFAG.startState,colCount-1,new QTableWidgetItem("初态"));
-
-    //qDebug()<<"mDS:"<<mDFAStateNum;
-    for(int iArr=0;iArr<mDFAStateNum;iArr++)
-    {
-        int rowN=mDFANodeArr[iArr].stateNum;
-
-        table->setItem(rowN,0,new QTableWidgetItem(QString::number(rowN)));
-
-        //遍历DFA节点出边
-        for(int i=0;i<mDFANodeArr[rowN].edgeCount;i++)
-        {
-            //转到状态的列标
-            int colN=OpStrList.indexOf(mDFANodeArr[rowN].edges[i].value);
-            qDebug()<<"colN"<<colN;
-            int toStateN=mDFANodeArr[rowN].edges[i].toState;
-            table->setItem(rowN,colN,new QTableWidgetItem(QString::number(toStateN)));
-        }
-
-        if(mDFANodeArr[rowN].isEnd)
-        {
-            table->setItem(rowN,colCount-1,new QTableWidgetItem("终态"));
-        }
-    }
 }
 
 void NDFA::printLexer(QPlainTextEdit *widget)
