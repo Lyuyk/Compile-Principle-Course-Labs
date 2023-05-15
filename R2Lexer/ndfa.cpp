@@ -88,7 +88,7 @@ void NDFA::printNFA(QTableWidget *table)
     for(int state=0;state<NFAStateNum;state++)
     {
         table->setItem(state,0,
-                       new QTableWidgetItem(QString::number(state),Qt::AlignCenter));
+                       new QTableWidgetItem(QString::number(state)));
 
         int k=1;
         int colN=1;
@@ -99,26 +99,27 @@ void NDFA::printNFA(QTableWidget *table)
             {
                 table->setItem(state,colN,
                                new QTableWidgetItem(
-                                   QString::number(NFAStateArr[state].toState),Qt::AlignCenter));
+                                   QString::number(NFAStateArr[state].toState)));
             }
             colN++;
         }
 
         QString epsStr="";
+        //qDebug()<<NFAStateArr[state].epsToSet;
         for(const auto &e_state: NFAStateArr[state].epsToSet)
         {
             epsStr+=QString::number(e_state)+",";
         }
         epsStr.chop(1);
-        table->setItem(state,epsColN,new QTableWidgetItem(epsStr,Qt::AlignCenter));
+        table->setItem(state,epsColN,new QTableWidgetItem(epsStr));
 
         if(NFAStateArr[state].stateNum==NFAG.startNode->stateNum)
         {//若为初态
-            table->setItem(state,epsColN+1,new QTableWidgetItem("初态",Qt::AlignCenter));
+            table->setItem(state,epsColN+1,new QTableWidgetItem("初态"));
         }
         if(NFAStateArr[state].stateNum==NFAG.endNode->stateNum)
         {//若为终态
-            table->setItem(state,epsColN+1,new QTableWidgetItem("终态",Qt::AlignCenter));
+            table->setItem(state,epsColN+1,new QTableWidgetItem("终态"));
         }
     }
 }
@@ -296,13 +297,13 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
         }
         default:
         {
+            //查看是否为转义字符
             QString tmpStr;
             if(s[i]=='\\')
             {
                 while(s[++i]!='\\')
                 {
                     if(s[i]=='`')i++;
-
                     tmpStr+=s[i];
                 }
                 opCharSet.insert(tmpStr);//顺便加入操作符集合
@@ -315,8 +316,8 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
             }
             NFAGraph n=createNFA(NFAStateNum);
             NFAStateNum+=2;
-            n.startNode->value=tmpStr;//生成NFA子图，非eps边
-            add(n.startNode,n.endNode,tmpStr[i]);
+            //生成NFA子图，加非eps边
+            add(n.startNode,n.endNode,tmpStr);
 
             NFAStack.push(n);
             insConnOp(s,i,opStack,NFAStack);
@@ -400,6 +401,7 @@ void NDFA::opProcess(QChar opChar, QStack<NFAGraph> &NFAStack)
         NFAGraph n2=NFAStack.pop();
 
         add(n2.endNode,n1.startNode);
+        qDebug()<<"add";
 
         NFAGraph n;
         n.startNode=n2.startNode;
@@ -588,9 +590,10 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QString ch)
  * n1--eps->n2
  * NFA节点n1与n2间添加一条epsilon边，信息记录于n1节点中
  */
-void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2)
+void NDFA::add(NFANode *n1, NFANode *n2)
 {
     n1->epsToSet.insert(n2->stateNum);
+    qDebug()<<"ins:"<<n2->stateNum;
 }
 
 /**
@@ -600,6 +603,7 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2)
  */
 void NDFA::reg2NFA(QString regStr)
 {
+
     NFAG=strToNfa(regStr);//调用转换函数
 }
 

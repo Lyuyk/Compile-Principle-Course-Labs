@@ -59,6 +59,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     /*一些参数的初始化*/
     regexStr="";
+    NDFAG.init();
 }
 
 MainWindow::~MainWindow()
@@ -126,7 +127,7 @@ void MainWindow::on_pushButton_saveRegexToFile_clicked()
 
 void MainWindow::on_pushButton_2NFA_clicked()
 {
-    regexStr=ui->plainTextEdit_Regex->toPlainText().trimmed();//获取正则表达式
+    regexStr=ui->plainTextEdit_Regex->toPlainText();//获取正则表达式
 
     NDFAG.reg2NFA(regexStr);//调用转换函数
     printConsole("正则表达式已转换为NFA");
