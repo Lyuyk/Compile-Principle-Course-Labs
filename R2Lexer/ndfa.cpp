@@ -70,102 +70,175 @@ void NDFA::init()
 
 void NDFA::printNFA(QTableWidget *table)
 {
-    qDebug()<<"printNFA";
-
-    int rowCount=NFAStateNum;//记录NFA状态数
     int epsColN=opCharSet.size()+1;//最后一列 epsilon 列号
-    int colCount=opCharSet.size()+3;
 
-    QStringList OpStrList=opCharSet.values();
-    std::sort(OpStrList.begin(),OpStrList.end());
-    OpStrList.push_front("状态号");
-    OpStrList.push_back("epsilon");
-    OpStrList.push_back("初/终态");
+    //初始化表头
+    QStringList headerStrList=opCharSet.values();
+    headerStrList.push_front("状态号");
+    headerStrList.push_back("epsilon");
+    headerStrList.push_back("初/终态");
 
-    qDebug()<<OpStrList;
-    table->setRowCount(rowCount);
-    table->setColumnCount(colCount);
-    /*设置表头 行*/
-    table->setHorizontalHeaderLabels(OpStrList);
-    /*设置表头 列*/
-    for(int row=0;row<rowCount;row++)
+    table->setRowCount(NFAStateNum);
+    table->setColumnCount(opCharSet.size()+3);
+    //设置表头 行
+    table->setHorizontalHeaderLabels(headerStrList);
+    //竖轴隐藏
+    table->verticalHeader()->setHidden(true);
+
+    for(int state=0;state<NFAStateNum;state++)
     {
-        //状态号
-        table->setItem(row,0,new QTableWidgetItem(QString::number(row)));
-        //epsilon转换集合
-        QString epsSetStr="";
-        QSet<int>::iterator it;
-        for(it=NFAStateArr[row].epsToSet.begin();it!=NFAStateArr[row].epsToSet.end();it++)
+        table->setItem(state,0,
+                       new QTableWidgetItem(QString::number(state),Qt::AlignCenter));
+
+        int k=1;
+        int colN=1;
+
+        for(;k<headerStrList.size()-2;k++)
         {
-            epsSetStr+=QString::number(*it)+",";
-        }
-        epsSetStr.chop(1);//去掉末尾逗号
-        table->setItem(row,epsColN,new QTableWidgetItem(epsSetStr.left(1)));
-
-//        qDebug()<<"eSUnion:"<<NFAStateArr[row].epsToSet;
-//        qDebug()<<"epsSetStr:"+epsSetStr;
-
-        //非epsilon转换
-        int colN=OpStrList.indexOf(NFAStateArr[row].value);
-
-        if(colN != -1)
-        {
-            table->setItem(row,colN,new QTableWidgetItem(QString::number(NFAStateArr[row].toState)));
+            if(NFAStateArr[state].value==headerStrList[k])
+            {
+                table->setItem(state,colN,
+                               new QTableWidgetItem(
+                                   QString::number(NFAStateArr[state].toState),Qt::AlignCenter));
+            }
+            colN++;
         }
 
-        if(NFAStateArr[row].stateNum==NFAG.startNode->stateNum)
+        QString epsStr="";
+        for(const auto &e_state: NFAStateArr[state].epsToSet)
         {
-            table->setItem(row,epsColN+1,new QTableWidgetItem("初态"));
+            epsStr+=QString::number(e_state)+",";
         }
+        epsStr.chop(1);
+        table->setItem(state,epsColN,new QTableWidgetItem(epsStr,Qt::AlignCenter));
 
-        if(NFAStateArr[row].stateNum==NFAG.endNode->stateNum)
-        {
-            table->setItem(row,epsColN+1,new QTableWidgetItem("终态"));
+        if(NFAStateArr[state].stateNum==NFAG.startNode->stateNum)
+        {//若为初态
+            table->setItem(state,epsColN+1,new QTableWidgetItem("初态",Qt::AlignCenter));
+        }
+        if(NFAStateArr[state].stateNum==NFAG.endNode->stateNum)
+        {//若为终态
+            table->setItem(state,epsColN+1,new QTableWidgetItem("终态",Qt::AlignCenter));
         }
     }
 }
 
 void NDFA::printDFA(QTableWidget *table)
 {
-    QStringList OpStrList=opCharSet.values();
-    std::sort(OpStrList.begin(),OpStrList.end());
-    OpStrList.push_front("状态号");
-    OpStrList.push_back("初/终态");
+    //初始化
+    table->clear();table->setRowCount(0);table->setColumnCount(0);
 
-    int rowCount=DFAStateNum;
-    int colCount=OpStrList.size();
-    //设置表格行列
-    table->setColumnCount(colCount);
-    table->setRowCount(rowCount);
+    table->setRowCount(DFAStateNum);//表格行数
+    table->setColumnCount(opCharSet.count()+3);//表格列数（状态号，包含NFA状态，操作符。。。，初/终态）
+    table->verticalHeader()->setHidden(true);//隐藏竖轴序号列
 
+    //表头初始化
+    QStringList headerStrList=opCharSet.values();
+    headerStrList.push_front("包含的NFA状态");
+    headerStrList.push_front("状态号");
+    headerStrList.push_back("初/终态");
     //水平表头
-    table->setHorizontalHeaderLabels(OpStrList);
-    //table->setItem(DFAG.startState,colCount-1,new QTableWidgetItem("初态"));
+    table->setHorizontalHeaderLabels(headerStrList);
 
-    for(int iArr=0;iArr<DFAStateNum;iArr++)
+    //遍历所有DFA节点
+    for(int state=0;state<DFAStateNum;state++)
     {
-        int rowN=DFAStateArr[iArr].stateNum;
-        table->setItem(rowN,0,new QTableWidgetItem(QString::number(rowN)));
-        //遍历DFA节点出边
-        for(int i=0;i<DFAStateArr[rowN].edgeCount;i++)
+        //设置状态号
+        table->setItem(state,0,
+                       new QTableWidgetItem(QString::number(DFAStateArr[state].stateNum),
+                                            Qt::AlignCenter));
+        //NFA状态集
+        QString NFASetStr="{ ";
+        for(const auto &n_state:DFAStateArr[state].NFANodeSet)
         {
-            //转到状态的列标
-            int colN=OpStrList.indexOf(DFAStateArr[rowN].edges[i].value);
-            int toStateN=DFAStateArr[rowN].edges[i].toState;
-            table->setItem(rowN,colN,new QTableWidgetItem(QString::number(toStateN)));
+            NFASetStr+=QString::number(n_state)+",";
+        }
+        NFASetStr.replace(-1,1," }");
+        table->setItem(state,1,new QTableWidgetItem(NFASetStr,Qt::AlignCenter));
+
+        int k=2;//从第一个操作符开始
+        int colN=1;
+        for(;k<headerStrList.count()-1;k++)
+        {
+            QString curOpChar=headerStrList[k];//当前操作符
+            if(DFAStateArr[state].DFAEdgeMap.contains(curOpChar))//若可达
+            {
+                int toState=DFAStateArr[state].DFAEdgeMap[curOpChar];
+
+                QString n_NFASetStr="{ ";
+                for(const auto &n_state: DFAStateArr[state].NFANodeSet)
+                {
+                    n_NFASetStr+=QString::number(n_state)+",";
+                }
+                n_NFASetStr.replace(-1,1," }");
+                table->setItem(state,colN,new QTableWidgetItem(n_NFASetStr,Qt::AlignCenter));
+            }
+            colN++;
         }
 
-        if(DFAStateArr[rowN].isEnd)
-        {
-            table->setItem(rowN,colCount-1,new QTableWidgetItem("终态"));
+        if(DFAEndStateSet.contains(state))
+        {//若为终态
+            table->setItem(state,colN,new QTableWidgetItem("终态",Qt::AlignCenter));
         }
-
+        else if(DFAStateArr[state].NFANodeSet.contains(NFAG.startNode->stateNum))
+        {
+            table->setItem(state,colN,new QTableWidgetItem("初态",Qt::AlignCenter));
+        }
     }
 }
 
 void NDFA::printMDFA(QTableWidget *table)
 {
+    //初始化
+    table->clear();table->setRowCount(0);table->setColumnCount(0);
 
+    table->setRowCount(mDFAStateNum);//表格行数
+    table->setColumnCount(opCharSet.count()+2);//表格列数
+    table->verticalHeader()->setHidden(true);//隐藏竖轴序号列
+
+    //表头初始化
+    QStringList headerStrList=opCharSet.values();
+    headerStrList.push_front("状态号");
+    headerStrList.push_back("初/终态");
+    //设置水平表头
+    table->setHorizontalHeaderLabels(headerStrList);
+
+    for(int stateId=0;stateId<mDFAStateNum;stateId++)
+    {
+        int k=1;
+        int colN=1;
+
+        table->setItem(stateId, 0,
+                       new QTableWidgetItem(QString::number(stateId),Qt::AlignCenter));//列 状态号
+
+        //遍历所有操作符
+        for( ;k<headerStrList.count()-1;k++)
+        {
+            QString curOpChar=headerStrList[k];//当前操作符
+            if(mDFANodeArr[stateId].mDFAEdgesMap.contains(curOpChar))
+            {
+                //若通过当前操作符可达
+                int toIdx=mDFANodeArr[stateId].mDFAEdgesMap[curOpChar];
+
+                table->setItem(stateId,colN,
+                               new QTableWidgetItem(QString::number(toIdx),Qt::AlignCenter));
+            }
+            colN++;
+        }
+
+        if(mDFAG.endStateSet.contains(stateId))
+        {
+            //若为初态
+            table->setItem(stateId,colN,
+                           new QTableWidgetItem("初态",Qt::AlignCenter));
+        }
+        else if(stateId==mDFAG.startState)
+        {
+            //若为终态
+            table->setItem(stateId,colN,
+                           new QTableWidgetItem("终态",Qt::AlignCenter));
+        }
+    }
 }
 
 void NDFA::printLexer(QPlainTextEdit *widget)
@@ -173,7 +246,6 @@ void NDFA::printLexer(QPlainTextEdit *widget)
     widget->clear();
     widget->setPlainText(lexerCodeStr);
 }
-
 
 /**
  * @brief NDFA::strToNfa
@@ -257,7 +329,6 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
 
     return NFAStack.top();
 }
-
 
 /**
  * @brief NDFA::opPriorityMapInit
@@ -729,7 +800,6 @@ void NDFA::DFA2mDFA()
         }
     }
 }
-
 
 /**
  * @brief NDFA::mDFA2Lexer

@@ -19,6 +19,7 @@
 #define NDFA_H
 
 #include<QFileInfo>
+#include<QHeaderView>
 #include<QList>
 #include<QMap>
 #include<QMessageBox>
