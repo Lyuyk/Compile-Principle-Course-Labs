@@ -23,9 +23,9 @@ MinGW 11.2.0 64bit
 
 Contains the following 3 tasks ( 2023-Spring )
 
-- [ ] Task1: Convert regular expression( high-level language’s) to  generate a lexical analysis program ( Use C )
+- [x] Task1: Convert regular expression( high-level language’s) to  generate a lexical analysis program ( Use C )
 
-  - [ ] Test with regular expressions of the TINY language
+  - [x] Test with regular expressions of the TINY language
 
   - [x] Display NFA with state transition table or diagram
 
@@ -33,11 +33,11 @@ Contains the following 3 tasks ( 2023-Spring )
 
   - [x] Display minimized DFA with state transition table or diagram
 
-  - [ ] Generate a lexical analysis program based on the minimized DFA ( Use C )
+  - [x] Generate a lexical analysis program based on the minimized DFA ( Use C )
 
-  - [ ] Compile this lexical analysis source program with a C/C++ compiler and generate an executable program
+  - [x] Compile this lexical analysis source program with a C/C++ compiler and generate an executable program
 
-  - [ ] Test with TINY language：
+  - [x] Test with TINY language：
 
     > Test with a source program of the high-level programming language, and output the word code of the source program. A window needs to be provided so that the user can view the word code.
 
