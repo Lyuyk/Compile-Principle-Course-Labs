@@ -1,100 +1,30 @@
-/*====================================================
-
-  Copyright(C) 2022-2023 Lyuyk
-  All rights reserved
-
-  文件名称:mainwindow.cpp
-  摘要:主窗口源文件
-  当前版本号:v1.1
-  版本历史信息：v1.0：基本功能完成，有穷自动机转换部分存在问题
+#include "bnfp.h"
 
 
-  created by Lyuyk at 2023/4/26
-
-=====================================================*/
-
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-
-#include <QDateTime>
-#include <QFileDialog>
-#include <QList>
-#include <QMessageBox>
-#include <QStack>
-#include <QStringList>
-#include <QTextStream>
-#include <QDebug>
-
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+BNFP::BNFP()
 {
-    ui->setupUi(this);
 
-    ui->tabWidget->setCurrentIndex(0);
-
-    //界面交互处理
-    ui->pushButton_check->setDisabled(true);
-    ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
-    ui->pushButton_eliminateLeftRecursion->setDisabled(true);
-    ui->pushButton_set->setDisabled(true);
-
-    /*菜单栏与槽函数连接*/
-    connect(ui->action_exit, &QAction::triggered, this, &MainWindow::exit);
-    connect(ui->action_open, &QAction::triggered, this, &MainWindow::on_pushButton_open_clicked);
-    connect(ui->action_save, &QAction::triggered, this, &MainWindow::on_pushButton_save_clicked);
-    connect(ui->action_simplify, &QAction::triggered, this, &MainWindow::on_pushButton_process_clicked);
-    connect(ui->action_check, &QAction::triggered, this, &MainWindow::on_pushButton_check_clicked);
-    connect(ui->action_set, &QAction::triggered, this, &MainWindow::on_pushButton_set_clicked);
 
 }
 
-MainWindow::~MainWindow()
-{
-    delete ui;
-}
-
-/**
- * @brief MainWindow::exit
- * 退出程序
- */
-void MainWindow::exit()
-{
-    window()->close();
-}
-
-/**
- * @brief MainWindow::printConsole
- * @param content
- * 控制台输出文字函数
- */
-void MainWindow::printConsole(QString content)
-{
-    QString time=QDateTime::currentDateTime().toString("[ hh:mm:ss.zzz ]");
-
-    ui->plainTextEdit_console->insertPlainText(time+content+'\n');
-}
-
-
-
-bool MainWindow::isTerminator(QChar c)
+bool BNFP::isTerminator(QChar c)
 {
     return c.isLower() && c.isLetter();
 }
 
-bool MainWindow::isNonTerminator(QChar c)
+bool BNFP::isNonTerminator(QChar c)
 {
     return c.isUpper() && c.isLetter();
 }
 
 /**
- * @brief MainWindow::isProductionR_terminable
+ * @brief BNFP::isProductionR_terminable
  * 判断右部是否可终结
  * @param nonTmrSet
  * @param productionR
  * @return
  */
-bool MainWindow::isProductionR_terminable(const QSet<QChar> &nonTmrSet, const QString &productionR)
+bool BNFP::isProductionR_terminable(const QSet<QChar> &nonTmrSet, const QString &productionR)
 {
     for(const auto c: productionR)
     {
@@ -103,7 +33,7 @@ bool MainWindow::isProductionR_terminable(const QSet<QChar> &nonTmrSet, const QS
     return true;
 }
 
-bool MainWindow::isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSet<QChar> &tmrSet, const QString &productionR)
+bool BNFP::isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSet<QChar> &tmrSet, const QString &productionR)
 {
     for(const auto &c: productionR)
     {
@@ -116,7 +46,7 @@ bool MainWindow::isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSe
     return true;
 }
 
-void MainWindow::initGrammar()
+void BNFP::initGrammar()
 {
     startChar='\0';
     terminatorSet.clear();
@@ -160,7 +90,7 @@ void MainWindow::initGrammar()
     simplifyGrammar();
 }
 
-void MainWindow::simplifyGrammar()
+void BNFP::simplifyGrammar()
 {
     //1.消除形如U->U等有害规则
     const QList<QChar> &tmp_GM_productionMap_keys=GM_productionMap.keys();
@@ -275,7 +205,7 @@ void MainWindow::simplifyGrammar()
 
 }
 
-QString MainWindow::getGrammarString()
+QString BNFP::getGrammarString()
 {
     QString grammarString;
 
@@ -303,7 +233,7 @@ QString MainWindow::getGrammarString()
 
 
 
-void MainWindow::printSimplifiedGrammar()
+void BNFP::printSimplifiedGrammar()
 {
     ui->plainTextEdit_simplified->clear();
     ui->plainTextEdit_console->insertPlainText(getTime()+"输出化简文法...\n");
@@ -314,12 +244,12 @@ void MainWindow::printSimplifiedGrammar()
     ui->tabWidget->setCurrentIndex(1);
 }
 
-void MainWindow::printGrammar(QPlainTextEdit &e)
+void BNFP::printGrammar(QPlainTextEdit &textPlainEdit)
 {
-    e.insertPlainText(getGrammarString());
+    textPlainEdit.insertPlainText(getGrammarString());
 }
 
-void MainWindow::eliminateLRecursion()
+void BNFP::eliminateLRecursion()
 {
     //给非终结符规定顺序
     QList<QChar> tmp_nonTmrList;
@@ -382,7 +312,7 @@ void MainWindow::eliminateLRecursion()
     simplifyGrammar();
 }
 
-void MainWindow::replaceL(const QChar &replaceC, const QChar &replaced)
+void BNFP::replaceL(const QChar &replaceC, const QChar &replaced)
 {
     QSet<QString> tmp_replacedProductionRSet = GM_productionMap[replaced];
 
@@ -405,7 +335,7 @@ void MainWindow::replaceL(const QChar &replaceC, const QChar &replaced)
 
 }
 
-QSet<QString> MainWindow::replaceL(const QChar &replaceC, const QString &productionR)
+QSet<QString> BNFP::replaceL(const QChar &replaceC, const QString &productionR)
 {
     QSet<QString> resSet;
 
@@ -418,7 +348,7 @@ QSet<QString> MainWindow::replaceL(const QChar &replaceC, const QString &product
     return resSet;
 }
 
-QChar MainWindow::getNewTmr()
+QChar BNFP::getNewTmr()
 {
     QSet<QChar> tmp_availableNonTmrSet;
     for(char c='A';c<='Z';c++)
@@ -436,7 +366,7 @@ QChar MainWindow::getNewTmr()
     return *non_terminatorSet.insert(*tmp_availableNonTmrSet.begin());
 }
 
-void MainWindow::eliminateLCommonFactor()
+void BNFP::eliminateLCommonFactor()
 {
     QStack<QChar> tmp_nonTmrStk;
 
@@ -485,7 +415,7 @@ void MainWindow::eliminateLCommonFactor()
     simplifyGrammar();
 }
 
-QSet<QString> MainWindow::replaceLNonTmr(const QString &productionR)
+QSet<QString> BNFP::replaceLNonTmr(const QString &productionR)
 {
     if(productionR.isEmpty() || isTerminator(productionR[0]))
     {
@@ -530,7 +460,7 @@ QSet<QString> MainWindow::replaceLNonTmr(const QString &productionR)
     return resSet;
 }
 
-QSet<QChar> MainWindow::getRPPrefixes(const QSet<QString> &productionRSet)
+QSet<QChar> BNFP::getRPPrefixes(const QSet<QString> &productionRSet)
 {
     QSet<QChar> prefixes;
 
@@ -543,7 +473,7 @@ QSet<QChar> MainWindow::getRPPrefixes(const QSet<QString> &productionRSet)
     return prefixes;
 }
 
-QSet<QString> MainWindow::findPrefixProductions(const QChar &prefix, const QSet<QString> &productionRSet)
+QSet<QString> BNFP::findPrefixProductions(const QChar &prefix, const QSet<QString> &productionRSet)
 {
     QSet<QString> preProductionSet;
 
@@ -560,7 +490,7 @@ QSet<QString> MainWindow::findPrefixProductions(const QChar &prefix, const QSet<
     return preProductionSet;
 }
 
-QSet<QString> MainWindow::getFirstSet(const QChar &nonTmr)
+QSet<QString> BNFP::getFirstSet(const QChar &nonTmr)
 {
     QSet<QString> firstSet;
 
@@ -572,7 +502,7 @@ QSet<QString> MainWindow::getFirstSet(const QChar &nonTmr)
     return firstSet;
 }
 
-QSet<QString> MainWindow::getFirstSet(const QString &productionR)
+QSet<QString> BNFP::getFirstSet(const QString &productionR)
 {
     if(productionR.isEmpty())
         return {""};
@@ -594,7 +524,7 @@ QSet<QString> MainWindow::getFirstSet(const QString &productionR)
     return firstSet |= "";
 }
 
-QMap<QChar, QSet<QString> > MainWindow::getFirstSet()
+QMap<QChar, QSet<QString> > BNFP::getFirstSet()
 {
     QMap<QChar, QSet<QString>> resMap;
 
@@ -608,12 +538,12 @@ QMap<QChar, QSet<QString> > MainWindow::getFirstSet()
     return resMap;
 }
 
-QMap<QChar, QSet<QChar> > MainWindow::getFollowSet()
+QMap<QChar, QSet<QChar> > BNFP::getFollowSet()
 {
     return followSetMap;
 }
 
-void MainWindow::firstNfollowSet()
+void BNFP::firstNfollowSet()
 {
     followSetMap.clear();
     firstSetMap.clear();
@@ -666,245 +596,3 @@ void MainWindow::firstNfollowSet()
     }
 }
 
-int MainWindow::isLinearGrammar()
-{
-    int linearGrammarFlag=0;//设置标志位，0为未初始化，1为左线性文法，2为右线性文法，其它为非线性文法
-
-    for(const auto&tmp_productionL: GM_productionMap.keys())
-    {
-        //检查左部是否为
-        if(tmp_productionL.isUpper())
-        {
-            //检查右部
-            for(const auto&tmp_productionR: GM_productionMap[tmp_productionL])
-            {
-                //若为空串
-                if(tmp_productionR=="")continue;
-                //若产生式长度为1（必须为终结符）
-                if(tmp_productionR.length()==1)
-                {
-                    //终结符
-                    if(tmp_productionR[0].isLower())continue;
-                    else return 4;
-                }
-                else if(tmp_productionR.length()==2)
-                {
-                    /*这里开始检查是否左右线性文法*/
-                    if(linearGrammarFlag==0)
-                    {
-                        if(tmp_productionR[0].isUpper() && tmp_productionR[1].isLower())
-                        {/*左线性文法*/
-                            linearGrammarFlag=1;
-                        }
-                        else if(tmp_productionR[0].isLower() && tmp_productionR[1].isUpper())
-                        {/*右线性文法*/
-                            linearGrammarFlag=2;
-                        }
-                        else return 5;
-                    }
-                    else if(linearGrammarFlag==1)
-                    {
-                        if(tmp_productionR[0].isUpper() && tmp_productionR[1].isLower())continue;
-                        else return 6;
-                    }
-                    else
-                    {
-                        if(tmp_productionR[0].isLower() && tmp_productionR[1].isUpper())continue;
-                        else return 7;
-                    }
-                }
-                else return 8;
-            }
-        }
-        else return 3;
-    }
-
-    return linearGrammarFlag;
-}
-
-
-/**
- * @brief MainWindow::on_pushButton_open_clicked
- * 打开文法文件
- */
-void MainWindow::on_pushButton_open_clicked()
-{
-    QString srcFilePath=QFileDialog::getOpenFileName(this,"选择文法文件（仅.txt类型）","/", "Files(*.txt)");
-    QFile srcFile(srcFilePath);
-    if(!srcFile.open(QIODevice::ReadOnly|QIODevice::Text))
-    {
-        QMessageBox::warning(NULL, "文件", "文件打开失败");
-        return;
-    }
-    QTextStream textInput(&srcFile);
-    textInput.setEncoding(QStringConverter::Utf8);//设置编码，防止中文乱码
-
-    QString line;
-    ui->plainTextEdit_console->insertPlainText(getTime()+"读取文法文件...\n");
-    while(!textInput.atEnd())
-    {
-        line=textInput.readLine().toUtf8();//按行读取文件
-        GrammarStr.append(line.trimmed());
-        ui->plainTextEdit_edit->insertPlainText(line+'\n');//一行行显示
-        GrammarStr+=line;//初始化GrammarStr
-    }
-    ui->plainTextEdit_console->insertPlainText(getTime()+"读取完成...\n");
-    srcFile.close();
-}
-
-/**
- * @brief MainWindow::on_pushButton_save_clicked
- * 将编辑框中编辑好的文法文本保存到选择的路径中
- */
-void MainWindow::on_pushButton_save_clicked()
-{
-    QString tgtFilePath=QFileDialog::getSaveFileName(this,"选择保存路径","/");
-    QFile tgtFile(tgtFilePath);
-    if(!tgtFile.open(QIODevice::ReadWrite|QIODevice::Text|QIODevice::Truncate))
-    {
-        QMessageBox::warning(NULL, "文件", "文件保存失败");
-        return;
-    }
-    QTextStream outputFile(&tgtFile);
-    QString tgStr=ui->plainTextEdit_edit->toPlainText();
-    outputFile<<tgStr;
-    tgtFile.close();
-    QMessageBox::information(NULL,"文件(saveGrammarRule)","文件保存成功");
-}
-
-void MainWindow::on_pushButton_arrowChar_clicked()
-{
-    ui->plainTextEdit_edit->insertPlainText("->");
-}
-
-void MainWindow::on_pushButton_epsilonChar_clicked()
-{
-    ui->plainTextEdit_edit->insertPlainText("@");
-}
-
-void MainWindow::on_pushButton_orChar_clicked()
-{
-    ui->plainTextEdit_edit->insertPlainText("|");
-}
-
-void MainWindow::on_pushButton_process_clicked()
-{
-    initGrammar();
-    simplifyGrammar();
-    printSimplifiedGrammar();
-    on_pushButton_check_clicked();
-    on_pushButton_set_clicked();
-    //on_pushButton_isGrammarLinear_clicked();
-}
-
-/**
- * @brief MainWindow::on_pushButton_check_clicked
- * 检查是否有左公因子和左递归
- */
-void MainWindow::on_pushButton_check_clicked()
-{
-    //消除左递归
-    eliminateLRecursion();
-    printGrammar(*ui->plainTextEdit_leftRecursion);
-    outConsole("消除左递归完成...");
-    //消除左公因子
-    eliminateLCommonFactor();
-    printGrammar(*ui->plainTextEdit_leftCommonFactor);
-    outConsole("消除左公因子完成...");
-
-    //ui->pushButton_isGrammarLinear->setEnabled(true);
-
-}
-
-void MainWindow::on_pushButton_eliminateLeftRecursion_clicked()
-{
-    ui->plainTextEdit_leftRecursion->clear();
-
-    outConsole("消除左递归...");
-    eliminateLRecursion();
-    ui->plainTextEdit_console->insertPlainText(getTime()+"消除左递归完成...\n");
-
-    printGrammar(*ui->plainTextEdit_leftRecursion);
-    ui->plainTextEdit_console->insertPlainText(getTime()+"输出处理结果...\n");
-
-    ui->tabWidget->setCurrentIndex(2);
-    ui->pushButton_eliminateLeftCommonFactor->setEnabled(true);
-}
-
-void MainWindow::on_pushButton_eliminateLeftCommonFactor_clicked()
-{
-    ui->plainTextEdit_leftCommonFactor->clear();
-
-    ui->plainTextEdit_console->insertPlainText(getTime()+"消除左公因子...\n");
-    eliminateLCommonFactor();
-    ui->plainTextEdit_console->insertPlainText(getTime()+"消除左公因子完成...\n");
-
-    printGrammar(*ui->plainTextEdit_leftCommonFactor);
-    ui->plainTextEdit_console->insertPlainText(getTime()+"输出处理结果...\n");
-
-    ui->tabWidget->setCurrentIndex(2);
-}
-
-void MainWindow::on_pushButton_set_clicked()
-{
-    firstNfollowSet();
-    ui->tableWidget_firstSet->clear();
-    ui->tableWidget_followSet->clear();
-
-    ui->tableWidget_firstSet->setRowCount(firstSetMap.size());
-    ui->tableWidget_followSet->setRowCount(followSetMap.size());
-
-    /*followSet*/
-    int rowN=0;
-    for(auto c:followSetMap.keys())
-    {
-        ui->tableWidget_followSet->setItem(rowN,0,new QTableWidgetItem(c));
-        QString setStr="";
-        for(auto ch:followSetMap[c])
-        {
-            setStr+=", "+QString(ch);
-        }
-        setStr.remove(0,1);
-        ui->tableWidget_followSet->setItem(rowN,1,new QTableWidgetItem(setStr));
-        rowN++;
-    }
-
-    /*firstSet*/
-    QMap<QChar, QSet<QString>> firstSetMap=getFirstSet();
-    rowN=0;
-    for(auto c:firstSetMap.keys())
-    {
-        ui->tableWidget_firstSet->setItem(rowN,0,new QTableWidgetItem(c));
-        QString setStr="";
-        for(auto ch:firstSetMap[c])
-        {
-            if(ch.isEmpty())
-            {
-                setStr+=", @ ";
-                continue;
-            }
-            setStr+=", "+QString(ch);
-        }
-        setStr.remove(0,1);
-        ui->tableWidget_firstSet->setItem(rowN,1,new QTableWidgetItem(setStr));
-        rowN++;
-    }
-
-}
-
-void MainWindow::on_pushButton_simplify_clicked()
-{
-    initGrammar();
-    simplifyGrammar();
-    printSimplifiedGrammar();
-    ui->pushButton_check->setEnabled(true);
-    ui->pushButton_eliminateLeftRecursion->setEnabled(true);
-    ui->pushButton_set->setEnabled(true);
-
-}
-
-
-void MainWindow::on_pushButton_clearConsole_clicked()
-{
-    ui->plainTextEdit_console->clear();
-}

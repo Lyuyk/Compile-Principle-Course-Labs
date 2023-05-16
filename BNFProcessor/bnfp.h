@@ -1,56 +1,22 @@
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef BNFP_H
+#define BNFP_H
 
-#include <QMainWindow>
 #include <QPlainTextEdit>
 #include <QString>
 #include <QChar>
+#include <QStack>
 #include <QSet>
 #include <QMap>
 
-#include "bnfp.h"
-
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
-
-class MainWindow : public QMainWindow
+class BNFP
 {
-    Q_OBJECT
-
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    BNFP();
 
-private slots:
-    void on_pushButton_open_clicked();
+    void simplifyGrammar();
 
-    void on_pushButton_save_clicked();
-
-    void on_pushButton_arrowChar_clicked();
-
-    void on_pushButton_epsilonChar_clicked();
-
-    void on_pushButton_orChar_clicked();
-
-    void on_pushButton_process_clicked();
-
-    void on_pushButton_check_clicked();
-
-    void on_pushButton_eliminateLeftRecursion_clicked();
-
-    void on_pushButton_eliminateLeftCommonFactor_clicked();
-
-    void on_pushButton_set_clicked();
-
-    void on_pushButton_simplify_clicked();
-
-    void on_pushButton_clearConsole_clicked();
-
-private:
-    void exit();
-    void printConsole(QString content);
-
+    void printSimplifiedGrammar();
+    void printGrammar(QPlainTextEdit *e);
 
 private:
     bool isTerminator(QChar c);
@@ -59,10 +25,8 @@ private:
     bool isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSet<QChar> &tmrSet, const QString &productionR);
 
     void initGrammar();
-    void simplifyGrammar();
+
     QString getGrammarString();
-    void printSimplifiedGrammar();
-    void printGrammar(QPlainTextEdit &e);
 
     void eliminateLRecursion();
     // 将文法规则中replaceC为左部的产生式代入replaced做为左部的产生式中
@@ -85,11 +49,7 @@ private:
     QMap<QChar, QSet<QChar>> getFollowSet();//取得非终结符的follow集
     void firstNfollowSet();//求解first与follow集合元素
 
-    int isLinearGrammar();//判断是否线性文法
-
 private:
-    BNFP BNFProcessor;
-
     QString GrammarStr;
 
     QChar startChar;//开始符号
@@ -99,8 +59,6 @@ private:
 
     QMap<QChar, QMap<QString, QSet<QString>>> firstSetMap;//first集合元素
     QMap<QChar, QSet<QChar>> followSetMap;//follow集合元素
-
-private:
-    Ui::MainWindow *ui;
 };
-#endif // MAINWINDOW_H
+
+#endif // BNFP_H
