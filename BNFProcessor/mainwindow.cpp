@@ -34,6 +34,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui->tabWidget->setCurrentIndex(0);
 
+    //界面交互处理
     ui->pushButton_check->setDisabled(true);
     ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
@@ -901,48 +902,6 @@ void MainWindow::on_pushButton_simplify_clicked()
 
 }
 
-//void MainWindow::on_pushButton_isGrammarLinear_clicked()
-//{
-//    int result=isLinearGrammar();qDebug()<<"LinearResult:"<<result;;
-//    switch (result)
-//    {
-//        case 1:
-//        {/*左线性文法*/
-//            NDFA NDFAProcessor;
-//            NDFAProcessor.init();
-//            NDFAProcessor.lGrammarToDFA(GM_productionMap,terminatorSet,non_terminatorSet,startChar);
-//            NDFAProcessor.printDFA(ui->tableWidget_DFA);
-//            NDFAProcessor.printNFA(ui->tableWidget_NFA);
-//            outConsole("转换成DFA...");
-//            ui->checkBox_lLinearGrammar->setEnabled(true);
-//            ui->checkBox_linearGrammar->setEnabled(true);
-//            ui->checkBox_linearGrammar->setChecked(true);
-//            ui->checkBox_lLinearGrammar->setChecked(true);
-//            break;
-//        }
-//        case 2:
-//        {
-//            /*右线性文法*/
-//            NDFA NDFAProcessor;
-//            NDFAProcessor.init();
-//            NDFAProcessor.rGrammarToDFA(GM_productionMap,terminatorSet,non_terminatorSet,startChar);
-//            outConsole("转换成DFA...");
-//            NDFAProcessor.printNFA(ui->tableWidget_NFA);
-//            NDFAProcessor.printDFA(ui->tableWidget_DFA);
-//            ui->checkBox_rLinearGrammar->setEnabled(true);
-//            ui->checkBox_linearGrammar->setEnabled(true);
-//            ui->checkBox_linearGrammar->setChecked(true);
-//            ui->checkBox_rLinearGrammar->setChecked(true);
-//            break;
-//        }
-//        default:
-//        {/*非线性文法*/
-//            ui->checkBox_nonLinearGrammar->setEnabled(true);
-//            ui->checkBox_nonLinearGrammar->setChecked(true);
-//            break;
-//        }
-//    }
-//}
 
 void MainWindow::on_pushButton_clearConsole_clicked()
 {
