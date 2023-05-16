@@ -65,7 +65,6 @@ void NDFA::init()
     {
         mDFANodeArr[i].init();
     }
-
 }
 
 void NDFA::printNFA(QTableWidget *table)
@@ -154,16 +153,18 @@ void NDFA::printDFA(QTableWidget *table)
         {
             NFASetStr+=QString::number(n_state)+",";
         }
-        NFASetStr.replace(-1,1," }");
+        NFASetStr.replace(NFASetStr.size()-1,1," }");
         table->setItem(state,1,new QTableWidgetItem(NFASetStr,Qt::AlignCenter));
 
-        int k=2;//从第一个操作符开始
+        int k=1;//从第一个操作符开始
         int colN=1;
         for(;k<headerStrList.count()-1;k++)
         {
             QString curOpChar=headerStrList[k];//当前操作符
+            qDebug()<<curOpChar;
             if(DFAStateArr[state].DFAEdgeMap.contains(curOpChar))//若可达
             {
+                qDebug()<<"isOK";
                 int toState=DFAStateArr[state].DFAEdgeMap[curOpChar];
 
                 QString n_NFASetStr="{ ";
@@ -171,19 +172,19 @@ void NDFA::printDFA(QTableWidget *table)
                 {
                     n_NFASetStr+=QString::number(n_state)+",";
                 }
-                n_NFASetStr.replace(-1,1," }");
-                table->setItem(state,colN,new QTableWidgetItem(n_NFASetStr,Qt::AlignCenter));
+                n_NFASetStr.replace(n_NFASetStr.size()-1,1," }");
+                table->setItem(state,colN,new QTableWidgetItem(n_NFASetStr));
             }
             colN++;
         }
 
         if(DFAEndStateSet.contains(state))
         {//若为终态
-            table->setItem(state,colN,new QTableWidgetItem("终态",Qt::AlignCenter));
+            table->setItem(state,colN,new QTableWidgetItem("终态"));
         }
         else if(DFAStateArr[state].NFANodeSet.contains(NFAG.startNode->stateNum))
         {
-            table->setItem(state,colN,new QTableWidgetItem("初态",Qt::AlignCenter));
+            table->setItem(state,colN,new QTableWidgetItem("初态"));
         }
     }
 }
@@ -193,6 +194,7 @@ void NDFA::printMDFA(QTableWidget *table)
     //初始化
     table->clear();table->setRowCount(0);table->setColumnCount(0);
 
+    qDebug()<<mDFAStateNum;
     table->setRowCount(mDFAStateNum);//表格行数
     table->setColumnCount(opCharSet.count()+2);//表格列数
     table->verticalHeader()->setHidden(true);//隐藏竖轴序号列
@@ -206,23 +208,24 @@ void NDFA::printMDFA(QTableWidget *table)
 
     for(int stateId=0;stateId<mDFAStateNum;stateId++)
     {
-        int k=1;
+        int k=1;//第一个状态开始
         int colN=1;
 
         table->setItem(stateId, 0,
-                       new QTableWidgetItem(QString::number(stateId),Qt::AlignCenter));//列 状态号
+                       new QTableWidgetItem(QString::number(stateId)));//列 状态号
 
         //遍历所有操作符
         for( ;k<headerStrList.count()-1;k++)
         {
             QString curOpChar=headerStrList[k];//当前操作符
+            qDebug()<<curOpChar;
             if(mDFANodeArr[stateId].mDFAEdgesMap.contains(curOpChar))
             {
                 //若通过当前操作符可达
                 int toIdx=mDFANodeArr[stateId].mDFAEdgesMap[curOpChar];
 
                 table->setItem(stateId,colN,
-                               new QTableWidgetItem(QString::number(toIdx),Qt::AlignCenter));
+                               new QTableWidgetItem(QString::number(toIdx)));
             }
             colN++;
         }
@@ -231,13 +234,13 @@ void NDFA::printMDFA(QTableWidget *table)
         {
             //若为初态
             table->setItem(stateId,colN,
-                           new QTableWidgetItem("初态",Qt::AlignCenter));
+                           new QTableWidgetItem("终态"));
         }
         else if(stateId==mDFAG.startState)
         {
             //若为终态
             table->setItem(stateId,colN,
-                           new QTableWidgetItem("终态",Qt::AlignCenter));
+                           new QTableWidgetItem("初态"));
         }
     }
 }
@@ -366,6 +369,7 @@ void NDFA::pushOpStackProcess(QChar opCh, QStack<QChar> &opStack, QStack<NFAGrap
         }
         else break;
     }
+    opStack.push(opCh);
 }
 
 /**
@@ -401,7 +405,6 @@ void NDFA::opProcess(QChar opChar, QStack<NFAGraph> &NFAStack)
         NFAGraph n2=NFAStack.pop();
 
         add(n2.endNode,n1.startNode);
-        qDebug()<<"add";
 
         NFAGraph n;
         n.startNode=n2.startNode;
@@ -593,7 +596,7 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QString ch)
 void NDFA::add(NFANode *n1, NFANode *n2)
 {
     n1->epsToSet.insert(n2->stateNum);
-    qDebug()<<"ins:"<<n2->stateNum;
+    qDebug()<<"addEps:"<<n2->stateNum;
 }
 
 /**
@@ -684,13 +687,15 @@ void NDFA::NFA2DFA()
  */
 void NDFA::DFA2mDFA()
 {
+
     mDFAStateNum=1;//未划分，状态数量为1
-    for(int i=0;i<mDFAStateNum;i++)
+    for(int i=0;i<DFAStateNum;i++)
     {
         if(!DFAStateArr[i].NFANodeSet.contains(NFAG.endNode->stateNum))
         {
             dividedSet[1].insert(DFAStateArr[i].stateNum);//非终态集合
-            NFAStateNum=2;//设为2，终态与非终态
+            mDFAStateNum=2;//设为2，终态与非终态
+
         }
         else dividedSet[0].insert(DFAStateArr[i].stateNum);
     }
@@ -712,12 +717,12 @@ void NDFA::DFA2mDFA()
                     if(DFAStateArr[state].DFAEdgeMap.contains(opChar))
                     {
                         //通过opChar到达的节点所属状态集合 号
-                        int id=getStateId(dividedSet,DFAStateArr[state].DFAEdgeMap[opChar]);
+                        int toIdx=getStateId(dividedSet,DFAStateArr[state].DFAEdgeMap[opChar]);
                         bool haveSame=false;
                         for(int j=0;j<count;j++)
                         {
                             //若暂时分出来的状态号有相同的
-                            if(t_stateSet[j].stateSetId==id)
+                            if(t_stateSet[j].stateSetId==toIdx)
                             {
                                 haveSame=true;
                                 t_stateSet[j].DFAStateSet.insert(state);//加入该状态
@@ -727,7 +732,7 @@ void NDFA::DFA2mDFA()
                         if(!haveSame)
                         {
                             //若没有相同的
-                            t_stateSet[count].stateSetId=id;
+                            t_stateSet[count].stateSetId=toIdx;
                             t_stateSet[count].DFAStateSet.insert(state);
                             count++;//todes
                         }
