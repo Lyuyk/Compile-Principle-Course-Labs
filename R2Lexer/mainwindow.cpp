@@ -82,7 +82,7 @@ void MainWindow::on_pushButton_openRegexFile_clicked()
     QFile srcFile(srcFilePath);
     if(!srcFile.open(QIODevice::ReadOnly|QIODevice::Text))
     {
-        QMessageBox::warning(NULL, "文件", "文件打开失败");
+        QMessageBox::warning(NULL, "文件", "未能打开文件");
         return;
     }
     QTextStream textInput(&srcFile);
@@ -90,13 +90,15 @@ void MainWindow::on_pushButton_openRegexFile_clicked()
 
     QString line;
     printConsole("读取正则表达式文件...");
-    while(!textInput.atEnd())
-    {
-        line=textInput.readLine().toUtf8();//按行读取文件
-        regexStr.append(line.trimmed());
-        ui->plainTextEdit_Regex->insertPlainText(line);//一行行显示
-        regexStr+=line;//初始化regexStr
-    }    
+
+    line=textInput.readLine().toUtf8().trimmed();//按行读取文件
+    regexStr.append(line);
+    ui->plainTextEdit_Regex->insertPlainText(line);//一行行显示
+
+    line=textInput.readLine().toUtf8().trimmed();//第二行 关键字（规定）
+    keywordStr=line;//初始化regexStr
+    ui->plainTextEdit_Regex->insertPlainText(line);//一行行显示
+
     srcFile.close();
 
     printConsole("正则表达式文件读取完成...");
@@ -129,6 +131,7 @@ void MainWindow::on_pushButton_2NFA_clicked()
 {
     regexStr=ui->plainTextEdit_Regex->toPlainText();//获取正则表达式
 
+    NDFAG.setKeywordStr(keywordStr);
     NDFAG.reg2NFA(regexStr);//调用转换函数
     printConsole("正则表达式已转换为NFA");
 
@@ -144,8 +147,9 @@ void MainWindow::on_pushButton_2NFA_clicked()
  */
 void MainWindow::on_pushButton_2DFA_clicked()
 {
+    printConsole("转换NFA...");
     NDFAG.NFA2DFA();
-
+    printConsole("NFA已转换为DFA");
     /*======================显示处理========================*/
 
     ui->tabWidget_Graph->setCurrentIndex(2);
@@ -163,7 +167,9 @@ void MainWindow::on_pushButton_2DFA_clicked()
  */
 void MainWindow::on_pushButton_mDFA_clicked()
 {
-    NDFAG.DFA2mDFA();
+    printConsole("最小化DFA...");
+    NDFAG.DFA2mDFA();//调用转换函数
+    printConsole("DFA最小化完成...");
 
     /*==========显示处理=================*/
 
@@ -183,7 +189,16 @@ void MainWindow::on_pushButton_mDFA_clicked()
  */
 void MainWindow::on_pushButton_Lexer_clicked()
 {
-    NDFAG.mDFA2Lexer(srcFilePath);
+    QString t_filePath=QFileDialog::getExistingDirectory(this,"选择词法分析程序生成路径",QDir::currentPath());
+    if(t_filePath.isEmpty())
+        return;
+    else
+        srcFilePath=t_filePath;
+
+    printConsole("生成词法分析程序...");
+    NDFAG.mDFA2Lexer(srcFilePath);//调用主函数
+    printConsole("词法分析程序生成完成");
+    printConsole("词法分析程序输出于："+srcFilePath);
 
     /*==========显示处理=================*/
     //切换表格

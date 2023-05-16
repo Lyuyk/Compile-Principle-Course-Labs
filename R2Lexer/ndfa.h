@@ -144,8 +144,12 @@ public:
     void DFA2mDFA();//DFA的最小化
     QString mDFA2Lexer(QString filePath);//最小化DFA生成Lexer
 
+public:
+    void setPath(QString srcFilePath, QString tmpFilePath);
+    void setKeywordStr(QString kStr);
+
 private:
-    QString reg_keyword;//关键字正则串
+    QString reg_keyword_str;//关键字正则串
     QString lexerCodeStr;//词法分析器代码
 
     QString srcFilePath;//用于测试的源程序路径

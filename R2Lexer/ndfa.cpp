@@ -36,7 +36,7 @@ void NDFA::init()
     opCharSet.clear();
     DFAEndStateSet.clear();
     keyWordSet.clear();
-    reg_keyword.clear();
+    reg_keyword_str.clear();
     lexerCodeStr.clear();
     dividedSet->clear();
 
@@ -817,7 +817,7 @@ void NDFA::DFA2mDFA()
  */
 QString NDFA::mDFA2Lexer(QString filePath)
 {
-    QStringList keywordList=reg_keyword.split('|');
+    QStringList keywordList=reg_keyword_str.split('|');
 
     QString lexCode;
     int m_state=mDFAG.startState;//最小化DFA的初态
@@ -943,4 +943,15 @@ QString NDFA::mDFA2Lexer(QString filePath)
 
     lexerCodeStr=lexCode;
     return lexCode;
+}
+
+void NDFA::setPath(QString srcFilePath, QString tmpFilePath)
+{
+    this->srcFilePath=srcFilePath;
+    this->tmpFilePath=tmpFilePath;
+}
+
+void NDFA::setKeywordStr(QString kStr)
+{
+    this->reg_keyword_str=kStr;
 }

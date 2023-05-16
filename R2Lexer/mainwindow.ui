@@ -35,6 +35,12 @@
       <height>531</height>
      </rect>
     </property>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
+    </property>
     <property name="font">
      <font>
       <family>微软雅黑</family>
@@ -62,7 +68,7 @@
       </font>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_4">
       <attribute name="title">
@@ -191,145 +197,13 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_2">
-    <property name="geometry">
-     <rect>
-      <x>860</x>
-      <y>240</y>
-      <width>131</width>
-      <height>421</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>微软雅黑</family>
-      <pointsize>10</pointsize>
-      <stylestrategy>PreferAntialias</stylestrategy>
-     </font>
-    </property>
-    <property name="title">
-     <string>操作</string>
-    </property>
-    <widget class="QPushButton" name="pushButton_2NFA">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>40</y>
-       <width>111</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>微软雅黑</family>
-       <pointsize>10</pointsize>
-       <stylestrategy>PreferAntialias</stylestrategy>
-      </font>
-     </property>
-     <property name="toolTip">
-      <string>将正则表达式转换为NFA</string>
-     </property>
-     <property name="text">
-      <string>正则转NFA</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_2DFA">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>90</y>
-       <width>111</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>微软雅黑</family>
-       <pointsize>10</pointsize>
-       <stylestrategy>PreferAntialias</stylestrategy>
-      </font>
-     </property>
-     <property name="text">
-      <string>NFA转DFA</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_mDFA">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>140</y>
-       <width>111</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>微软雅黑</family>
-       <pointsize>10</pointsize>
-       <stylestrategy>PreferAntialias</stylestrategy>
-      </font>
-     </property>
-     <property name="toolTip">
-      <string>将DFA最小化</string>
-     </property>
-     <property name="text">
-      <string>最小化DFA</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_clearConsole">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>370</y>
-       <width>111</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>微软雅黑</family>
-       <pointsize>10</pointsize>
-       <stylestrategy>PreferAntialias</stylestrategy>
-      </font>
-     </property>
-     <property name="toolTip">
-      <string>将所有状态复原以重新开始下一个转换</string>
-     </property>
-     <property name="text">
-      <string>复位</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_Lexer">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>190</y>
-       <width>111</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="font">
-      <font>
-       <family>微软雅黑</family>
-       <pointsize>10</pointsize>
-       <stylestrategy>PreferAntialias</stylestrategy>
-      </font>
-     </property>
-     <property name="toolTip">
-      <string>生成词法分析程序</string>
-     </property>
-     <property name="text">
-      <string>生成Lexer</string>
-     </property>
-    </widget>
-   </widget>
-   <widget class="QGroupBox" name="groupBox_3">
+   <widget class="QGroupBox" name="groupBox_console">
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>540</y>
+      <y>560</y>
       <width>821</width>
-      <height>171</height>
+      <height>151</height>
      </rect>
     </property>
     <property name="font">
@@ -348,7 +222,7 @@
        <x>10</x>
        <y>30</y>
        <width>801</width>
-       <height>131</height>
+       <height>111</height>
       </rect>
      </property>
      <property name="font">
@@ -366,35 +240,37 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGroupBox" name="groupBox_4">
+   <widget class="QGroupBox" name="groupBox">
     <property name="geometry">
      <rect>
       <x>860</x>
-      <y>60</y>
-      <width>131</width>
-      <height>131</height>
+      <y>10</y>
+      <width>151</width>
+      <height>701</height>
      </rect>
     </property>
-    <property name="font">
-     <font>
-      <family>微软雅黑</family>
-      <pointsize>10</pointsize>
-      <stylestrategy>PreferAntialias</stylestrategy>
-     </font>
+    <property name="sizePolicy">
+     <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+      <horstretch>0</horstretch>
+      <verstretch>0</verstretch>
+     </sizepolicy>
     </property>
-    <property name="toolTip">
-     <string extracomment="打开正则表达式文件"/>
+    <property name="minimumSize">
+     <size>
+      <width>151</width>
+      <height>701</height>
+     </size>
     </property>
     <property name="title">
-     <string>文件</string>
+     <string>功能</string>
     </property>
-    <widget class="QPushButton" name="pushButton_openRegexFile">
+    <widget class="QGroupBox" name="groupBox_file">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>40</y>
-       <width>111</width>
-       <height>31</height>
+       <y>30</y>
+       <width>131</width>
+       <height>131</height>
       </rect>
      </property>
      <property name="font">
@@ -405,19 +281,65 @@
       </font>
      </property>
      <property name="toolTip">
-      <string>打开正则表达式文件</string>
+      <string extracomment="打开正则表达式文件"/>
      </property>
-     <property name="text">
-      <string>打开</string>
+     <property name="title">
+      <string>文件</string>
      </property>
+     <widget class="QPushButton" name="pushButton_openRegexFile">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+        <stylestrategy>PreferAntialias</stylestrategy>
+       </font>
+      </property>
+      <property name="toolTip">
+       <string>打开正则表达式文件</string>
+      </property>
+      <property name="text">
+       <string>打开</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_saveRegexToFile">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>80</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+        <stylestrategy>PreferAntialias</stylestrategy>
+       </font>
+      </property>
+      <property name="toolTip">
+       <string>保存正则表达式到文件中</string>
+      </property>
+      <property name="text">
+       <string>保存</string>
+      </property>
+     </widget>
     </widget>
-    <widget class="QPushButton" name="pushButton_saveRegexToFile">
+    <widget class="QGroupBox" name="groupBox_operate">
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>80</y>
-       <width>111</width>
-       <height>31</height>
+       <y>220</y>
+       <width>131</width>
+       <height>421</height>
       </rect>
      </property>
      <property name="font">
@@ -427,12 +349,121 @@
        <stylestrategy>PreferAntialias</stylestrategy>
       </font>
      </property>
-     <property name="toolTip">
-      <string>保存正则表达式到文件中</string>
+     <property name="title">
+      <string>操作</string>
      </property>
-     <property name="text">
-      <string>保存</string>
-     </property>
+     <widget class="QPushButton" name="pushButton_2NFA">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>40</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+        <stylestrategy>PreferAntialias</stylestrategy>
+       </font>
+      </property>
+      <property name="toolTip">
+       <string>将正则表达式转换为NFA</string>
+      </property>
+      <property name="text">
+       <string>正则转NFA</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_2DFA">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>90</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+        <stylestrategy>PreferAntialias</stylestrategy>
+       </font>
+      </property>
+      <property name="text">
+       <string>NFA转DFA</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_mDFA">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>140</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+        <stylestrategy>PreferAntialias</stylestrategy>
+       </font>
+      </property>
+      <property name="toolTip">
+       <string>将DFA最小化</string>
+      </property>
+      <property name="text">
+       <string>最小化DFA</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_clearConsole">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>370</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+        <stylestrategy>PreferAntialias</stylestrategy>
+       </font>
+      </property>
+      <property name="toolTip">
+       <string>将所有状态复原以重新开始下一个转换</string>
+      </property>
+      <property name="text">
+       <string>复位</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="pushButton_Lexer">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>190</y>
+        <width>111</width>
+        <height>31</height>
+       </rect>
+      </property>
+      <property name="font">
+       <font>
+        <family>微软雅黑</family>
+        <pointsize>10</pointsize>
+        <stylestrategy>PreferAntialias</stylestrategy>
+       </font>
+      </property>
+      <property name="toolTip">
+       <string>生成词法分析程序</string>
+      </property>
+      <property name="text">
+       <string>生成Lexer</string>
+      </property>
+     </widget>
     </widget>
    </widget>
   </widget>

@@ -58,8 +58,9 @@ private:
     Ui::MainWindow *ui;
 
     QString regexStr;//正则表达式字符串
+    QString keywordStr;//关键字字符串
     QString srcFilePath;//源程序路径
-    QString tmpFilePath;//编码输出路径
+    QString tmpFilePath;//
 
     NDFA NDFAG;//FA自动机类
 
