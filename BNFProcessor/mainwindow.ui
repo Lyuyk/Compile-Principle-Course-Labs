@@ -87,7 +87,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>5</number>
      </property>
      <widget class="QWidget" name="tab_edit">
       <attribute name="title">
@@ -385,40 +385,10 @@
       <widget class="QTreeWidget" name="treeWidget_CST">
        <property name="geometry">
         <rect>
-         <x>10</x>
+         <x>350</x>
          <y>10</y>
-         <width>851</width>
+         <width>511</width>
          <height>591</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="tab_DFA">
-      <attribute name="title">
-       <string>有穷自动机</string>
-      </attribute>
-      <widget class="QTableWidget" name="tableWidget_DFA">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>851</width>
-         <height>581</height>
-        </rect>
-       </property>
-      </widget>
-     </widget>
-     <widget class="QWidget" name="tab">
-      <attribute name="title">
-       <string>NFA</string>
-      </attribute>
-      <widget class="QTableWidget" name="tableWidget_NFA">
-       <property name="geometry">
-        <rect>
-         <x>10</x>
-         <y>10</y>
-         <width>851</width>
-         <height>581</height>
         </rect>
        </property>
       </widget>
