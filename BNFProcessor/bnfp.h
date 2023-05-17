@@ -12,8 +12,9 @@ class BNFP
 {
 public:
     BNFP();
+    void Init();//类初始化
 
-    void InitGrammar();//文法初始化
+    void InitGrammar(QString s);//文法初始化
 
     void SimplifyGrammar();//文法化简
     void EliminateLRecursion();//消除左递归
@@ -24,14 +25,14 @@ public:
 private:
     bool isTerminator(QString s);//是否终结符
     bool isNonTerminator(QString s);//是否非终结符
-    bool isProductionR_terminable(const QSet<QChar> &nonTmrSet, const QString &productionR);//右部是否可终止
-    bool isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSet<QChar> &tmrSet, const QString &productionR);//右部是否可达
+    bool isProductionR_terminable(const QSet<QString> &nonTmrSet, const QVector<QString> &productionR);//右部是否可终止
+    bool isProductionR_reachable(const QSet<QString> &nonTmrSet, const QSet<QString> &tmrSet, const QVector<QString> &productionR);//右部是否可达
 
     // 将文法规则中replaceC为左部的产生式代入replaced做为左部的产生式中
     void replaceL(const QChar &replaceC, const QChar &replaced);
     // 将一个产生式右部中的第一个符号用replaceC的产生式替换
     QSet<QString> replaceL(const QChar &replaceC, const QString &productionR);
-    QChar getNewTmr();
+    QChar getNewTmr();//申请新终结符
 
 
     // 替换最左边的非终结符直到出现终结符为止

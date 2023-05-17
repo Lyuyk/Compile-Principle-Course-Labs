@@ -3,50 +3,72 @@
 
 BNFP::BNFP()
 {
-
-
+    Init();
 }
 
-void BNFP::InitGrammar()
+void BNFP::Init()
 {
-    m_startChar='\0';
-    m_tmrSet.clear();
+    m_grammarStr="";
+    m_startChar="";
+
     m_nonTmrSet.clear();
+    m_tmrSet.clear();
+
     m_GM_productionMap.clear();
+    m_firstSetMap.clear();
+    m_followSetMap.clear();
+}
 
-    QString grammarString=ui->plainTextEdit_edit->toPlainText();
-    QStringList productions = grammarString.split("\n");
+/**
+ * @brief BNFP::InitGrammar
+ * 文法初始化，BNF文法的解析与存储
+ */
+void BNFP::InitGrammar(QString s)
+{
+    Init();
 
-    m_startChar=productions[0].at(0);
+    QString t_grammarString=s;
+    QStringList t_productionList = t_grammarString.split("\n");//分割出一条条产生式
+    QStringList t_productionR_list;//暂存储右部
 
-    for(const auto &subProduction: qAsConst(productions))
+    m_startChar=t_productionList[0].split("->").at(0);//开始符号，为第一条产生式左部
+
+    //扫描每一行
+    for(const auto &t_subProduction: qAsConst(t_productionList))
     {
-        if(subProduction.simplified().isEmpty())continue;//略去空行
+        if(t_subProduction.simplified().isEmpty())continue;//略去空行
 
-        QStringList productionContent = subProduction.split("->");//分离左右部
-        QChar productionL = productionContent[0].simplified().at(0);//左部
-        QStringList productionR_list=productionContent.at(1).split("|");//右部
+        QStringList t_productionLRList = t_subProduction.split("->");//分离左右部
+        QString t_productionL = t_productionLRList[0].simplified();//左部
+        m_nonTmrSet.insert(t_productionL);//左部全部为非终结符，加入
 
-        for(const auto &productionR: qAsConst(productionR_list))
+        t_productionR_list=t_productionLRList[1].split("|");//右部
+    }
+
+
+
+    //遍历右部每一条候选式
+    for(const auto &t_productionR: qAsConst(t_productionR_list))
+    {
+        QVector<QString> t_candidateV=t_productionR.split(' ');//每一条候选式分开
+        for(const auto&t_candidateStr: t_candidateV)//对每一条候选式，遍历每一个操作符
         {
-            for(const auto&ch: productionR)
+            if(isTerminator(t_candidateStr))
             {
-                if(isTerminator(ch))
-                {
-                    m_tmrSet.insert(ch);
-                }
-            }
-
-            if(productionR.simplified()=="@")
-            {
-                m_GM_productionMap[productionL].insert("");
-            }
-            else
-            {
-                m_GM_productionMap[productionL].insert(productionR.simplified());
+                m_tmrSet.insert(t_candidateStr);
             }
         }
+
+        if(t_productionR.simplified()=="@")
+        {
+            m_GM_productionMap[t_productionL].insert("");
+        }
+        else
+        {
+            m_GM_productionMap[t_productionL].insert(t_productionR.simplified());
+        }
     }
+
 
     SimplifyGrammar();
 }
@@ -59,7 +81,7 @@ void BNFP::InitGrammar()
  */
 bool BNFP::isTerminator(QString s)
 {
-    return m_tmrSet.contains(s);
+    return m_tmrSet.contains(s) or not m_nonTmrSet.contains(s);
 }
 
 /**
@@ -70,31 +92,44 @@ bool BNFP::isTerminator(QString s)
  */
 bool BNFP::isNonTerminator(QString s)
 {
-    return m_nonTmrSet.contains(s);
+    return m_nonTmrSet.contains(s) or not m_tmrSet.contains(s);
 }
 
 /**
  * @brief BNFP::isProductionR_terminable
- * 判断右部是否可终结
- * @param nonTmrSet
+ * 判断右部候选式是否可终结
+ * @param nonTmrSet 非终结符集合
  * @param productionR
  * @return
  */
-bool BNFP::isProductionR_terminable(const QSet<QChar> &nonTmrSet, const QString &productionR)
+bool BNFP::isProductionR_terminable(const QSet<QString> &nonTmrSet,
+                                    const QVector<QString> &productionR)
 {
-    for(const auto c: productionR)
+    //遍历右部候选式
+    for(const auto &s: productionR)
     {
-        if(isNonTerminator(c) and not nonTmrSet.contains(c)) return false;
+        //若为非终结符且非终结符集合不包含其中
+        if(isNonTerminator(s) and not nonTmrSet.contains(s)) return false;
     }
     return true;
 }
 
-bool BNFP::isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSet<QChar> &tmrSet, const QString &productionR)
+/**
+ * @brief BNFP::isProductionR_reachable
+ * @param nonTmrSet
+ * @param tmrSet
+ * @param productionR
+ * @return
+ * 判断右部候选式是否可达
+ */
+bool BNFP::isProductionR_reachable(const QSet<QString> &nonTmrSet,
+                                   const QSet<QString> &tmrSet,
+                                   const QVector<QString> &productionR)
 {
-    for(const auto &c: productionR)
+    for(const auto &s: productionR)
     {
-        if((isNonTerminator(c) and not nonTmrSet.contains(c)) or
-                (isTerminator(c) and not tmrSet.contains(c)))
+        if((isNonTerminator(s) and not nonTmrSet.contains(s)) or
+                (isTerminator(s) and not tmrSet.contains(s)))
         {
             return false;
         }
@@ -103,12 +138,15 @@ bool BNFP::isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSet<QCha
 }
 
 
-
+/**
+ * @brief BNFP::SimplifyGrammar
+ * 化简文法主函数
+ */
 void BNFP::SimplifyGrammar()
 {
     //1.消除形如U->U等有害规则
-    const QList<QString> &tmp_GM_productionMap_keys=m_GM_productionMap.keys();
-    for(const auto &tmp_productionL: tmp_GM_productionMap_keys)
+    const QList<QString> &t_GM_productionMap_keys=m_GM_productionMap.keys();
+    for(const auto &tmp_productionL: t_GM_productionMap_keys)
     {
         m_GM_productionMap[tmp_productionL].remove(tmp_productionL);
     }
@@ -232,22 +270,24 @@ void BNFP::PrintGrammar(QPlainTextEdit *e)
 
     QString grammarString;
 
-    const QList<QString> &t_GM_productionMap_keys=m_GM_productionMap.keys();
-    for(const QString &tmp_productionL: t_GM_productionMap_keys)
+    //遍历所有左部
+    const QList<QString> &t_productionLList=m_GM_productionMap.keys();
+    for(const QString &t_productionL: t_productionLList)
     {
-        QString tmp_productionRStr;
-        for(const QString &tmp_productionR: qAsConst(m_GM_productionMap[tmp_productionL]))
+        //记录右部
+        QString t_productionRStr;
+        for(const QString &tmp_productionR: qAsConst(m_GM_productionMap[t_productionL]))
         {
             if(tmp_productionR.isEmpty())
             {
-                tmp_productionRStr += "| @ ";
+                t_productionRStr += "| @ ";
             }
             else
             {
-                tmp_productionRStr += " | " + tmp_productionR;
+                t_productionRStr += " | " + tmp_productionR;
             }
         }
-        QString pLine=QString(tmp_productionL)+" -> "+tmp_productionRStr.remove(0,2);//字符串处理去掉首个右部'|'
+        QString pLine=QString(t_productionL)+" -> "+t_productionRStr.remove(0,2);//字符串处理去掉首个右部'|'
         grammarString += (pLine+'\n');
     }
 
