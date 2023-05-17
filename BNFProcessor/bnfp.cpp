@@ -7,14 +7,70 @@ BNFP::BNFP()
 
 }
 
-bool BNFP::isTerminator(QChar c)
+void BNFP::InitGrammar()
 {
-    return c.isLower() && c.isLetter();
+    m_startChar='\0';
+    m_tmrSet.clear();
+    m_nonTmrSet.clear();
+    m_GM_productionMap.clear();
+
+    QString grammarString=ui->plainTextEdit_edit->toPlainText();
+    QStringList productions = grammarString.split("\n");
+
+    m_startChar=productions[0].at(0);
+
+    for(const auto &subProduction: qAsConst(productions))
+    {
+        if(subProduction.simplified().isEmpty())continue;//略去空行
+
+        QStringList productionContent = subProduction.split("->");//分离左右部
+        QChar productionL = productionContent[0].simplified().at(0);//左部
+        QStringList productionR_list=productionContent.at(1).split("|");//右部
+
+        for(const auto &productionR: qAsConst(productionR_list))
+        {
+            for(const auto&ch: productionR)
+            {
+                if(isTerminator(ch))
+                {
+                    m_tmrSet.insert(ch);
+                }
+            }
+
+            if(productionR.simplified()=="@")
+            {
+                m_GM_productionMap[productionL].insert("");
+            }
+            else
+            {
+                m_GM_productionMap[productionL].insert(productionR.simplified());
+            }
+        }
+    }
+
+    SimplifyGrammar();
 }
 
-bool BNFP::isNonTerminator(QChar c)
+/**
+ * @brief BNFP::isTerminator
+ * @param s
+ * @return
+ * 判断是否为终结符
+ */
+bool BNFP::isTerminator(QString s)
 {
-    return c.isUpper() && c.isLetter();
+    return m_tmrSet.contains(s);
+}
+
+/**
+ * @brief BNFP::isNonTerminator
+ * @param s
+ * @return
+ * 判断是否为非终结符
+ */
+bool BNFP::isNonTerminator(QString s)
+{
+    return m_nonTmrSet.contains(s);
 }
 
 /**
@@ -46,61 +102,19 @@ bool BNFP::isProductionR_reachable(const QSet<QChar> &nonTmrSet, const QSet<QCha
     return true;
 }
 
-void BNFP::initGrammar()
-{
-    startChar='\0';
-    terminatorSet.clear();
-    non_terminatorSet.clear();
-    GM_productionMap.clear();
 
-    QString grammarString=ui->plainTextEdit_edit->toPlainText();
-    QStringList productions = grammarString.split("\n");
 
-    startChar=productions[0].at(0);
-
-    for(const auto &subProduction: qAsConst(productions))
-    {
-        if(subProduction.simplified().isEmpty())continue;//略去空行
-
-        QStringList productionContent = subProduction.split("->");//分离左右部
-        QChar productionL = productionContent[0].simplified().at(0);//左部
-        QStringList productionR_list=productionContent.at(1).split("|");//右部
-
-        for(const auto &productionR: qAsConst(productionR_list))
-        {
-            for(const auto&ch: productionR)
-            {
-                if(isTerminator(ch))
-                {
-                    terminatorSet.insert(ch);
-                }
-            }
-
-            if(productionR.simplified()=="@")
-            {
-                GM_productionMap[productionL].insert("");
-            }
-            else
-            {
-                GM_productionMap[productionL].insert(productionR.simplified());
-            }
-        }
-    }
-
-    simplifyGrammar();
-}
-
-void BNFP::simplifyGrammar()
+void BNFP::SimplifyGrammar()
 {
     //1.消除形如U->U等有害规则
-    const QList<QChar> &tmp_GM_productionMap_keys=GM_productionMap.keys();
+    const QList<QString> &tmp_GM_productionMap_keys=m_GM_productionMap.keys();
     for(const auto &tmp_productionL: tmp_GM_productionMap_keys)
     {
-        GM_productionMap[tmp_productionL].remove(tmp_productionL);
+        m_GM_productionMap[tmp_productionL].remove(tmp_productionL);
     }
 
     //2.消除不可终结的无用符号以及无用产生式
-    QSet<QChar> tmp_nonTmrSet;
+    QSet<QString> tmp_nonTmrSet;
     QMap<QChar, QSet<QString>> tmp_productions;
 
     qsizetype preNonTmrSetSize=tmp_nonTmrSet.size();
@@ -110,12 +124,12 @@ void BNFP::simplifyGrammar()
     {
         preNonTmrSetSize=curNonTmrSetSize;
 
-        const QList<QChar> &tmp_GM_productionMap_keys=GM_productionMap.keys();
+        const QList<QString> &tmp_GM_productionMap_keys=m_GM_productionMap.keys();
         for(const auto &tmp_productionL: tmp_GM_productionMap_keys)
         {
             if(tmp_nonTmrSet.contains(tmp_productionL)) continue;
 
-            for(const auto &tmp_productionR: qAsConst(GM_productionMap[tmp_productionL]))
+            for(const auto &tmp_productionR: qAsConst(m_GM_productionMap[tmp_productionL]))
             {
                 if(isProductionR_terminable(tmp_nonTmrSet, tmp_productionR))
                 {
@@ -131,7 +145,7 @@ void BNFP::simplifyGrammar()
     //4.遍历产生式，对于每一条产生式，如果它的右部是可以终结的，就将该条产生式加入产生式集合映射中；
     for(const auto &tmp_productionL: qAsConst(tmp_nonTmrSet))
     {
-        for(const auto &tmp_productionR: GM_productionMap.value(tmp_productionL))
+        for(const auto &tmp_productionR: m_GM_productionMap.value(tmp_productionL))
         {
             if(isProductionR_terminable(tmp_nonTmrSet, tmp_productionR))
             {
@@ -141,14 +155,14 @@ void BNFP::simplifyGrammar()
     }
 
     //5.更新非终结符集合与产生式集合；
-    non_terminatorSet=tmp_nonTmrSet;
-    GM_productionMap=tmp_productions;
+    m_nonTmrSet=tmp_nonTmrSet;
+    m_GM_productionMap=tmp_productions;
 
     //c.消除不可达的无用符号以及无用产生式；
     tmp_nonTmrSet.clear();
     tmp_productions.clear();
     QSet<QChar> tmp_tmrSet;
-    tmp_nonTmrSet.insert(startChar);
+    tmp_nonTmrSet.insert(m_startChar);
 
     preNonTmrSetSize=tmp_nonTmrSet.size();
     curNonTmrSetSize=std::numeric_limits<qsizetype>::max();
@@ -162,12 +176,12 @@ void BNFP::simplifyGrammar()
         preNonTmrSetSize=curNonTmrSetSize;
         preTmrSetSize=curTmrSetSize;
 
-        const QList<QChar> &tmp_GM_productionMap_keys=GM_productionMap.keys();
+        const QList<QChar> &tmp_GM_productionMap_keys=m_GM_productionMap.keys();
         for(const auto &tmp_productionL: tmp_GM_productionMap_keys)
         {
-            if(!non_terminatorSet.contains(tmp_productionL))continue;
+            if(!m_nonTermSet.contains(tmp_productionL))continue;
 
-            for(const auto &tmp_productionR: qAsConst(GM_productionMap[tmp_productionL]))
+            for(const auto &tmp_productionR: qAsConst(m_GM_productionMap[tmp_productionL]))
             {
                 for(const auto &c: tmp_productionR)
                 {
@@ -189,7 +203,7 @@ void BNFP::simplifyGrammar()
         //4.
         for(const auto &tmp_productionL: qAsConst(tmp_nonTmrSet))
         {
-            for(const auto &tmp_productionR: GM_productionMap.value(tmp_productionL))
+            for(const auto &tmp_productionR: m_GM_productionMap.value(tmp_productionL))
             {
                 if(isProductionR_reachable(tmp_nonTmrSet, tmp_tmrSet, tmp_productionR))
                 {
@@ -198,22 +212,31 @@ void BNFP::simplifyGrammar()
             }
         }
 
-        GM_productionMap=tmp_productions;
-        non_terminatorSet=tmp_nonTmrSet;
-        terminatorSet=tmp_tmrSet;
+        m_GM_productionMap=tmp_productions;
+        m_nonTmrSet=tmp_nonTmrSet;
+        m_tmrSet=tmp_tmrSet;
     }
 
 }
 
-QString BNFP::getGrammarString()
+
+
+/**
+ * @brief BNFP::printGrammar
+ * @param e
+ * 文法输出主函数
+ */
+void BNFP::PrintGrammar(QPlainTextEdit *e)
 {
+    e->clear();
+
     QString grammarString;
 
-    const QList<QChar> &tmp_GM_productionMap_keys=GM_productionMap.keys();
-    for(const QChar &tmp_productionL: tmp_GM_productionMap_keys)
+    const QList<QString> &t_GM_productionMap_keys=m_GM_productionMap.keys();
+    for(const QString &tmp_productionL: t_GM_productionMap_keys)
     {
         QString tmp_productionRStr;
-        for(const QString &tmp_productionR: qAsConst(GM_productionMap[tmp_productionL]))
+        for(const QString &tmp_productionR: qAsConst(m_GM_productionMap[tmp_productionL]))
         {
             if(tmp_productionR.isEmpty())
             {
@@ -228,32 +251,18 @@ QString BNFP::getGrammarString()
         grammarString += (pLine+'\n');
     }
 
-    return grammarString;
+    e->insertPlainText(grammarString);
 }
 
-
-
-void BNFP::printSimplifiedGrammar()
-{
-    ui->plainTextEdit_simplified->clear();
-    ui->plainTextEdit_console->insertPlainText(getTime()+"输出化简文法...\n");
-
-    printGrammar(*ui->plainTextEdit_simplified);
-
-    ui->plainTextEdit_console->insertPlainText(getTime()+"输出化简文法完成...\n");
-    ui->tabWidget->setCurrentIndex(1);
-}
-
-void BNFP::printGrammar(QPlainTextEdit &textPlainEdit)
-{
-    textPlainEdit.insertPlainText(getGrammarString());
-}
-
-void BNFP::eliminateLRecursion()
+/**
+ * @brief BNFP::eliminateLRecursion
+ * 消除文法左递归
+ */
+void BNFP::EliminateLRecursion()
 {
     //给非终结符规定顺序
     QList<QChar> tmp_nonTmrList;
-    for(const auto &tmp_nonTmr: qAsConst(non_terminatorSet))
+    for(const auto &tmp_nonTmr: qAsConst(m_nonTmrSet))
     {
         tmp_nonTmrList.push_back(tmp_nonTmr);
     }
@@ -271,7 +280,7 @@ void BNFP::eliminateLRecursion()
         //包含左递归的产生式右部的集合
         QSet<QString> tmp_LRecursionRSet;
 
-        for(const auto &tmp_productionR: qAsConst(GM_productionMap[*curChar]))
+        for(const auto &tmp_productionR: qAsConst(m_GM_productionMap[*curChar]))
         {
             if(tmp_productionR.isEmpty() || *curChar != tmp_productionR[0])
             {
@@ -294,42 +303,42 @@ void BNFP::eliminateLRecursion()
         //对于 A-> Aa|b形式，先添加B->aB|ɛ 这样一条产生式
         for(const auto &tmp_productionR: tmp_LRecursionRSet)
         {
-            GM_productionMap[newNonTmr].insert(tmp_productionR+newNonTmr);
+            m_GM_productionMap[newNonTmr].insert(tmp_productionR+newNonTmr);
         }
-        GM_productionMap[newNonTmr].insert("");
+        m_GM_productionMap[newNonTmr].insert("");
 
         //移除原来的产生式"A->Aa|b"
-        GM_productionMap.remove(*curChar);
+        m_GM_productionMap.remove(*curChar);
 
         // 添加 A->bB这样一条产生式
         for(const auto &tmp_productionR: tmp_nonLRecursionRSet)
         {
-            GM_productionMap[*curChar].insert(tmp_productionR+newNonTmr);
+            m_GM_productionMap[*curChar].insert(tmp_productionR+newNonTmr);
         }
     }
 
 
-    simplifyGrammar();
+    SimplifyGrammar();
 }
 
 void BNFP::replaceL(const QChar &replaceC, const QChar &replaced)
 {
-    QSet<QString> tmp_replacedProductionRSet = GM_productionMap[replaced];
+    QSet<QString> tmp_replacedProductionRSet = m_GM_productionMap[replaced];
 
-    GM_productionMap.remove(replaced);
+    m_GM_productionMap.remove(replaced);
 
     for(const auto &tmp_replaceProductionR: tmp_replacedProductionRSet)
     {
         if(tmp_replaceProductionR.isEmpty() || replaceC != tmp_replaceProductionR[0])
         {
-            GM_productionMap[replaced].insert(tmp_replaceProductionR);
+            m_GM_productionMap[replaced].insert(tmp_replaceProductionR);
             continue;
         }
 
         QSet<QString> replacedResult=replaceL(replaceC,tmp_replaceProductionR);
 
         for(const auto &replacedC: qAsConst(replacedResult))
-            GM_productionMap[replaced].insert(replacedC);
+            m_GM_productionMap[replaced].insert(replacedC);
     }
 
 
@@ -339,7 +348,7 @@ QSet<QString> BNFP::replaceL(const QChar &replaceC, const QString &productionR)
 {
     QSet<QString> resSet;
 
-    for(const auto &replaceCProductionR: GM_productionMap[replaceC])
+    for(const auto &replaceCProductionR: m_GM_productionMap[replaceC])
     {
         QString replaced=productionR;
         replaced.replace(0,1,replaceCProductionR);
@@ -348,6 +357,7 @@ QSet<QString> BNFP::replaceL(const QChar &replaceC, const QString &productionR)
     return resSet;
 }
 
+
 QChar BNFP::getNewTmr()
 {
     QSet<QChar> tmp_availableNonTmrSet;
@@ -355,7 +365,7 @@ QChar BNFP::getNewTmr()
     {
         tmp_availableNonTmrSet.insert(c);
     }
-    tmp_availableNonTmrSet -= non_terminatorSet;
+    tmp_availableNonTmrSet -= m_nonTmrSet;
     if(tmp_availableNonTmrSet.isEmpty())
     {
         qDebug()<<"[文法化简]:非终结符超限，申请失败";
@@ -363,14 +373,17 @@ QChar BNFP::getNewTmr()
         //throw QString{ "[文法化简]:非终结符超限，申请失败" };
     }
 
-    return *non_terminatorSet.insert(*tmp_availableNonTmrSet.begin());
+    return *m_nonTmrSet.insert(*tmp_availableNonTmrSet.begin());
 }
 
-void BNFP::eliminateLCommonFactor()
+/**
+ * @brief BNFP::eliminateLCommonFactor
+ */
+void BNFP::EliminateLCommonFactor()
 {
     QStack<QChar> tmp_nonTmrStk;
 
-    for(const auto &tmp_nonTmr: GM_productionMap.keys())
+    for(const auto &tmp_nonTmr: m_GM_productionMap.keys())
     {
         tmp_nonTmrStk.push_back(tmp_nonTmr);
     }
@@ -379,15 +392,15 @@ void BNFP::eliminateLCommonFactor()
         QChar tmp_productionL=tmp_nonTmrStk.pop();
 
         QSet<QString> tmp_replaceResSet;
-        for(const auto &tmp_productionR: GM_productionMap[tmp_productionL])
+        for(const auto &tmp_productionR: m_GM_productionMap[tmp_productionL])
         {
             tmp_replaceResSet |= replaceLNonTmr(tmp_productionR);
         }
 
-        GM_productionMap.remove(tmp_productionL);
+        m_GM_productionMap.remove(tmp_productionL);
 
         if(tmp_replaceResSet.contains(""))
-            GM_productionMap[tmp_productionL].insert("");
+            m_GM_productionMap[tmp_productionL].insert("");
 
         QSet<QChar> commonPrefixes=getRPPrefixes(tmp_replaceResSet);
 
@@ -399,20 +412,20 @@ void BNFP::eliminateLCommonFactor()
             {
                 QChar newNonTmr=getNewTmr();
 
-                GM_productionMap[newNonTmr]=suffixes;
+                m_GM_productionMap[newNonTmr]=suffixes;
 
-                GM_productionMap[tmp_productionL].insert(QString(commonPrefix)+newNonTmr);
+                m_GM_productionMap[tmp_productionL].insert(QString(commonPrefix)+newNonTmr);
 
                 tmp_nonTmrStk.push_back(newNonTmr);
             }
             else
             {
-                GM_productionMap[tmp_productionL].insert(commonPrefix + *suffixes.begin());
+                m_GM_productionMap[tmp_productionL].insert(commonPrefix + *suffixes.begin());
             }
         }
     }
 
-    simplifyGrammar();
+    SimplifyGrammar();
 }
 
 QSet<QString> BNFP::replaceLNonTmr(const QString &productionR)
@@ -494,7 +507,7 @@ QSet<QString> BNFP::getFirstSet(const QChar &nonTmr)
 {
     QSet<QString> firstSet;
 
-    for(const auto &tmp_productionR: GM_productionMap[nonTmr])
+    for(const auto &tmp_productionR: m_GM_productionMap[nonTmr])
     {
         firstSet |= getFirstSet(tmp_productionR);
     }
@@ -524,13 +537,13 @@ QSet<QString> BNFP::getFirstSet(const QString &productionR)
     return firstSet |= "";
 }
 
-QMap<QChar, QSet<QString> > BNFP::getFirstSet()
+QMap<QChar, QSet<QString> > BNFP::GetFirstSet()
 {
     QMap<QChar, QSet<QString>> resMap;
 
-    for(const auto &tmp_productionL: firstSetMap.keys())
+    for(const auto &tmp_productionL: m_firstSetMap.keys())
     {
-        for(const auto &tmp_productionRSet: firstSetMap[tmp_productionL])
+        for(const auto &tmp_productionRSet: m_firstSetMap[tmp_productionL])
         {
             resMap[tmp_productionL] |= tmp_productionRSet;
         }
@@ -538,20 +551,20 @@ QMap<QChar, QSet<QString> > BNFP::getFirstSet()
     return resMap;
 }
 
-QMap<QChar, QSet<QChar> > BNFP::getFollowSet()
+QMap<QChar, QSet<QChar> > BNFP::GetFollowSet()
 {
-    return followSetMap;
+    return m_followSetMap;
 }
 
 void BNFP::firstNfollowSet()
 {
-    followSetMap.clear();
-    firstSetMap.clear();
+    m_followSetMap.clear();
+    m_firstSetMap.clear();
     QList<QPair<QChar, QChar>> pendingFollow;
 
     followSetMap[startChar].insert('$');
 
-    for(const auto &tmp_productionL: non_terminatorSet)//非终结符
+    for(const auto &tmp_productionL: m_nonTmrSet)//非终结符
     {
         for(const auto &tmp_productionR: GM_productionMap[tmp_productionL])//对于右部每一条产生式
         {
@@ -587,10 +600,10 @@ void BNFP::firstNfollowSet()
         finished=true;
         for(const auto &[from, to]: pendingFollow)
         {
-            qsizetype size=followSetMap[to].size();
-            followSetMap[to] |= followSetMap[from];
+            qsizetype size=m_followSetMap[to].size();
+            m_followSetMap[to] |= m_followSetMap[from];
 
-            if(size != followSetMap[to].size())
+            if(size != m_followSetMap[to].size())
                 finished=false;
         }
     }
