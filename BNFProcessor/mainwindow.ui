@@ -87,7 +87,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_edit">
       <attribute name="title">
@@ -385,9 +385,19 @@
       <widget class="QTreeWidget" name="treeWidget_CST">
        <property name="geometry">
         <rect>
-         <x>350</x>
+         <x>360</x>
          <y>10</y>
-         <width>511</width>
+         <width>501</width>
+         <height>591</height>
+        </rect>
+       </property>
+      </widget>
+      <widget class="QPlainTextEdit" name="plainTextEdit_CST">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>10</y>
+         <width>341</width>
          <height>591</height>
         </rect>
        </property>

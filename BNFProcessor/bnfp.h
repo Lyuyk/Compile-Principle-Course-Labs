@@ -12,14 +12,14 @@ class BNFP
 {
 public:
     BNFP();
-    void Init();//类初始化
+    void init();//类初始化
 
-    void InitGrammar(QString s);//文法初始化
+    void initGrammar(QString s);//文法初始化
 
-    void SimplifyGrammar();//文法化简
-    void EliminateLRecursion();//消除左递归
-    void EliminateLCommonFactor();//消除左公共因子
-    void FirstNfollowSet();//求解first与follow集合元素
+    void simplifyGrammar();//文法化简
+    void eliminateLRecursion();//消除左递归
+    void eliminateLCommonFactor();//消除左公共因子
+    void firstNfollowSet();//求解first与follow集合元素
 
     void printGrammar(QPlainTextEdit *e);//输出文法
     QMap<QChar, QSet<QString>> getFirstSet();//取得非终结符的first集

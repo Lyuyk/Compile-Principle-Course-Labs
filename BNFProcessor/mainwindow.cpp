@@ -338,8 +338,8 @@ void MainWindow::on_pushButton_orChar_clicked()
  */
 void MainWindow::on_pushButton_process_clicked()
 {
-    BNFProcessor.InitGrammar();
-    BNFProcessor.SimplifyGrammar();
+    BNFProcessor.initGrammar();
+    BNFProcessor.simplifyGrammar();
 
     BNFProcessor.printSimplifiedGrammar(ui->plainTextEdit_simplified);
     on_pushButton_check_clicked();
@@ -354,11 +354,11 @@ void MainWindow::on_pushButton_process_clicked()
 void MainWindow::on_pushButton_check_clicked()
 {
     //消除左递归
-    BNFProcessor.EliminateLRecursion();
+    BNFProcessor.eliminateLRecursion();
     BNFProcessor.printGrammar(ui->plainTextEdit_leftRecursion);
     outConsole("消除左递归完成...");
     //消除左公因子
-    BNFProcessor.EliminateLCommonFactor();
+    BNFProcessor.eliminateLCommonFactor();
     BNFProcessor.printGrammar(*ui->plainTextEdit_leftCommonFactor);
     printConsole("消除左公因子完成...");
 

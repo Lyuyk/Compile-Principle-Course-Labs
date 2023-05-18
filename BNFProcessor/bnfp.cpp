@@ -3,14 +3,14 @@
 
 BNFP::BNFP()
 {
-    Init();
+    init();
 }
 
 /**
  * @brief BNFP::Init
  * 类各成员变量初始化
  */
-void BNFP::Init()
+void BNFP::init()
 {
     m_grammarStr="";//暂存整个文法
     m_startChar="";
@@ -27,9 +27,9 @@ void BNFP::Init()
  * @brief BNFP::InitGrammar
  * 文法初始化，BNF文法的解析与存储
  */
-void BNFP::InitGrammar(QString s)
+void BNFP::initGrammar(QString s)
 {
-    Init();
+    init();
 
     QString t_grammarString=s;
     QStringList t_productionList = t_grammarString.split("\n");//分割出一条条产生式
@@ -144,7 +144,7 @@ bool BNFP::isProductionR_reachable(const QSet<QString> &nonTmrSet,
  * @brief BNFP::SimplifyGrammar
  * 化简文法主函数
  */
-void BNFP::SimplifyGrammar()
+void BNFP::simplifyGrammar()
 {
     //1.消除形如U->U等有害规则
     const QList<QString> &t_productionLList=m_GM_productionMap.keys();
@@ -303,7 +303,7 @@ void BNFP::printGrammar(QPlainTextEdit *e)
  * @brief BNFP::eliminateLRecursion
  * 消除文法左递归
  */
-void BNFP::EliminateLRecursion()
+void BNFP::eliminateLRecursion()
 {
     //给非终结符规定顺序
     QList<QChar> tmp_nonTmrList;
@@ -362,8 +362,7 @@ void BNFP::EliminateLRecursion()
         }
     }
 
-
-    SimplifyGrammar();
+    simplifyGrammar();
 }
 
 void BNFP::replaceL(const QChar &replaceC, const QChar &replaced)
@@ -428,7 +427,7 @@ QChar BNFP::getNewTmr()
 /**
  * @brief BNFP::eliminateLCommonFactor
  */
-void BNFP::EliminateLCommonFactor()
+void BNFP::eliminateLCommonFactor()
 {
     QStack<QChar> tmp_nonTmrStk;
 
@@ -474,7 +473,7 @@ void BNFP::EliminateLCommonFactor()
         }
     }
 
-    SimplifyGrammar();
+    simplifyGrammar();
 }
 
 QSet<QString> BNFP::replaceLNonTmr(const QString &productionR)
@@ -605,7 +604,7 @@ QMap<QChar, QSet<QChar> > BNFP::getFollowSet()
     return m_followSetMap;
 }
 
-void BNFP::FirstNfollowSet()
+void BNFP::firstNfollowSet()
 {
     m_followSetMap.clear();
     m_firstSetMap.clear();

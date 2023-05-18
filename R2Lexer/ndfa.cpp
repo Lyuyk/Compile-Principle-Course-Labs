@@ -310,13 +310,18 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
                     tmpStr+=s[i];
                 }
                 opCharSet.insert(tmpStr);//顺便加入操作符集合
+                qDebug()<<tmpStr;
             }
             else {
                 tmpStr=s[i];
 
                 if(!opSet.contains(s[i]))
-                    opCharSet.insert(s[i]);//若是转义字符顺便加入操作符集合
+                {
+                    opCharSet.insert(QString(s[i]));//若是转义字符顺便加入操作符集合
+                    qDebug()<<tmpStr;
+                }
             }
+
             NFAGraph n=createNFA(NFAStateNum);
             NFAStateNum+=2;
             //生成NFA子图，加非eps边

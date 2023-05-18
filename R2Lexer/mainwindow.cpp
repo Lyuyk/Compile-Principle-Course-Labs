@@ -93,11 +93,11 @@ void MainWindow::on_pushButton_openRegexFile_clicked()
 
     line=textInput.readLine().toUtf8().trimmed();//按行读取文件
     regexStr.append(line);
-    ui->plainTextEdit_Regex->insertPlainText(line);//一行行显示
+    ui->plainTextEdit_Regex->appendPlainText(line);//一行行显示
 
     line=textInput.readLine().toUtf8().trimmed();//第二行 关键字（规定）
     keywordStr=line;//初始化regexStr
-    ui->plainTextEdit_Regex->insertPlainText(line);//一行行显示
+    ui->plainTextEdit_Regex->appendPlainText(line);//一行行显示
 
     srcFile.close();
 
@@ -129,7 +129,7 @@ void MainWindow::on_pushButton_saveRegexToFile_clicked()
 
 void MainWindow::on_pushButton_2NFA_clicked()
 {
-    regexStr=ui->plainTextEdit_Regex->toPlainText();//获取正则表达式
+    regexStr=ui->plainTextEdit_Regex->toPlainText().split('\n').at(0);//获取正则表达式
 
     NDFAG.setKeywordStr(keywordStr);
     NDFAG.reg2NFA(regexStr);//调用转换函数
