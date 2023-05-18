@@ -299,6 +299,11 @@ void BNFP::printGrammar(QPlainTextEdit *e)
     e->insertPlainText(grammarString);
 }
 
+void BNFP::printLL1ParsingTable(QTableWidget *table)
+{
+
+}
+
 /**
  * @brief BNFP::eliminateLRecursion
  * 消除文法左递归
@@ -306,7 +311,7 @@ void BNFP::printGrammar(QPlainTextEdit *e)
 void BNFP::eliminateLRecursion()
 {
     //给非终结符规定顺序
-    QList<QChar> tmp_nonTmrList;
+    QList<QString> tmp_nonTmrList;
     for(const auto &tmp_nonTmr: qAsConst(m_nonTmrSet))
     {
         tmp_nonTmrList.push_back(tmp_nonTmr);
@@ -616,7 +621,7 @@ void BNFP::firstNfollowSet()
     {
         for(const auto &tmp_productionR: GM_productionMap[tmp_productionL])//对于右部每一条产生式
         {
-            firstSetMap[tmp_productionL][tmp_productionR]=getFirstSet(tmp_productionR);
+            m_firstSetMap[tmp_productionL][tmp_productionR]=getFirstSet(tmp_productionR);
 
             for(int idx=0;idx<tmp_productionR.length();++idx)//对于每一条产生式逐个
             {
@@ -655,5 +660,14 @@ void BNFP::firstNfollowSet()
                 finished=false;
         }
     }
+}
+
+/**
+ * @brief BNFP::constructLL1ParsingTable
+ * 构建LL(1)分析表主函数
+ */
+void BNFP::constructLL1ParsingTable()
+{
+
 }
 

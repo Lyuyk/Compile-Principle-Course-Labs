@@ -2,6 +2,7 @@
 #define BNFP_H
 
 #include <QPlainTextEdit>
+#include <QTableWidget>
 #include <QString>
 #include <QChar>
 #include <QStack>
@@ -20,8 +21,11 @@ public:
     void eliminateLRecursion();//消除左递归
     void eliminateLCommonFactor();//消除左公共因子
     void firstNfollowSet();//求解first与follow集合元素
+    void constructLL1ParsingTable();//生成LL1分析表
 
     void printGrammar(QPlainTextEdit *e);//输出文法
+    void printLL1ParsingTable(QTableWidget *table);//输出LL1分析表
+
     QMap<QChar, QSet<QString>> getFirstSet();//取得非终结符的first集
     QMap<QChar, QSet<QChar>> getFollowSet();//取得非终结符的follow集
 
@@ -55,6 +59,7 @@ private:
     QSet<QString> m_nonTmrSet;//非终结符集合
     QSet<QString> m_tmrSet;//终结符集合
     QMap<QString, QVector<QVector<QString>>> m_GM_productionMap;//文法产生式（左部->右部候选式vector[终结符/非终结符]
+    QList<QList<QString>> m_LL1Table;//LL1分析表
 
     QMap<QChar, QMap<QString, QSet<QString>>> m_firstSetMap;//first集合元素//todo
     QMap<QString, QSet<QString>> m_followSetMap;//follow集合元素
