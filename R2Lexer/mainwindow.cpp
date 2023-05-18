@@ -226,11 +226,18 @@ void MainWindow::on_pushButton_clearConsole_clicked()
 {        
     /*界面初始化*/
     ui->tabWidget_Graph->setCurrentIndex(0);
-    ui->plainTextEdit_console->clear();
+    //ui->plainTextEdit_console->clear();
     ui->plainTextEdit_Regex->clear();
-    ui->tableWidget_NFA->clear();
+    ui->plainTextEdit_Lexer->clear();
+    ui->tableWidget_NFA->clear();    
     ui->tableWidget_DFA->clear();
     ui->tableWidget_mDFA->clear();
+    ui->tableWidget_NFA->setRowCount(0);
+    ui->tableWidget_NFA->setColumnCount(0);
+    ui->tableWidget_DFA->setRowCount(0);
+    ui->tableWidget_DFA->setColumnCount(0);
+    ui->tableWidget_mDFA->setRowCount(0);
+    ui->tableWidget_mDFA->setColumnCount(0);
 
     /*按键操作初始化*/
     ui->pushButton_2NFA->setEnabled(true);

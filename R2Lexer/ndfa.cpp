@@ -83,11 +83,13 @@ void NDFA::printNFA(QTableWidget *table)
     table->setHorizontalHeaderLabels(headerStrList);
     //竖轴隐藏
     table->verticalHeader()->setHidden(true);
+    table->horizontalHeader()->setAlternatingRowColors(true);//隔行变色
 
     for(int state=0;state<NFAStateNum;state++)
     {
         table->setItem(state,0,
                        new QTableWidgetItem(QString::number(state)));
+        table->item(state,0)->setTextAlignment(Qt::AlignCenter);//居中
 
         int k=1;
         int colN=1;
@@ -99,6 +101,7 @@ void NDFA::printNFA(QTableWidget *table)
                 table->setItem(state,colN,
                                new QTableWidgetItem(
                                    QString::number(NFAStateArr[state].toState)));
+                table->item(state,colN)->setTextAlignment(Qt::AlignCenter);//居中
             }
             colN++;
         }
@@ -111,16 +114,20 @@ void NDFA::printNFA(QTableWidget *table)
         }
         epsStr.chop(1);
         table->setItem(state,epsColN,new QTableWidgetItem(epsStr));
+        table->item(state,epsColN)->setTextAlignment(Qt::AlignCenter);//居中
 
         if(NFAStateArr[state].stateNum==NFAG.startNode->stateNum)
         {//若为初态
             table->setItem(state,epsColN+1,new QTableWidgetItem("初态"));
+            table->item(state,epsColN+1)->setTextAlignment(Qt::AlignCenter);//居中
         }
         if(NFAStateArr[state].stateNum==NFAG.endNode->stateNum)
         {//若为终态
             table->setItem(state,epsColN+1,new QTableWidgetItem("终态"));
+            table->item(state,epsColN+1)->setTextAlignment(Qt::AlignCenter);//居中
         }
     }
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);//自动调整列宽
 }
 
 void NDFA::printDFA(QTableWidget *table)
@@ -131,6 +138,8 @@ void NDFA::printDFA(QTableWidget *table)
     table->setRowCount(DFAStateNum);//表格行数
     table->setColumnCount(opCharSet.count()+3);//表格列数（状态号，包含NFA状态，操作符。。。，初/终态）
     table->verticalHeader()->setHidden(true);//隐藏竖轴序号列
+    table->horizontalHeader()->setAlternatingRowColors(true);//隔行变色
+
 
     //表头初始化
     QStringList headerStrList=opCharSet.values();
@@ -145,8 +154,8 @@ void NDFA::printDFA(QTableWidget *table)
     {
         //设置状态号
         table->setItem(state,0,
-                       new QTableWidgetItem(QString::number(DFAStateArr[state].stateNum),
-                                            Qt::AlignCenter));
+                       new QTableWidgetItem(QString::number(DFAStateArr[state].stateNum)));
+        table->item(state,0)->setTextAlignment(Qt::AlignCenter);//居中
         //NFA状态集
         QString NFASetStr="{ ";
         for(const auto &n_state:DFAStateArr[state].NFANodeSet)
@@ -154,26 +163,27 @@ void NDFA::printDFA(QTableWidget *table)
             NFASetStr+=QString::number(n_state)+",";
         }
         NFASetStr.replace(NFASetStr.size()-1,1," }");
-        table->setItem(state,1,new QTableWidgetItem(NFASetStr,Qt::AlignCenter));
+        table->setItem(state,1,new QTableWidgetItem(NFASetStr));
 
-        int k=1;//从第一个操作符开始
-        int colN=1;
+        int k=2;//从第一个操作符开始
+        int colN=2;//第三列开始显示
         for(;k<headerStrList.count()-1;k++)
         {
             QString curOpChar=headerStrList[k];//当前操作符
-            qDebug()<<curOpChar;
+
             if(DFAStateArr[state].DFAEdgeMap.contains(curOpChar))//若可达
             {
-                qDebug()<<"isOK";
+                //可以去到的状态号
                 int toState=DFAStateArr[state].DFAEdgeMap[curOpChar];
 
-                QString n_NFASetStr="{ ";
-                for(const auto &n_state: DFAStateArr[state].NFANodeSet)
+                QString n_NFASetStr=QString::number(toState)+" { ";
+                for(const auto &n_state:DFAStateArr[toState].NFANodeSet)//可去到的状态集
                 {
                     n_NFASetStr+=QString::number(n_state)+",";
                 }
                 n_NFASetStr.replace(n_NFASetStr.size()-1,1," }");
                 table->setItem(state,colN,new QTableWidgetItem(n_NFASetStr));
+                table->item(state,colN)->setTextAlignment(Qt::AlignCenter);//居中
             }
             colN++;
         }
@@ -181,12 +191,15 @@ void NDFA::printDFA(QTableWidget *table)
         if(DFAEndStateSet.contains(state))
         {//若为终态
             table->setItem(state,colN,new QTableWidgetItem("终态"));
+            table->item(state,colN)->setTextAlignment(Qt::AlignCenter);//居中
         }
         else if(DFAStateArr[state].NFANodeSet.contains(NFAG.startNode->stateNum))
         {
             table->setItem(state,colN,new QTableWidgetItem("初态"));
+            table->item(state,colN)->setTextAlignment(Qt::AlignCenter);//居中
         }
     }
+    table->resizeRowsToContents();//自适应行高
 }
 
 void NDFA::printMDFA(QTableWidget *table)
@@ -194,10 +207,10 @@ void NDFA::printMDFA(QTableWidget *table)
     //初始化
     table->clear();table->setRowCount(0);table->setColumnCount(0);
 
-    qDebug()<<mDFAStateNum;
     table->setRowCount(mDFAStateNum);//表格行数
     table->setColumnCount(opCharSet.count()+2);//表格列数
     table->verticalHeader()->setHidden(true);//隐藏竖轴序号列
+    table->horizontalHeader()->setAlternatingRowColors(true);//隔行变色
 
     //表头初始化
     QStringList headerStrList=opCharSet.values();
@@ -213,19 +226,19 @@ void NDFA::printMDFA(QTableWidget *table)
 
         table->setItem(stateId, 0,
                        new QTableWidgetItem(QString::number(stateId)));//列 状态号
+        table->item(stateId,0)->setTextAlignment(Qt::AlignCenter);
 
         //遍历所有操作符
         for( ;k<headerStrList.count()-1;k++)
         {
             QString curOpChar=headerStrList[k];//当前操作符
-            qDebug()<<curOpChar;
             if(mDFANodeArr[stateId].mDFAEdgesMap.contains(curOpChar))
             {
                 //若通过当前操作符可达
                 int toIdx=mDFANodeArr[stateId].mDFAEdgesMap[curOpChar];
 
-                table->setItem(stateId,colN,
-                               new QTableWidgetItem(QString::number(toIdx)));
+                table->setItem(stateId,colN,new QTableWidgetItem(QString::number(toIdx)));
+                table->item(stateId,colN)->setTextAlignment(Qt::AlignCenter);//居中
             }
             colN++;
         }
@@ -235,12 +248,14 @@ void NDFA::printMDFA(QTableWidget *table)
             //若为初态
             table->setItem(stateId,colN,
                            new QTableWidgetItem("终态"));
+            table->item(stateId,colN)->setTextAlignment(Qt::AlignCenter);//居中
         }
         else if(stateId==mDFAG.startState)
         {
             //若为终态
             table->setItem(stateId,colN,
                            new QTableWidgetItem("初态"));
+            table->item(stateId,colN)->setTextAlignment(Qt::AlignCenter);//居中
         }
     }
 }
