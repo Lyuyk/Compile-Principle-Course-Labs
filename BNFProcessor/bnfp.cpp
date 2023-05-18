@@ -6,9 +6,13 @@ BNFP::BNFP()
     Init();
 }
 
+/**
+ * @brief BNFP::Init
+ * 类各成员变量初始化
+ */
 void BNFP::Init()
 {
-    m_grammarStr="";
+    m_grammarStr="";//暂存整个文法
     m_startChar="";
 
     m_nonTmrSet.clear();
@@ -46,31 +50,28 @@ void BNFP::InitGrammar(QString s)
     }
 
 
-
-    //遍历右部每一条候选式
-    for(const auto &t_productionR: qAsConst(t_productionR_list))
+    for(const auto &t_productionL:m_nonTmrSet)
     {
-        QVector<QString> t_candidateV=t_productionR.split(' ');//每一条候选式分开
-        for(const auto&t_candidateStr: t_candidateV)//对每一条候选式，遍历每一个操作符
+        //遍历右部每一条候选式
+        for(const auto &t_productionR: qAsConst(t_productionR_list))
         {
-            if(isTerminator(t_candidateStr))
-            {
-                m_tmrSet.insert(t_candidateStr);
-            }
-        }
+            QVector<QString> t_candidateV=t_productionR.split(' ');//每一条候选式分开
 
-        if(t_productionR.simplified()=="@")
-        {
-            m_GM_productionMap[t_productionL].insert("");
-        }
-        else
-        {
-            m_GM_productionMap[t_productionL].insert(t_productionR.simplified());
+            for(const auto&t_candidateStr: t_candidateV)//对每一条候选式字符串，遍历每一个操作符
+            {
+                QVector<QString> t_candidateCharV=t_candidateStr.split(' ');
+                m_GM_productionMap[t_productionL].push_back(t_candidateCharV);//加入一条候选式
+
+                for(const auto &t_cChar:t_candidateCharV)
+                    //右部如果不是非终结符，则全部当成终结符加入
+                    if(not isTerminator(t_cChar))
+                        m_tmrSet.insert(t_cChar);
+
+            }
+
         }
     }
-
-
-    SimplifyGrammar();
+    //SimplifyGrammar();
 }
 
 /**
@@ -81,6 +82,7 @@ void BNFP::InitGrammar(QString s)
  */
 bool BNFP::isTerminator(QString s)
 {
+
     return m_tmrSet.contains(s) or not m_nonTmrSet.contains(s);
 }
 
@@ -145,10 +147,10 @@ bool BNFP::isProductionR_reachable(const QSet<QString> &nonTmrSet,
 void BNFP::SimplifyGrammar()
 {
     //1.消除形如U->U等有害规则
-    const QList<QString> &t_GM_productionMap_keys=m_GM_productionMap.keys();
-    for(const auto &tmp_productionL: t_GM_productionMap_keys)
+    const QList<QString> &t_productionLList=m_GM_productionMap.keys();
+    for(const auto &t_productionL: t_productionLList)
     {
-        m_GM_productionMap[tmp_productionL].remove(tmp_productionL);
+        m_GM_productionMap[t_productionL].remove(t_productionL);
     }
 
     //2.消除不可终结的无用符号以及无用产生式
@@ -264,7 +266,7 @@ void BNFP::SimplifyGrammar()
  * @param e
  * 文法输出主函数
  */
-void BNFP::PrintGrammar(QPlainTextEdit *e)
+void BNFP::printGrammar(QPlainTextEdit *e)
 {
     e->clear();
 
@@ -276,19 +278,22 @@ void BNFP::PrintGrammar(QPlainTextEdit *e)
     {
         //记录右部
         QString t_productionRStr;
-        for(const QString &tmp_productionR: qAsConst(m_GM_productionMap[t_productionL]))
+        //每一条候选式
+        for(const auto &t_productionR: qAsConst(m_GM_productionMap[t_productionL]))
         {
-            if(tmp_productionR.isEmpty())
-            {
-                t_productionRStr += "| @ ";
-            }
+            if(t_productionR.isEmpty())t_productionRStr += "| @ ";
             else
             {
-                t_productionRStr += " | " + tmp_productionR;
+                t_productionRStr+=" | ";
+                //每一个操作符
+                for(const auto &t_candidate: t_productionR)
+                {
+                    t_productionRStr += t_candidate+' ';
+                }
             }
         }
-        QString pLine=QString(t_productionL)+" -> "+t_productionRStr.remove(0,2);//字符串处理去掉首个右部'|'
-        grammarString += (pLine+'\n');
+        QString genLine=QString(t_productionL)+" -> "+t_productionRStr.remove(0,2);//字符串处理去掉首个右部'|'
+        grammarString += (genLine+'\n');
     }
 
     e->insertPlainText(grammarString);
@@ -397,7 +402,11 @@ QSet<QString> BNFP::replaceL(const QChar &replaceC, const QString &productionR)
     return resSet;
 }
 
-
+/**
+ * @brief BNFP::getNewTmr
+ * @return
+ * 申请新的终结符
+ */
 QChar BNFP::getNewTmr()
 {
     QSet<QChar> tmp_availableNonTmrSet;
@@ -577,7 +586,7 @@ QSet<QString> BNFP::getFirstSet(const QString &productionR)
     return firstSet |= "";
 }
 
-QMap<QChar, QSet<QString> > BNFP::GetFirstSet()
+QMap<QChar, QSet<QString> > BNFP::getFirstSet()
 {
     QMap<QChar, QSet<QString>> resMap;
 
@@ -591,12 +600,12 @@ QMap<QChar, QSet<QString> > BNFP::GetFirstSet()
     return resMap;
 }
 
-QMap<QChar, QSet<QChar> > BNFP::GetFollowSet()
+QMap<QChar, QSet<QChar> > BNFP::getFollowSet()
 {
     return m_followSetMap;
 }
 
-void BNFP::firstNfollowSet()
+void BNFP::FirstNfollowSet()
 {
     m_followSetMap.clear();
     m_firstSetMap.clear();

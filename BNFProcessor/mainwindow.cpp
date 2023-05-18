@@ -355,11 +355,11 @@ void MainWindow::on_pushButton_check_clicked()
 {
     //消除左递归
     BNFProcessor.EliminateLRecursion();
-    BNFProcessor.PrintGrammar(ui->plainTextEdit_leftRecursion);
+    BNFProcessor.printGrammar(ui->plainTextEdit_leftRecursion);
     outConsole("消除左递归完成...");
     //消除左公因子
     BNFProcessor.EliminateLCommonFactor();
-    BNFProcessor.PrintGrammar(*ui->plainTextEdit_leftCommonFactor);
+    BNFProcessor.printGrammar(*ui->plainTextEdit_leftCommonFactor);
     printConsole("消除左公因子完成...");
 
     //ui->pushButton_isGrammarLinear->setEnabled(true);

@@ -18,9 +18,12 @@ public:
 
     void SimplifyGrammar();//文法化简
     void EliminateLRecursion();//消除左递归
-    void EliminateLCommonFactor();//消除坐公共因子
+    void EliminateLCommonFactor();//消除左公共因子
+    void FirstNfollowSet();//求解first与follow集合元素
 
-    void PrintGrammar(QPlainTextEdit *e);//输出文法
+    void printGrammar(QPlainTextEdit *e);//输出文法
+    QMap<QChar, QSet<QString>> getFirstSet();//取得非终结符的first集
+    QMap<QChar, QSet<QChar>> getFollowSet();//取得非终结符的follow集
 
 private:
     bool isTerminator(QString s);//是否终结符
@@ -44,9 +47,6 @@ private:
 
     QSet<QString> getFirstSet(const QChar &nonTmr);//求非终结符的first集
     QSet<QString> getFirstSet(const QString &productionR);//求右部产生式first集
-    QMap<QChar, QSet<QString>> GetFirstSet();//取得非终结符的first集
-    QMap<QChar, QSet<QChar>> GetFollowSet();//取得非终结符的follow集
-    void firstNfollowSet();//求解first与follow集合元素
 
 private:
     QString m_grammarStr;//存储待处理文法字符串
