@@ -289,9 +289,9 @@ void MainWindow::on_pushButton_open_clicked()
     while(!textInput.atEnd())
     {
         line=textInput.readLine().toUtf8();//按行读取文件
-        GrammarStr.append(line.trimmed());
+        m_grammarStr.append(line.trimmed());
         ui->plainTextEdit_edit->insertPlainText(line+'\n');//一行行显示
-        GrammarStr+=line;//初始化GrammarStr
+        m_grammarStr+=line;//初始化GrammarStr
     }
     ui->plainTextEdit_console->insertPlainText(getTime()+"读取完成...\n");
     srcFile.close();

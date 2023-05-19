@@ -842,11 +842,12 @@ QString NDFA::mDFA2Lexer(QString filePath)
     QString lexCode;
     int m_state=mDFAG.startState;//最小化DFA的初态
 
-    lexCode+="#include<stdio.h>\n";
-    lexCode+="#include<stdlib.h>\n";
-    lexCode+="#include<string.h>\n";
-    lexCode+="#include<ctype.h>\n";
-    lexCode+="#include<unordered_map>\n";
+    //库函数
+    lexCode+="#include<stdio.h>\n"
+             "#include<stdlib.h>\n"
+             "#include<string.h>\n"
+             "#include<ctype.h>\n"
+             "#include<unordered_map>\n";
     //关键字映射map
     lexCode+="std::unordered_map<std::string, unsigned char> map;\n";
     //初始化关键字映射map
@@ -858,23 +859,23 @@ QString NDFA::mDFA2Lexer(QString filePath)
         lexCode+="\tmap[\""+tmp+"\"] = value;\n";
         lexCode+="\tfprintf(output_map_fp, \"%s %c\\n\", \""+tmp+"\", value++);\n";
     }
-    lexCode+="}\n";
-    lexCode+="void coding(FILE* input_fp,FILE* output_fp) {\n";
-    lexCode+="\tchar tmp = fgetc(input_fp);\n";
-    lexCode+="\tif (tmp == ' ' || tmp == '\\n' || tmp == '\\t'){\n";
-    lexCode+="\t\tfprintf(output_fp, \"%c\", tmp);\n";
-    lexCode+="\t\tprintf(\"%c\", tmp);\n";
-    lexCode+="\t\treturn;\n";
-    lexCode+="\t}\n";
-    lexCode+="\tungetc(tmp, input_fp);\n";
-    lexCode+="\tint state = "+QString::number(m_state)+";\n";
-    lexCode+="\tbool flag = false;\n";
-    lexCode+="\tbool isIndentifier = false;\n";
-    lexCode+="\tbool isAnnotation = false;\n";
-    lexCode+="\tstd::string value;\n";
-    lexCode+="\twhile (!flag) {\n";
-    lexCode+="\t\ttmp = fgetc(input_fp);\n";
-    lexCode+="\t\tswitch (state) {\n";
+    lexCode+="}\n"
+             "void coding(FILE* input_fp,FILE* output_fp) {\n"
+             "\tchar tmp = fgetc(input_fp);\n"
+             "\tif (tmp == ' ' || tmp == '\\n' || tmp == '\\t'){\n"
+             "\t\tfprintf(output_fp, \"%c\", tmp);\n"
+             "\t\tprintf(\"%c\", tmp);\n"
+             "\t\treturn;\n"
+             "\t}\n"
+             "\tungetc(tmp, input_fp);\n"
+             "\tint state = "+QString::number(m_state)+";\n"
+             "\tbool flag = false;\n"
+             "\tbool isIndentifier = false;\n"
+             "\tbool isAnnotation = false;\n"
+             "\tstd::string value;\n"
+             "\twhile (!flag) {\n"
+             "\t\ttmp = fgetc(input_fp);\n"
+             "\t\tswitch (state) {\n";
 
     for(int i=0;i<mDFAStateNum;i++)
     {
@@ -882,7 +883,8 @@ QString NDFA::mDFA2Lexer(QString filePath)
             lexCode+="\t\tcase "+QString::number(i)+": {\n";
             lexCode+="\t\t\tswitch (tmp) {\n";
             QList<QString> tmpList=mDFANodeArr[i].mDFAEdgesMap.keys();//该状态的所有边值
-            if(genLexCase(tmpList,lexCode,i,1))lexCode+="\t\t\tdefault:state = "+QString::number(mDFANodeArr[i].mDFAEdgesMap["~"])+"; isAnnotation = true; break;\n";
+            if(genLexCase(tmpList,lexCode,i,1))
+                lexCode+="\t\t\tdefault:state = "+QString::number(mDFANodeArr[i].mDFAEdgesMap["~"])+"; isAnnotation = true; break;\n";
             lexCode+="\t\t\t}\n";
             lexCode+="\t\t\tbreak;\n";
             lexCode+="\t\t}\n";
@@ -891,7 +893,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\t\t}\n";
     lexCode+="\t\tvalue += tmp;\n";
 
-    QList<int> stateList(mDFAG.endStateSet.begin(), mDFAG.endStateSet.end());//所有终态
+    QList<int> stateList=mDFAG.endStateSet.values();//所有终态
 
     lexCode+="\t\tif (";
     for(int i=0;i<stateList.size();i++)
@@ -914,52 +916,52 @@ QString NDFA::mDFA2Lexer(QString filePath)
     }
     lexCode+="\t}\n";
 
-    lexCode+="\tif (isIndentifier)if (map[value] != 0) {\n";
-    lexCode+="\t\tfprintf(output_fp, \"%c\", map[value]);\n";
-    lexCode+="\t\tprintf(\"%c\", map[value]);\n";
-    lexCode+="\t\treturn;\n";
-    lexCode+="\t}\n";
-    lexCode+="\tif (!isAnnotation) {\n";
-    lexCode+="\t\tfprintf(output_fp, value.c_str(), sizeof(value.c_str()));\n";
-    lexCode+="\t\tprintf(value.c_str());\n";
-    lexCode+="\t}\n";
-    lexCode+="}\n";
+    lexCode+="\tif (isIndentifier)if (map[value] != 0) {\n"
+             "\t\tfprintf(output_fp, \"%c\", map[value]);\n"
+             "\t\tprintf(\"%c\", map[value]);\n"
+             "\t\treturn;\n"
+             "\t}\n"
+             "\tif (!isAnnotation) {\n"
+             "\t\tfprintf(output_fp, value.c_str(), sizeof(value.c_str()));\n"
+             "\t\tprintf(value.c_str());\n"
+             "\t}\n"
+             "}\n";
 
     QFileInfo fileInfo(filePath);
     tmpFilePath=fileInfo.path();
-    lexCode+="int main(int argc, char* argv[]) {\n";
-    lexCode+="\tFILE* input_fp = fopen(\""+filePath+"\", \"r\");\n";
-    lexCode+="\tif (input_fp == NULL) {\n";
-    lexCode+="\t\tprintf(\"Failed to open input file\");\n";
-    lexCode+="\t\treturn 1;\n";
-    lexCode+="\t}\n";
+    lexCode+="int main(int argc, char* argv[]) {\n"
+             "\tFILE* input_fp = fopen(\""+filePath+"\", \"r\");\n"
+             "\tif (input_fp == NULL) {\n"
+             "\t\tprintf(\"Failed to open input file\");\n"
+             "\t\treturn 1;\n"
+             "\t}\n";
 
-    lexCode+="\tFILE* output_fp = fopen(\""+tmpFilePath+"/output.txt"+"\", \"w\");\n";
-    lexCode+="\tif (output_fp == NULL) {\n";
-    lexCode+="\t\tprintf(\"Failed to open output file\");\n";
-    lexCode+="\t\tfclose(input_fp);\n";
-    lexCode+="\t\treturn 1;\n";
-    lexCode+="\t}\n";
+    lexCode+="\tFILE* output_fp = fopen(\""+tmpFilePath+"/output.txt"+"\", \"w\");\n"
+             "\tif (output_fp == NULL) {\n"
+             "\t\tprintf(\"Failed to open output file\");\n"
+             "\t\tfclose(input_fp);\n"
+             "\t\treturn 1;\n"
+             "\t}\n";
 
-    lexCode+="\tFILE* output_map_fp = fopen(\""+tmpFilePath+"/output_map.txt"+"\", \"w\");\n";
-    lexCode+="\tif (output_map_fp == NULL) {\n";
-    lexCode+="\t\tprintf(\"Failed to open output_map file\");\n";
-    lexCode+="\t\tfclose(input_fp);\n";
-    lexCode+="\t\tfclose(output_fp);\n";
-    lexCode+="\t\treturn 1;\n";
-    lexCode+="\t}\n";
+    lexCode+="\tFILE* output_map_fp = fopen(\""+tmpFilePath+"/output_map.txt"+"\", \"w\");\n"
+             "\tif (output_map_fp == NULL) {\n"
+             "\t\tprintf(\"Failed to open output_map file\");\n"
+             "\t\tfclose(input_fp);\n"
+             "\t\tfclose(output_fp);\n"
+             "\t\treturn 1;\n"
+             "\t}\n";
 
-    lexCode+="\tmapInitialize(output_map_fp);\n";
-    lexCode+="\tfclose(output_map_fp);\n";
-    lexCode+="\tchar c;\n";
-    lexCode+="\twhile ((c=fgetc(input_fp)) != EOF) {\n";
-    lexCode+="\t\tungetc(c, input_fp);\n";
-    lexCode+="\t\tcoding(input_fp, output_fp);\n";
-    lexCode+="\t}\n";
-    lexCode+="\tfclose(input_fp);\n";
-    lexCode+="\tfclose(output_fp);\n";
-    lexCode+="\treturn 0;\n";
-    lexCode+="}";
+    lexCode+="\tmapInitialize(output_map_fp);\n"
+             "\tfclose(output_map_fp);\n"
+             "\tchar c;\n"
+             "\twhile ((c=fgetc(input_fp)) != EOF) {\n"
+             "\t\tungetc(c, input_fp);\n"
+             "\t\tcoding(input_fp, output_fp);\n"
+             "\t}\n"
+             "\tfclose(input_fp);\n"
+             "\tfclose(output_fp);\n"
+             "\treturn 0;\n"
+             "}";
 
     lexerCodeStr=lexCode;
     return lexCode;
@@ -967,7 +969,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
 
 void NDFA::setPath(QString srcFilePath, QString tmpFilePath)
 {
-    this->srcFilePath=srcFilePath;
+    this->srcFilePath=srcFilePath;//源程序文件路径
     this->tmpFilePath=tmpFilePath;
 }
 

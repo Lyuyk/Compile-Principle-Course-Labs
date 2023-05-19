@@ -49,12 +49,12 @@ private slots:
 
 private:
     void exit();
-    void printConsole(QString content);
+    void printConsole(QString content);//控制台输出
 
 private:
-    BNFP BNFProcessor;
+    BNFP BNFProcessor;//BNF文法处理器类对象
 
-    QString GrammarStr;
+    QString m_grammarStr;//文法字符串
 
 private:
     Ui::MainWindow *ui;
