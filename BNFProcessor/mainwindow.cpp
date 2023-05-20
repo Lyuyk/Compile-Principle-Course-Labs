@@ -1,17 +1,20 @@
-/*====================================================
-
-  Copyright(C) 2022-2023 Lyuyk
-  All rights reserved
-
-  文件名称:mainwindow.cpp
-  摘要:主窗口源文件
-  当前版本号:v1.1
-  版本历史信息：v1.0：基本功能完成，有穷自动机转换部分存在问题
-
-
-  created by Lyuyk at 2023/4/26
-
-=====================================================*/
+/****************************************************
+ * @Copyright © 2021-2023 Lyuyk. All rights reserved.
+ *
+ * @FileName: mainwindow.cpp
+ * @Brief: 主窗口源文件
+ * @Module Function:
+ *
+ * @Current Version: 1.3
+ * @Author: Lyuyk
+ * @Modifier: Lyuyk
+ * @Finished Date: 2023/4/21
+ *
+ * @Version History: 1.1
+ *                   1.2 完善了部分注释，提高了部分代码的可读性
+ *                   1.3 对窗体新功能，函数做出相应的适配
+ *
+ ****************************************************/
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"

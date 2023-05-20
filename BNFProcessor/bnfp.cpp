@@ -1,5 +1,22 @@
-#include "bnfp.h"
+/****************************************************
+ * @Copyright © 2021-2023 Lyuyk. All rights reserved.
+ *
+ * @FileName: bnfp.cpp
+ * @Brief: BNF文法处理类源文件
+ * @Module Function:
+ *
+ * @Current Version: 1.3
+ * @Author: Lyuyk
+ * @Modifier: Lyuyk
+ * @Finished Date: 2023/5/16
+ *
+ * @Version History: 1.1
+ *                   1.2 完善了部分注释，提高了部分代码的可读性
+ *                   1.3 降低代码耦合性，增添了任务二要求的与LL(1)分析相关的功能
+ *
+ ****************************************************/
 
+#include "bnfp.h"
 
 BNFP::BNFP()
 {

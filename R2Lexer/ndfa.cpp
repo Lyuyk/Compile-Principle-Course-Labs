@@ -321,7 +321,7 @@ NDFA::NFAGraph NDFA::strToNfa(QString s)
             {
                 while(s[++i]!='\\')
                 {
-                    if(s[i]=='`')i++;
+                    if(s[i]=='`')i++;//转义的转义字符，因MiniC中注释符号有反斜杠'\'，用于区分
                     tmpStr+=s[i];
                 }
                 opCharSet.insert(tmpStr);//顺便加入操作符集合
@@ -381,7 +381,7 @@ void NDFA::pushOpStackProcess(QChar opCh, QStack<QChar> &opStack, QStack<NFAGrap
 {
     while(!opStack.empty())
     {
-        //若栈顶原酸优先级大于当前将进栈元素，则将栈顶元素出栈并处理，再继续循环判断
+        //若栈顶运算符优先级大于当前将进栈元素，则将栈顶元素出栈并处理，再继续循环判断
         if(opStack.top()!='(' && opPriorityMap[opStack.top()]>=opPriorityMap[opCh])
         {
             opProcess(opStack.top(),NFAStack);
