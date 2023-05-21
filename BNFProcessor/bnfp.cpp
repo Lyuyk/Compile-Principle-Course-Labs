@@ -72,11 +72,11 @@ void BNFP::initGrammar(QString s)
         //遍历右部每一条候选式
         for(const auto &t_productionR: qAsConst(t_productionR_list))
         {
-            QVector<QString> t_candidateV=t_productionR.split(' ');//每一条候选式分开
+            QList<QString> t_candidateV=t_productionR.split(' ');//每一条候选式分开
 
             for(const auto&t_candidateStr: t_candidateV)//对每一条候选式字符串，遍历每一个操作符
             {
-                QVector<QString> t_candidateCharV=t_candidateStr.split(' ');
+                QList<QString> t_candidateCharV=t_candidateStr.split(' ');
                 m_GM_productionMap[t_productionL].pdnRights.push_back(t_candidateCharV);//加入一条候选式
 
                 for(const auto &t_cChar:t_candidateCharV)
@@ -223,7 +223,34 @@ void BNFP::printGrammar(QPlainTextEdit *e)
  */
 void BNFP::printLL1ParsingTable(QTableWidget *table)
 {
+    table->setRowCount(m_nonTmrSet.size());//行数
+    table->setColumnCount(m_tmrSet.size()+2);//列数：空、终结符、结束符
+    table->verticalHeader()->setHidden(true);//隐藏序号列
 
+    QStringList headerList=m_tmrSet.values();//终结符
+    headerList.push_front("");
+    headerList.push_back("$");//结束符号
+    table->setHorizontalHeaderLabels(headerList);
+
+    //遍历非终结符
+    for(int i=0;i<m_nonTmrSet.size();i++)
+    {
+        QString t_curNonTmr=m_nonTmrSet[i];//当前非终结符
+        table->setItem(i,0,new QTableWidgetItem(t_curNonTmr));
+
+        //遍历终结符及$
+        int j=1,colN=1;
+        for(;j<headerList.size();j++)
+        {
+            QString t_tStr=headerList[j];
+            if(m_LL1Table[t_curNonTmr].contains(t_tStr))
+            {
+                table->setItem(i,colN,
+                               new QTableWidgetItem(m_LL1Table[t_curNonTmr][t_tStr]));
+            }
+            colN++;
+        }
+    }
 }
 
 /**
@@ -372,10 +399,9 @@ void BNFP::eliminateLCommonFactor()
 
                     //delSet.insert(delTmp);
                     delSet[s].insert(delTmp);
-
                     //G.ntMap[s].right.remove(G.ntMap[s].right.indexOf(delTmp));//将Temp中的候选式从该产生式右部去除
                 }
-                foreach(const QStringList& STR,Temp){//形成新产生式的右部
+                for(const QStringList& STR: Temp){//形成新产生式的右部
 //                    Temp.remove(STR);
 //                    if(cnt!=STR.size())Temp.insert(STR.mid(cnt));
 //                    else Temp.insert({"@"});
@@ -395,13 +421,13 @@ void BNFP::eliminateLCommonFactor()
             }
             if(delSet.size()||appendSet.size()||newSet.size())Flag=1;
         }
-        foreach(QString s,delSet.keys())
-            foreach(const QStringList& delTmp,delSet[s])
+        for(QString s: delSet.keys())
+            for(const QStringList& delTmp: delSet[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
-        foreach(QString s,appendSet.keys())
-            foreach(const QStringList& appendTmp,appendSet[s])
+        for(QString s: appendSet.keys())
+            for(const QStringList& appendTmp: appendSet[s])
                 m_GM_productionMap[s].pdnRights.append(appendTmp);
-        foreach(QString left,newSet.keys()){
+        for(QString left: newSet.keys()){
             m_nonTmrSet.append(left);
             m_GM_productionMap[left].pdnRights=newSet[left];
         }
@@ -436,11 +462,11 @@ void BNFP::eliminateLCommonFactor()
                 }
             if(delSet.size()||appendSet.size())Flag=1;
         }
-        foreach(QString s,delSet.keys())
-            foreach(const QStringList& delTmp,delSet[s])
+        for(QString s: delSet.keys())
+            for(const QStringList& delTmp: delSet[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
-        foreach(QString s,appendSet.keys())
-            foreach(const QStringList& appendTmp,appendSet[s])
+        for(QString s: appendSet.keys())
+            for(const QStringList& appendTmp: appendSet[s])
                 m_GM_productionMap[s].pdnRights.append(appendTmp);
     }
 
@@ -489,7 +515,7 @@ void BNFP::computeFirstSet()
                             break;//遇到了终结符可以直接结束了
                         }
 
-                        foreach(const QString& str,G.ntMap[tmp].first)//查该非终结符的first集合
+                        for(const QString& str: m_GM_productionMap[tmp].firstSet)//查该非终结符的first集合
                         {
                             if(str=="@")epsilon=1;
                             if(!m_GM_productionMap[s].firstSet.contains(str))//first集合里是否有tmp
@@ -531,11 +557,11 @@ void BNFP::computeFollowSet()
                     {
                         if(k+1==Production[j].size())//当前非终结符为候选式中的最后一个字符
                         {
-                            foreach(const QString& follow,G.ntMap[s].follow)
+                            foreach(const QString& follow,m_GM_productionMap[s].followSet)
                                 if(!m_GM_productionMap[tmp].followSet.contains(follow))
                                 {
                                     flag=1;
-                                    G.ntMap[tmp].follow.insert(follow);
+                                    m_GM_productionMap[tmp].followSet.insert(follow);
                                 }
                         }
                         else
@@ -551,7 +577,7 @@ void BNFP::computeFollowSet()
                             }
                             else
                             {
-                                foreach(const QString& follow,m_GM_productionMap[Tmp].firstSet)
+                                for(const QString& follow: m_GM_productionMap[Tmp].firstSet)
                                 {
                                     if(follow=="@")continue;
                                     if(!m_GM_productionMap[tmp].followSet.contains(follow))
@@ -564,12 +590,12 @@ void BNFP::computeFollowSet()
                                 for(int x=k+1;x<Production[j].size();x++)//查看是否后面的字符都含有epsilon
                                 {
                                     QString nt=Production[j][x];
-                                    if(!G.nTs.contains(nt)||!G.ntMap[nt].first.contains("@"))//如果其中一个不含epsilon
+                                    if(!m_nonTmrSet.contains(nt)||!m_GM_productionMap[nt].firstSet.contains("@"))//如果其中一个不含epsilon
                                         epsilon=0;
                                 }
                                 if(epsilon)//如果后面的字符都含epsilon 相当于是最后一个字符
                                 {
-                                    foreach(const QString& follow,m_GM_productionMap[s].followSet)
+                                    for(const auto& follow: m_GM_productionMap[s].followSet)
                                         if(!m_GM_productionMap[tmp].followSet.contains(follow))
                                         {
                                             flag=1;
@@ -638,7 +664,7 @@ void BNFP::constructLL1ParsingTable()
                     }
                     else//非终结符
                     {
-                        foreach(const QString& first,m_GM_productionMap[tmp].firstSet)//遍历first集
+                        for(const auto& first: m_GM_productionMap[tmp].firstSet)//遍历first集
                         {
                             if(first=="@")flag=1;//记录存在epsilon
                             else m_LL1Table[nt][first]=content;
@@ -647,7 +673,7 @@ void BNFP::constructLL1ParsingTable()
                         {
                             flag=0;
                             if(k+1==size)//到最后一个了还是有epsilon就看follow集
-                                foreach(const QString& follow,m_GM_productionMap[nt].followSet)
+                                for(const auto& follow: m_GM_productionMap[nt].followSet)
                                     m_LL1Table[nt][follow]=content;
                         }
                         else break;

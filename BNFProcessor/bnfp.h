@@ -21,6 +21,7 @@
 #include <QPlainTextEdit>
 #include <QTableWidget>
 #include <QTreeWidget>
+#include <QHeaderView>
 #include <QString>
 #include <QChar>
 #include <QStack>
@@ -66,7 +67,7 @@ private:
     void lFactorCount(QList<QStringList> list,QStringList pdnR,int &count);//记录最长左公因子个数
     QString getNewTmr(QString curTmr);//申请新终结符
 
-    void decode(QString s);//对编码lex文件进行解码
+    void decode(QString s);//对词法分析程序编码的lex文件进行解码
 
 private:
     QString m_grammarStr;//存储待处理文法字符串
@@ -80,6 +81,8 @@ private:
     //QMap<QString, QSet<QString>> m_followSetMap;//follow集合元素
 
     QMap<QString, QMap<QString,QString>> m_LL1Table;//LL1分析表
+
+    QString m_lexPrgStr;//存储词法分析程序编码的源程序串
     QList<QString> m_programCode;//用户输入的待分析的程序
 };
 
