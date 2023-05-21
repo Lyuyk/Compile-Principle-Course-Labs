@@ -36,8 +36,8 @@ void BNFP::init()
     m_tmrSet.clear();
 
     m_GM_productionMap.clear();
-    m_firstSetMap.clear();
-    m_followSetMap.clear();
+    m_LL1Table.clear();
+    m_programCode.clear();
 }
 
 /**
@@ -61,7 +61,7 @@ void BNFP::initGrammar(QString s)
 
         QStringList t_productionLRList = t_subProduction.split("->");//分离左右部
         QString t_productionL = t_productionLRList[0].simplified();//左部
-        m_nonTmrSet.insert(t_productionL);//左部全部为非终结符，加入
+        m_nonTmrSet.push_back(t_productionL);//左部全部为非终结符，加入
 
         t_productionR_list=t_productionLRList[1].split("|");//右部
     }
@@ -77,7 +77,7 @@ void BNFP::initGrammar(QString s)
             for(const auto&t_candidateStr: t_candidateV)//对每一条候选式字符串，遍历每一个操作符
             {
                 QVector<QString> t_candidateCharV=t_candidateStr.split(' ');
-                m_GM_productionMap[t_productionL].push_back(t_candidateCharV);//加入一条候选式
+                m_GM_productionMap[t_productionL].pdnRights.push_back(t_candidateCharV);//加入一条候选式
 
                 for(const auto &t_cChar:t_candidateCharV)
                     //右部如果不是非终结符，则全部当成终结符加入
@@ -113,47 +113,7 @@ bool BNFP::isNonTerminator(QString s)
     return m_nonTmrSet.contains(s);
 }
 
-/**
- * @brief BNFP::isProductionR_terminable
- * 判断右部候选式是否可终结
- * @param nonTmrSet 非终结符集合
- * @param productionR
- * @return
- */
-bool BNFP::isProductionR_terminable(const QSet<QString> &nonTmrSet,
-                                    const QVector<QString> &productionR)
-{
-    //遍历右部候选式
-    for(const auto &s: productionR)
-    {
-        //若为非终结符且非终结符集合不包含其中
-        if(isNonTerminator(s) and not nonTmrSet.contains(s)) return false;
-    }
-    return true;
-}
 
-/**
- * @brief BNFP::isProductionR_reachable
- * @param nonTmrSet
- * @param tmrSet
- * @param productionR
- * @return
- * 判断右部候选式是否可达
- */
-bool BNFP::isProductionR_reachable(const QSet<QString> &nonTmrSet,
-                                   const QSet<QString> &tmrSet,
-                                   const QVector<QString> &productionR)
-{
-    for(const auto &s: productionR)
-    {
-        if((isNonTerminator(s) and not nonTmrSet.contains(s)) or
-                (isTerminator(s) and not tmrSet.contains(s)))
-        {
-            return false;
-        }
-    }
-    return true;
-}
 
 
 /**
@@ -162,117 +122,58 @@ bool BNFP::isProductionR_reachable(const QSet<QString> &nonTmrSet,
  */
 void BNFP::simplifyGrammar()
 {
-    //1.消除形如U->U等有害规则
-    const QList<QString> &t_productionLList=m_GM_productionMap.keys();
-    for(const auto &t_productionL: t_productionLList)
+    bool changedFlag=1;//用于判断文法中的产生式是否有变化
+    QSet<QString> temp={m_startChar};//暂时可到达但不可终止的非终结符
+    QSet<QString> Temp={};//可终止且可到达的非终结符
+    while(changedFlag)
     {
-        m_GM_productionMap[t_productionL].remove(t_productionL);
-    }
-
-    //2.消除不可终结的无用符号以及无用产生式
-    QSet<QString> tmp_nonTmrSet;
-    QMap<QChar, QSet<QString>> tmp_productions;
-
-    qsizetype preNonTmrSetSize=tmp_nonTmrSet.size();
-    qsizetype curNonTmrSetSize=std::numeric_limits<qsizetype>::max();
-
-    while(preNonTmrSetSize != curNonTmrSetSize)
-    {
-        preNonTmrSetSize=curNonTmrSetSize;
-
-        const QList<QString> &tmp_GM_productionMap_keys=m_GM_productionMap.keys();
-        for(const auto &tmp_productionL: tmp_GM_productionMap_keys)
+        changedFlag=0;
+        foreach(const QString& str,temp)
         {
-            if(tmp_nonTmrSet.contains(tmp_productionL)) continue;
-
-            for(const auto &tmp_productionR: qAsConst(m_GM_productionMap[tmp_productionL]))
-            {
-                if(isProductionR_terminable(tmp_nonTmrSet, tmp_productionR))
-                {
-                    tmp_nonTmrSet.insert(tmp_productionL);//有一个产生式符合就结束判断
-                    break;
-                }
-            }
-        }
-
-        curNonTmrSetSize=tmp_nonTmrSet.size();//更新当前非终结符数量
-    }
-
-    //4.遍历产生式，对于每一条产生式，如果它的右部是可以终结的，就将该条产生式加入产生式集合映射中；
-    for(const auto &tmp_productionL: qAsConst(tmp_nonTmrSet))
-    {
-        for(const auto &tmp_productionR: m_GM_productionMap.value(tmp_productionL))
-        {
-            if(isProductionR_terminable(tmp_nonTmrSet, tmp_productionR))
-            {
-                tmp_productions[tmp_productionL].insert(tmp_productionR);
-            }
-        }
-    }
-
-    //5.更新非终结符集合与产生式集合；
-    m_nonTmrSet=tmp_nonTmrSet;
-    m_GM_productionMap=tmp_productions;
-
-    //c.消除不可达的无用符号以及无用产生式；
-    tmp_nonTmrSet.clear();
-    tmp_productions.clear();
-    QSet<QChar> tmp_tmrSet;
-    tmp_nonTmrSet.insert(m_startChar);
-
-    preNonTmrSetSize=tmp_nonTmrSet.size();
-    curNonTmrSetSize=std::numeric_limits<qsizetype>::max();
-    qsizetype curTmrSetSize=std::numeric_limits<qsizetype>::max();
-    qsizetype preTmrSetSize=tmp_tmrSet.size();
-
-
-    while(preNonTmrSetSize != curNonTmrSetSize ||
-          preTmrSetSize != curTmrSetSize)
-    {
-        preNonTmrSetSize=curNonTmrSetSize;
-        preTmrSetSize=curTmrSetSize;
-
-        const QList<QChar> &tmp_GM_productionMap_keys=m_GM_productionMap.keys();
-        for(const auto &tmp_productionL: tmp_GM_productionMap_keys)
-        {
-            if(!m_nonTermSet.contains(tmp_productionL))continue;
-
-            for(const auto &tmp_productionR: qAsConst(m_GM_productionMap[tmp_productionL]))
-            {
-                for(const auto &c: tmp_productionR)
-                {
-                    if(isNonTerminator(c))
-                    {
-                        tmp_nonTmrSet.insert(c);
-                    }
-                    else
-                    {
-                        tmp_tmrSet.insert(c);
+            for (const QStringList &Ts : m_GM_productionMap[str].pdnRights){//遍历该产生式的所有候选值
+                int Flag=1;//判断当前候选值中的所有字符是否可终止
+                for(const QString &t :Ts){//遍历该候选式中的每个单词
+                    if(m_nonTmrSet.contains(t)&&!Temp.contains(t)){
+                        Flag=0;
+                        if(!temp.contains(t)){
+                            temp.insert(t);
+                            changedFlag=1;
+                        }
                     }
                 }
-            }
-
-            curNonTmrSetSize=tmp_nonTmrSet.size();
-            curTmrSetSize=tmp_tmrSet.size();
-        }
-
-        //4.
-        for(const auto &tmp_productionL: qAsConst(tmp_nonTmrSet))
-        {
-            for(const auto &tmp_productionR: m_GM_productionMap.value(tmp_productionL))
-            {
-                if(isProductionR_reachable(tmp_nonTmrSet, tmp_tmrSet, tmp_productionR))
-                {
-                    tmp_productions[tmp_productionL].insert(tmp_productionR);
-                }
+                if(Flag){
+                    Temp.insert(str);
+                    temp.remove(str);
+                    changedFlag=1;
+                };
             }
         }
-
-        m_GM_productionMap=tmp_productions;
-        m_nonTmrSet=tmp_nonTmrSet;
-        m_tmrSet=tmp_tmrSet;
     }
 
+    QSet<QString> Tmp(m_nonTmrSet.begin(),m_nonTmrSet.end());//原来的非终结符集
+    if(Tmp!=Temp)
+    {
+        QSet<QString> del=Tmp-Temp;//即将删除的非终结符集
+
+        for(const auto &tmp: del){
+            m_nonTmrSet.remove(m_nonTmrSet.indexOf(tmp));
+            m_GM_productionMap.remove(tmp);
+        }
+
+        for(const auto& str: Temp)
+        {
+            QSet<QStringList> deleteSet={};
+            for (const auto &Ts : m_GM_productionMap[str].pdnRights)//遍历该产生式的所有候选值
+                for(const auto &t :Ts)//遍历该候选式中的每个单词
+                    if(Tmp.contains(t)&&!m_nonTmrSet.contains(t))//原来是非终结符但被删除掉了
+                    {
+                        QStringList delTmp=Ts;
+                        deleteSet.insert(delTmp);
+                    }
+            for(const auto& delTmp: deleteSet)
+                m_GM_productionMap[str].pdnRights.removeOne(delTmp);
+        }
+    }
 }
 
 
@@ -295,7 +196,7 @@ void BNFP::printGrammar(QPlainTextEdit *e)
         //记录右部
         QString t_productionRStr;
         //每一条候选式
-        for(const auto &t_productionR: qAsConst(m_GM_productionMap[t_productionL]))
+        for(const auto &t_productionR: qAsConst(m_GM_productionMap[t_productionL].pdnRights))
         {
             if(t_productionR.isEmpty())t_productionRStr += "| @ ";
             else
@@ -315,6 +216,11 @@ void BNFP::printGrammar(QPlainTextEdit *e)
     e->insertPlainText(grammarString);
 }
 
+/**
+ * @brief BNFP::printLL1ParsingTable
+ * @param table
+ * 显示LL1构造表
+ */
 void BNFP::printLL1ParsingTable(QTableWidget *table)
 {
 
@@ -322,361 +228,364 @@ void BNFP::printLL1ParsingTable(QTableWidget *table)
 
 /**
  * @brief BNFP::eliminateLRecursion
+ * @param index
+ * @param updatedL
+ * 消除左递归子函数
+ */
+void BNFP::eliminateLRecursion(int index, QSet<QString> &updatedL)
+{
+    QString left=m_nonTmrSet[index];
+    QSet<QString>newRight={};
+    QVector<QStringList> newR;
+
+    for (const QStringList &Ts : m_GM_productionMap[left].pdnRights){//遍历该产生式的所有候选值
+        int flag=0;//判断是不是左递归
+        QString right=Ts[0];
+        if(updatedL.contains(right)){
+            flag=1;
+            for (const QStringList &ts : m_GM_productionMap[left].pdnRights){
+                QStringList s=Ts;
+                s.removeFirst();//把第一个元素删掉
+                s=ts+s;//用ts换掉本身的第一个元素
+                newR.append(s);
+            }
+        }
+        if(!flag)newR.append(Ts);
+    }
+    m_GM_productionMap[left].pdnRights=newR;
+
+    //直接左递归
+    for (const QStringList &Ts : m_GM_productionMap[left].pdnRights)
+    {
+        //遍历该产生式的所有候选值
+        QString right=Ts[0];
+        if(right==left){
+            QString newLeft=left+'\'';//新非终结符
+            QVector<QStringList>NR_1;//存储当前非终结符消除直接左递归后的候选式
+            QVector<QStringList>NR_2;//存储新非终结符候选式
+            for (const QStringList &ts : m_GM_productionMap[left].pdnRights){//遍历该产生式的所有候选值
+                QString r=ts[0];
+                if(r==left){
+                    QStringList s=Ts;
+                    s.removeFirst();
+                    s.append(newLeft);
+                    NR_2.append(s);
+                }
+                else{
+                    QStringList s=ts;
+                    s.append(newLeft);
+                    NR_1.append(s);
+                }
+            }
+            NR_2.append({"@"});
+            m_GM_productionMap[left].pdnRights=NR_1;//更新当前非终结符的候选式
+            //向文法中添加新非终结符
+            m_nonTmrSet.append(newLeft);
+            m_GM_productionMap[newLeft].pdnRights=NR_2;
+            break;
+        }
+    }
+}
+
+
+
+/**
+ * @brief BNFP::eliminateLRecursion
  * 消除文法左递归
  */
 void BNFP::eliminateLRecursion()
 {
-    //给非终结符规定顺序
-    QList<QString> tmp_nonTmrList;
-    for(const auto &tmp_nonTmr: qAsConst(m_nonTmrSet))
+    QSet<QString> t_newNonTmrSet;//存储处理后的非终结符
+    for(int i=0;i<m_nonTmrSet.size();i++)
     {
-        tmp_nonTmrList.push_back(tmp_nonTmr);
+        QString nTmrStr=m_nonTmrSet[i];
+        eliminateLRecursion(i,t_newNonTmrSet);
+        t_newNonTmrSet.insert(nTmrStr);
     }
-
-    //按照该顺序遍历所有非终结符
-    for(auto curChar{tmp_nonTmrList.begin()};curChar != tmp_nonTmrList.end(); curChar++)
-    {
-        for(auto preChar{tmp_nonTmrList.begin()};preChar != curChar; preChar++)
-        {
-            replaceL(*preChar, *curChar);
-        }
-
-        //消除直接左递归，定义不含左递归的产生式右部集合
-        QSet<QString> tmp_nonLRecursionRSet;
-        //包含左递归的产生式右部的集合
-        QSet<QString> tmp_LRecursionRSet;
-
-        for(const auto &tmp_productionR: qAsConst(m_GM_productionMap[*curChar]))
-        {
-            if(tmp_productionR.isEmpty() || *curChar != tmp_productionR[0])
-            {
-                tmp_nonLRecursionRSet.insert(tmp_productionR);
-            }//去除左递归对应的符号
-            else
-            {
-                QString tmpR=tmp_productionR;
-                tmpR.remove(0,1);//去掉第一个字符
-                tmp_LRecursionRSet.insert(tmpR);
-            }
-        }
-
-        //若非终结符产生式不包含左递归则跳过判断
-        if(tmp_LRecursionRSet.isEmpty()) continue;
-
-        //否则申请新的非终结符
-        QChar newNonTmr=getNewTmr();
-
-        //对于 A-> Aa|b形式，先添加B->aB|ɛ 这样一条产生式
-        for(const auto &tmp_productionR: tmp_LRecursionRSet)
-        {
-            m_GM_productionMap[newNonTmr].insert(tmp_productionR+newNonTmr);
-        }
-        m_GM_productionMap[newNonTmr].insert("");
-
-        //移除原来的产生式"A->Aa|b"
-        m_GM_productionMap.remove(*curChar);
-
-        // 添加 A->bB这样一条产生式
-        for(const auto &tmp_productionR: tmp_nonLRecursionRSet)
-        {
-            m_GM_productionMap[*curChar].insert(tmp_productionR+newNonTmr);
-        }
-    }
-
-    simplifyGrammar();
 }
 
-void BNFP::replaceL(const QChar &replaceC, const QChar &replaced)
-{
-    QSet<QString> tmp_replacedProductionRSet = m_GM_productionMap[replaced];
 
-    m_GM_productionMap.remove(replaced);
-
-    for(const auto &tmp_replaceProductionR: tmp_replacedProductionRSet)
-    {
-        if(tmp_replaceProductionR.isEmpty() || replaceC != tmp_replaceProductionR[0])
-        {
-            m_GM_productionMap[replaced].insert(tmp_replaceProductionR);
-            continue;
-        }
-
-        QSet<QString> replacedResult=replaceL(replaceC,tmp_replaceProductionR);
-
-        for(const auto &replacedC: qAsConst(replacedResult))
-            m_GM_productionMap[replaced].insert(replacedC);
-    }
-
-
-}
-
-QSet<QString> BNFP::replaceL(const QChar &replaceC, const QString &productionR)
-{
-    QSet<QString> resSet;
-
-    for(const auto &replaceCProductionR: m_GM_productionMap[replaceC])
-    {
-        QString replaced=productionR;
-        replaced.replace(0,1,replaceCProductionR);
-        resSet.insert(replaced);
-    }
-    return resSet;
-}
 
 /**
  * @brief BNFP::getNewTmr
  * @return
  * 申请新的终结符
  */
-QChar BNFP::getNewTmr()
+QString BNFP::getNewTmr(QString curTmr)
 {
-    QSet<QChar> tmp_availableNonTmrSet;
-    for(char c='A';c<='Z';c++)
-    {
-        tmp_availableNonTmrSet.insert(c);
-    }
-    tmp_availableNonTmrSet -= m_nonTmrSet;
-    if(tmp_availableNonTmrSet.isEmpty())
-    {
-        qDebug()<<"[文法化简]:非终结符超限，申请失败";
+    return curTmr+"'";
+}
 
-        //throw QString{ "[文法化简]:非终结符超限，申请失败" };
+/**
+ * @brief BNFP::lFactorCount
+ * @param list
+ * @param pdnR
+ * @param count
+ * 记录最长左公因子个数，提取左公因子的子函数
+ */
+void BNFP::lFactorCount(QList<QStringList> list, QStringList pdnR, int &count)
+{
+    int t_count=count+1;
+    for(const auto& t_pdnR:list)
+    {
+        if(t_count>t_pdnR.size() || t_pdnR.at(count)!=pdnR.at(count))
+            return;
     }
-
-    return *m_nonTmrSet.insert(*tmp_availableNonTmrSet.begin());
+    count=t_count;
+    lFactorCount(list,pdnR,count);//递归调用
 }
 
 /**
  * @brief BNFP::eliminateLCommonFactor
+ * 提取左公因子
  */
 void BNFP::eliminateLCommonFactor()
 {
-    QStack<QChar> tmp_nonTmrStk;
-
-    for(const auto &tmp_nonTmr: m_GM_productionMap.keys())
-    {
-        tmp_nonTmrStk.push_back(tmp_nonTmr);
-    }
-    while(!tmp_nonTmrStk.isEmpty())
-    {
-        QChar tmp_productionL=tmp_nonTmrStk.pop();
-
-        QSet<QString> tmp_replaceResSet;
-        for(const auto &tmp_productionR: m_GM_productionMap[tmp_productionL])
+    int flag=4;
+    int Flag=1;
+    int size=m_nonTmrSet.size();
+    while(Flag&&flag--){
+    Flag=0;
+    QMap<QString,QSet<QStringList>> delSet={};
+    QMap<QString,QSet<QStringList>> appendSet={};
+    QMap<QString,QVector<QStringList>> newSet={};
+    //遍历完再删 否则容易导致越界
+        for(int i=0;i<size;i++)//遍历所有产生式
         {
-            tmp_replaceResSet |= replaceLNonTmr(tmp_productionR);
+            QString s=m_nonTmrSet.at(i);
+
+            QStringList Ts=m_GM_productionMap[s].pdnRights.at(0);
+            //QSet<QStringList> Temp={};//用于记录被提取的候选式 用Set不知道为什么有可能会越界
+            QList<QStringList> Temp={};//用于记录被提取的候选式
+            QString tmp=Ts.at(0);
+            for(int k=0;k<m_GM_productionMap[s].pdnRights.size();k++){
+                QStringList ts=m_GM_productionMap[s].pdnRights.at(k);
+//                if(ts.at(0)==tmp)Temp.insert(ts);//判断该候选式是否有相同左公因子
+                if(ts.at(0)==tmp)Temp.append(ts);//判断该候选式是否有相同左公因子
+            }
+            if(Temp.count()>1&&Temp.count()==m_GM_productionMap[s].pdnRights.size())
+            {
+                int cnt=1;
+                lFactorCount(Temp,Ts,cnt);//记录最长左公因子个数
+                for (const QStringList &del : Temp){
+                    QStringList delTmp=del;
+
+                    //delSet.insert(delTmp);
+                    delSet[s].insert(delTmp);
+
+                    //G.ntMap[s].right.remove(G.ntMap[s].right.indexOf(delTmp));//将Temp中的候选式从该产生式右部去除
+                }
+                foreach(const QStringList& STR,Temp){//形成新产生式的右部
+//                    Temp.remove(STR);
+//                    if(cnt!=STR.size())Temp.insert(STR.mid(cnt));
+//                    else Temp.insert({"@"});
+                    Temp.removeOne(STR);
+                    if(cnt!=STR.size())Temp.append(STR.mid(cnt));
+                    else if(!Temp.contains({"@"}))Temp.append({"@"});
+                }
+                //给新的产生式赋值
+                QString left=s+'\'';
+                newSet[left]=Temp.toVector();
+
+                //将化简后的候选式加入该产生式
+                QStringList leftFactor=Ts.mid(0,cnt);
+                leftFactor.append(left);
+
+                appendSet[s].insert(leftFactor);
+            }
+            if(delSet.size()||appendSet.size()||newSet.size())Flag=1;
+        }
+        foreach(QString s,delSet.keys())
+            foreach(const QStringList& delTmp,delSet[s])
+                m_GM_productionMap[s].pdnRights.removeOne(delTmp);
+        foreach(QString s,appendSet.keys())
+            foreach(const QStringList& appendTmp,appendSet[s])
+                m_GM_productionMap[s].pdnRights.append(appendTmp);
+        foreach(QString left,newSet.keys()){
+            m_nonTmrSet.append(left);
+            m_GM_productionMap[left].pdnRights=newSet[left];
         }
 
-        m_GM_productionMap.remove(tmp_productionL);
 
-        if(tmp_replaceResSet.contains(""))
-            m_GM_productionMap[tmp_productionL].insert("");
-
-        QSet<QChar> commonPrefixes=getRPPrefixes(tmp_replaceResSet);
-
-        for(const auto &commonPrefix: commonPrefixes)
+        delSet.clear();
+        appendSet.clear();
+        for(int i=0;i<size;i++)
         {
-            QSet<QString> suffixes=findPrefixProductions(commonPrefix,tmp_replaceResSet);
+            QString s=m_nonTmrSet.at(i);
 
-            if(suffixes.size()>1)
-            {
-                QChar newNonTmr=getNewTmr();
+            if(m_GM_productionMap[s].pdnRights.size()>1)
+                for(int j=0;j<m_GM_productionMap[s].pdnRights.size();j++){
+                    QStringList Ts=m_GM_productionMap[s].pdnRights.at(j);
+                    QString tmp=Ts.at(0);
+                    if(m_nonTmrSet.contains(tmp)){
+                        QStringList del=Ts;
+                        for(int k=0;k<m_GM_productionMap[tmp].pdnRights.size();k++){
+                            QStringList ts=m_GM_productionMap[tmp].pdnRights.at(k);
 
-                m_GM_productionMap[newNonTmr]=suffixes;
+                            appendSet[s].insert(ts+Ts.mid(1));
+                        }
 
-                m_GM_productionMap[tmp_productionL].insert(QString(commonPrefix)+newNonTmr);
-
-                tmp_nonTmrStk.push_back(newNonTmr);
-            }
-            else
-            {
-                m_GM_productionMap[tmp_productionL].insert(commonPrefix + *suffixes.begin());
-            }
+                        //delSet.insert(del);
+                        delSet[s].insert(del);
+                    }
+                    else if(tmp=="@"&&Ts.size()>1){
+                       QStringList del=Ts;
+                        appendSet[s].insert(Ts.mid(1));
+                        delSet[s].insert(del);
+                    }
+                }
+            if(delSet.size()||appendSet.size())Flag=1;
         }
+        foreach(QString s,delSet.keys())
+            foreach(const QStringList& delTmp,delSet[s])
+                m_GM_productionMap[s].pdnRights.removeOne(delTmp);
+        foreach(QString s,appendSet.keys())
+            foreach(const QStringList& appendTmp,appendSet[s])
+                m_GM_productionMap[s].pdnRights.append(appendTmp);
     }
+
 
     simplifyGrammar();
 }
 
-QSet<QString> BNFP::replaceLNonTmr(const QString &productionR)
+/**
+ * @brief BNFP::computeFirstSet
+ * 计算First集
+ */
+void BNFP::computeFirstSet()
 {
-    if(productionR.isEmpty() || isTerminator(productionR[0]))
+    bool flag=1; // 标记此轮是否发生了更新
+    while(flag)//直到first集不变
     {
-        return {productionR};
-    }
-
-    QSet<QString> resSet;
-
-    QStack<QString> tmpStk;
-    tmpStk.push_back(productionR);
-
-    //推导次数限制
-    short count=4;
-    qDebug()<<'-';
-    while(!tmpStk.isEmpty())
-    {
-        qDebug()<<1;
-        if(--count==0)
+        flag=false;
+        for(int i=0;i<m_nonTmrSet.size();i++)//遍历所有产生式
         {
-            qDebug()<<"推导超限（4次），无法消除左公因子";
-            throw QString{"推导超限（4次），无法消除左公因子"};
-
-        }
-
-        //带入栈中的数据处理
-        QString curProduction=tmpStk.pop();
-        QSet<QString> newResSet=replaceL(curProduction.at(0),curProduction);
-
-        for(const auto &newProductionR: qAsConst(newResSet))
-        {
-            if(newProductionR.isEmpty() || isTerminator(newProductionR[0]))
+            QString s=m_nonTmrSet[i];
+            QVector<QStringList> Production=m_GM_productionMap[s].pdnRights;
+            for(int j=0;j<Production.size();j++)
             {
-                resSet.insert(newProductionR);
-            }
-            else
-            {
-                tmpStk.push_back(newProductionR);
-            }
-        }
-    }
-
-    return resSet;
-}
-
-QSet<QChar> BNFP::getRPPrefixes(const QSet<QString> &productionRSet)
-{
-    QSet<QChar> prefixes;
-
-    for(const auto &productionR: productionRSet)
-    {
-        if(productionR.isEmpty())continue;
-        prefixes.insert(productionR[0]);
-    }
-
-    return prefixes;
-}
-
-QSet<QString> BNFP::findPrefixProductions(const QChar &prefix, const QSet<QString> &productionRSet)
-{
-    QSet<QString> preProductionSet;
-
-    for(const auto &productionR: productionRSet)
-    {
-        if(!productionR.isEmpty() && prefix==productionR[0])
-        {
-            QString tmp=productionR;
-            tmp.remove(0,1);
-            preProductionSet.insert(tmp);
-        }
-    }
-
-    return preProductionSet;
-}
-
-QSet<QString> BNFP::getFirstSet(const QChar &nonTmr)
-{
-    QSet<QString> firstSet;
-
-    for(const auto &tmp_productionR: m_GM_productionMap[nonTmr])
-    {
-        firstSet |= getFirstSet(tmp_productionR);
-    }
-
-    return firstSet;
-}
-
-QSet<QString> BNFP::getFirstSet(const QString &productionR)
-{
-    if(productionR.isEmpty())
-        return {""};
-
-    QSet<QString> firstSet;
-
-    for(const auto &c: productionR)
-    {
-        if(isTerminator(c))
-            return firstSet |= c;
-
-        firstSet |= getFirstSet(c);
-
-        if(!firstSet.contains(""))
-            return firstSet;
-
-        firstSet.remove("");
-    }
-    return firstSet |= "";
-}
-
-QMap<QChar, QSet<QString> > BNFP::getFirstSet()
-{
-    QMap<QChar, QSet<QString>> resMap;
-
-    for(const auto &tmp_productionL: m_firstSetMap.keys())
-    {
-        for(const auto &tmp_productionRSet: m_firstSetMap[tmp_productionL])
-        {
-            resMap[tmp_productionL] |= tmp_productionRSet;
-        }
-    }
-    return resMap;
-}
-
-QMap<QChar, QSet<QChar> > BNFP::getFollowSet()
-{
-    return m_followSetMap;
-}
-
-void BNFP::firstNfollowSet()
-{
-    m_followSetMap.clear();
-    m_firstSetMap.clear();
-    QList<QPair<QChar, QChar>> pendingFollow;
-
-    followSetMap[startChar].insert('$');
-
-    for(const auto &tmp_productionL: m_nonTmrSet)//非终结符
-    {
-        for(const auto &tmp_productionR: GM_productionMap[tmp_productionL])//对于右部每一条产生式
-        {
-            m_firstSetMap[tmp_productionL][tmp_productionR]=getFirstSet(tmp_productionR);
-
-            for(int idx=0;idx<tmp_productionR.length();++idx)//对于每一条产生式逐个
-            {
-                if(isNonTerminator(tmp_productionR[idx]))//若为非终结符则开求
+                QString tmp= Production[j][0];
+                if(!m_nonTmrSet.contains(tmp)||tmp == "@")//终结符和epsilon
                 {
-                    QString tmp=tmp_productionR;
-                    tmp.remove(0,idx+1);
-                    QSet<QString> tmp_firstSet=getFirstSet(tmp);
-
-                    //remove epsilon
-                    for(const auto &tmr: tmp_firstSet)//后面的first集元素除了eps外全加进去
+                    if(!m_GM_productionMap[s].firstSet.contains(tmp))//first集合里是否有tmp
                     {
-                        if(!tmr.isEmpty())
-                            followSetMap[tmp_productionR[idx]] |= tmr[0];
+                      m_GM_productionMap[s].firstSet.insert(tmp);
+                      flag=1;
                     }
-
-                    if(tmp_firstSet.contains(""))
+                }
+                else//非终结符
+                {
+                    bool epsilon=false;//是否出现epsilon
+                    for(int k=0;k<Production[j].size();k++)
                     {
-                        pendingFollow.push_back({tmp_productionL, tmp_productionR[idx]});
+                        tmp=Production[j][k];
+                        if(!m_nonTmrSet.contains(tmp))
+                        {
+                            if(!m_GM_productionMap[s].firstSet.contains(tmp))//first集合里是否有tmp
+                            {
+                              m_GM_productionMap[s].firstSet.insert(tmp);
+                              flag=1;
+                            }
+                            break;//遇到了终结符可以直接结束了
+                        }
+
+                        foreach(const QString& str,G.ntMap[tmp].first)//查该非终结符的first集合
+                        {
+                            if(str=="@")epsilon=1;
+                            if(!m_GM_productionMap[s].firstSet.contains(str))//first集合里是否有tmp
+                            {
+                              m_GM_productionMap[s].firstSet.insert(str);
+                              flag=1;
+                            }
+                        }
+                        if(!epsilon)break;//该非终结符first集合中无epsilon
+                        epsilon=0;//继续找下一个字符
                     }
                 }
             }
         }
     }
+}
 
-    bool finished=false;
-    while(!finished)
+/**
+ * @brief BNFP::computeFollowSet
+ * 计算Follow集
+ */
+void BNFP::computeFollowSet()
+{
+    bool flag=1;
+    m_GM_productionMap[m_startChar].followSet.insert("$");//文法开始符号加结束符号
+    while(flag)
     {
-        finished=true;
-        for(const auto &[from, to]: pendingFollow)
+        flag=0;
+        for(int i=0;i<m_nonTmrSet.size();i++)//遍历所有产生式
         {
-            qsizetype size=m_followSetMap[to].size();
-            m_followSetMap[to] |= m_followSetMap[from];
-
-            if(size != m_followSetMap[to].size())
-                finished=false;
+            QString s=m_nonTmrSet[i];
+            QVector<QStringList> Production=m_GM_productionMap[s].pdnRights;
+            for(int j=0;j<Production.size();j++)//遍历每一个候选式
+            {
+                for(int k=0;k<Production[j].size();k++)//寻找每个候选式中的每个非终结符
+                {
+                    QString tmp= Production[j][k];
+                    if(m_nonTmrSet.contains(tmp))//是非终结符
+                    {
+                        if(k+1==Production[j].size())//当前非终结符为候选式中的最后一个字符
+                        {
+                            foreach(const QString& follow,G.ntMap[s].follow)
+                                if(!m_GM_productionMap[tmp].followSet.contains(follow))
+                                {
+                                    flag=1;
+                                    G.ntMap[tmp].follow.insert(follow);
+                                }
+                        }
+                        else
+                        {
+                            QString Tmp=Production[j][k+1];//查看下一个字符
+                            if(!m_nonTmrSet.contains(Tmp))//终结符
+                            {
+                                if(!m_GM_productionMap[tmp].followSet.contains(Tmp))
+                                {
+                                    flag=1;
+                                    m_GM_productionMap[tmp].followSet.insert(Tmp);
+                                }
+                            }
+                            else
+                            {
+                                foreach(const QString& follow,m_GM_productionMap[Tmp].firstSet)
+                                {
+                                    if(follow=="@")continue;
+                                    if(!m_GM_productionMap[tmp].followSet.contains(follow))
+                                    {
+                                        flag=1;
+                                        m_GM_productionMap[tmp].followSet.insert(follow);
+                                    }
+                                }
+                                bool epsilon=1;
+                                for(int x=k+1;x<Production[j].size();x++)//查看是否后面的字符都含有epsilon
+                                {
+                                    QString nt=Production[j][x];
+                                    if(!G.nTs.contains(nt)||!G.ntMap[nt].first.contains("@"))//如果其中一个不含epsilon
+                                        epsilon=0;
+                                }
+                                if(epsilon)//如果后面的字符都含epsilon 相当于是最后一个字符
+                                {
+                                    foreach(const QString& follow,m_GM_productionMap[s].followSet)
+                                        if(!m_GM_productionMap[tmp].followSet.contains(follow))
+                                        {
+                                            flag=1;
+                                            m_GM_productionMap[tmp].followSet.insert(follow);
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
+
+
 
 /**
  * @brief BNFP::constructLL1ParsingTable
@@ -684,6 +593,68 @@ void BNFP::firstNfollowSet()
  */
 void BNFP::constructLL1ParsingTable()
 {
+    for(int i=0;i<m_nonTmrSet.size();i++)
+    {
+        QString nt=m_nonTmrSet[i];//当前非终结符
+        QVector<QStringList> rights=m_GM_productionMap[nt].pdnRights;//当前非终结符对应的产生式
+        for(int j=0;j<rights.size();j++)
+        {
+            QStringList right=rights[j];//当前非终结符对应的产生式中的一个候选式
+            QString contentRight="";
+            for(int k=0;k<right.size();k++)contentRight+=right[k]+' ';
+            contentRight.chop(1);//把最后多出来的空格去掉
+            QString content=nt+"->"+contentRight;//要填进ll1分析表中的内容
 
+            QString tmp= right[0];//该候选式的第一个字符
+            if(!m_nonTmrSet.contains(tmp))//不是非终结符
+            {
+                if(tmp=="@")
+                {
+                    foreach(const QString& follow,m_GM_productionMap[nt].followSet)
+                    {
+                        if(!m_LL1Table[nt].contains(follow))
+                            m_LL1Table[nt][follow]=content;
+                        else{
+                            if(m_LL1Table[nt][follow].split("->")[1]=="@")//人工干预
+                                m_LL1Table[nt][follow]=content;
+                        }
+                    }
+                    continue;
+                }
+                m_LL1Table[nt][tmp]=content;//填表
+            }
+            else//非终结符
+            {
+                bool flag=0;
+                int size=right.size();
+                for(int k=0;k<size;k++)
+                {
+                    tmp=right[k];
+                    if(!m_nonTmrSet.contains(tmp))//不是非终结符,这里其实是假如第一个非终结符的first集合为空才有可能进来
+                    {
+                        if(tmp=="@")continue;//epsilon不加进去。其实到这里也肯定不会有epsilon了，因为应该也没有候选式的epsilon会出现在中间
+                        m_LL1Table[nt][tmp]=content;//填表
+                        break;//可以退出循环了
+                    }
+                    else//非终结符
+                    {
+                        foreach(const QString& first,m_GM_productionMap[tmp].firstSet)//遍历first集
+                        {
+                            if(first=="@")flag=1;//记录存在epsilon
+                            else m_LL1Table[nt][first]=content;
+                        }
+                        if(flag)
+                        {
+                            flag=0;
+                            if(k+1==size)//到最后一个了还是有epsilon就看follow集
+                                foreach(const QString& follow,m_GM_productionMap[nt].followSet)
+                                    m_LL1Table[nt][follow]=content;
+                        }
+                        else break;
+                    }
+                }
+            }
+        }
+    }
 }
 
