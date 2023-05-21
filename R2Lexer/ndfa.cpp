@@ -557,7 +557,7 @@ bool NDFA::genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool fl
         else if(tmpKey=="digit")
         {
             //数字情况
-            for(int j=0;j<26;j++)
+            for(int j=0;j<10;j++)
             {
                 codeStr+="\t\t\tcase \'"+QString::number(j)+"\':\n";
             }

@@ -26,6 +26,14 @@
 #include <QSet>
 #include <QMap>
 
+//右部结构体
+struct pdnR
+{
+    QList<QStringList> pdnRights;//产生式右部，QStringList存储每一条候选式，当中的QString为候选式的单词
+    QSet<QString> firstSet;//产生式左部First集
+    QSet<QString> followSet;//产生式右部Follow集
+};
+
 class BNFP
 {
 public:
@@ -46,7 +54,7 @@ public:
     QMap<QChar, QSet<QString>> getFirstSet();//取得非终结符的first集
     QMap<QChar, QSet<QChar>> getFollowSet();//取得非终结符的follow集
 
-private:
+private:    
     bool isTerminator(QString s);//是否终结符
     bool isNonTerminator(QString s);//是否非终结符
     bool isProductionR_terminable(const QSet<QString> &nonTmrSet, const QVector<QString> &productionR);//右部是否可终止
@@ -69,17 +77,21 @@ private:
     QSet<QString> getFirstSet(const QChar &nonTmr);//求非终结符的first集
     QSet<QString> getFirstSet(const QString &productionR);//求右部产生式first集
 
+    void decode(QString s);//对编码lex文件进行解码
+
 private:
     QString m_grammarStr;//存储待处理文法字符串
 
     QString m_startChar;//开始符号
     QSet<QString> m_nonTmrSet;//非终结符集合
     QSet<QString> m_tmrSet;//终结符集合
-    QMap<QString, QVector<QVector<QString>>> m_GM_productionMap;//文法产生式（左部->右部候选式vector[终结符/非终结符]
-    QList<QList<QString>> m_LL1Table;//LL1分析表
+    QMap<QString, pdnR> m_GM_productionMap;//文法产生式（左部->右部候选式vector[终结符/非终结符]
 
-    QMap<QChar, QMap<QString, QSet<QString>>> m_firstSetMap;//first集合元素//todo
-    QMap<QString, QSet<QString>> m_followSetMap;//follow集合元素
+    //QMap<QString, QSet<QString>> m_firstSetMap;//first集合元素//todo
+    //QMap<QString, QSet<QString>> m_followSetMap;//follow集合元素
+
+    QMap<QString, QMap<QString,QString>> m_LL1Table;//LL1分析表
+    QList<QString> m_programCode;//用户输入的待分析的程序
 };
 
 #endif // BNFP_H

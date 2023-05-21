@@ -99,8 +99,7 @@ void BNFP::initGrammar(QString s)
  */
 bool BNFP::isTerminator(QString s)
 {
-
-    return m_tmrSet.contains(s) or not m_nonTmrSet.contains(s);
+    return m_tmrSet.contains(s);
 }
 
 /**
@@ -111,7 +110,7 @@ bool BNFP::isTerminator(QString s)
  */
 bool BNFP::isNonTerminator(QString s)
 {
-    return m_nonTmrSet.contains(s) or not m_tmrSet.contains(s);
+    return m_nonTmrSet.contains(s);
 }
 
 /**
