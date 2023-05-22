@@ -91,30 +91,6 @@ void BNFP::initGrammar(QString s)
     //SimplifyGrammar();
 }
 
-/**
- * @brief BNFP::isTerminator
- * @param s
- * @return
- * 判断是否为终结符
- */
-bool BNFP::isTerminator(QString s)
-{
-    return m_tmrSet.contains(s);
-}
-
-/**
- * @brief BNFP::isNonTerminator
- * @param s
- * @return
- * 判断是否为非终结符
- */
-bool BNFP::isNonTerminator(QString s)
-{
-    return m_nonTmrSet.contains(s);
-}
-
-
-
 
 /**
  * @brief BNFP::SimplifyGrammar

@@ -63,20 +63,13 @@ public:
         NFANode* endNode;//NFA尾指针
     };
 
-    //边结构体
-    struct Edge
-    {
-        QChar value;//弧上的值
-        int toState;//指向的状态号
-    };
-
     //DFA节点结构体
     struct DFANode
     {
         int stateNum;//DFA状态号
 
         QSet<int> NFANodeSet;//存储当前DFA节点包含的NFA节点序号
-        QMap<QString, int> DFAEdgeMap;//存储当前DFA节点
+        QMap<QString, int> DFAEdgeMap;//存储当前DFA节点的边——节点映射
 
         void init()
         {
@@ -103,7 +96,7 @@ public:
     struct mDFAGraph
     {
         int startState;//最小化DFA的初态
-        QSet<int> endStateSet;//最小化DFA的终态
+        QSet<int> endStateSet;//最小化DFA的终态集
     };
 
     //状态集结构体
@@ -123,11 +116,7 @@ public:
     void pushOpStackProcess(QChar ch,QStack<QChar> &opStack,QStack<NFAGraph> &NFAStack);//运算符入栈处理子函数
     void opProcess(QChar ch,QStack<NFAGraph> &NFAStack);//根据运算符转换NFA处理子函数
 
-    void get_e_closure(QSet<int> &tmpSet);//求epsilon闭包
 
-    int getStateId(QSet<int> set[],int cur);//查询当前DFA节点属于哪个状态集（号）
-
-    bool genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool flag);
 
     void printNFA(QTableWidget *table);//输出NFA状态转换表
     void printDFA(QTableWidget *table);//输出DFA状态转换表
@@ -139,6 +128,7 @@ public:
     void add(NFANode *n1, NFANode *n2, QString ch);//n1、n2节点间添加非eps边
     void add(NFANode *n1, NFANode *n2);//n1、n2节点间添加eps边
 
+
     void reg2NFA(QString regStr);//正则表达式转换位NFA
     void NFA2DFA();//NFA转换为DFA
     void DFA2mDFA();//DFA的最小化
@@ -149,32 +139,39 @@ public:
     void setKeywordStr(QString kStr);
 
 private:
-    QString reg_keyword_str;//关键字正则串
-    QString lexerCodeStr;//词法分析器代码
+    void get_e_closure(QSet<int> &tmpSet);//求epsilon闭包
 
-    QString srcFilePath;//用于测试的源程序路径
-    QString tmpFilePath;//中间生成路径
+    int getStateId(QSet<int> set[],int cur);//查询当前DFA节点属于哪个状态集（号）
 
-    QSet<QString> keyWordSet;//关键字集合
-    QSet<QString> opCharSet;//操作符集合
-    QSet<QChar> opSet={'(',')','|','*','+','?'};//运算符集合
+    bool genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool flag);
 
-    QSet<int> DFAEndStateSet;//存储DFA终态状态号集合
-    QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组，存储DFA状态号集的数组（最小化DFA时用到的）
+private:
+    QString m_reg_keyword_str;//关键字正则串
+    QString m_lexerCodeStr;//词法分析器代码
+
+    QString m_srcFilePath;//词法分析程序路径
+    QString m_tmpFilePath;//词法分析程序输出路径
+
+    QSet<QString> m_keyWordSet;//关键字集合
+    QSet<QString> m_opCharSet;//操作符集合
+    QSet<QChar> m_opSet={'(',')','|','*','+','?'};//运算符集合
+
+    QSet<int> m_DFAEndStateSet;//存储DFA终态状态号集合
+    QSet<int> m_dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组，存储DFA状态号集的数组（最小化DFA时用到的）
 
     QMap<QChar, int> opPriorityMap;//存储运算符优先级
 
-    NFANode NFAStateArr[ARR_MAX_SIZE];//NFA状态数组
-    DFANode DFAStateArr[ARR_MAX_SIZE];//DFA状态数组
-    mDFANode mDFANodeArr[ARR_MAX_SIZE];//mDFA状态数组
+    NFANode m_NFAStateArr[ARR_MAX_SIZE];//NFA状态数组
+    DFANode m_DFAStateArr[ARR_MAX_SIZE];//DFA状态数组
+    mDFANode m_mDFANodeArr[ARR_MAX_SIZE];//mDFA状态数组
 
-    NFAGraph NFAG;//NFA图
+    NFAGraph m_NFAG;//NFA图
     //DFAGraph DFAG;//NFA转换得的DFA图
-    mDFAGraph mDFAG;//最小化的DFA图
+    mDFAGraph m_mDFAG;//最小化的DFA图
 
-    int NFAStateNum;//NFA状态下标计数（从0开始）
-    int DFAStateNum;//DFA状态下标计数（从0开始）
-    int mDFAStateNum;//mDFA状态数量计数，亦是划分出来的集合数（从1开始）
+    int m_NFAStateNum;//NFA状态下标计数（从0开始）
+    int m_DFAStateNum;//DFA状态下标计数（从0开始）
+    int m_mDFAStateNum;//mDFA状态数量计数，亦是划分出来的集合数（从1开始）
 
 };
 

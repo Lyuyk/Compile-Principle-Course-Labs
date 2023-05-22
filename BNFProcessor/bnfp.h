@@ -58,10 +58,7 @@ public:
     QMap<QString, QSet<QString>> getFirstSet();//取得非终结符的first集
     QMap<QString, QSet<QString>> getFollowSet();//取得非终结符的follow集
 
-private:    
-    bool isTerminator(QString s);//是否终结符
-    bool isNonTerminator(QString s);//是否非终结符
-
+private:        
     void eliminateLRecursion(int index,QSet<QString>& updatedL);//消除左递归子函数
 
     void lFactorCount(QList<QStringList> list,QStringList pdnR,int &count);//记录最长左公因子个数
