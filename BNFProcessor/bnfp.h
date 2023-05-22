@@ -70,7 +70,7 @@ private:
     QString m_grammarStr;//存储待处理文法字符串
 
     QString m_startChar;//开始符号
-    QList<QString> m_nonTmrSet;//非终结符集合
+    QList<QString> m_nonTmrSet;//非终结符集合，Qt6中QList与QVector基本无异
     QSet<QString> m_tmrSet;//终结符集合
     QMap<QString, pdnR> m_GM_productionMap;//文法产生式（左部->右部候选式vector[终结符/非终结符]
 

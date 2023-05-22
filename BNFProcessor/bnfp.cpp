@@ -52,9 +52,9 @@ void BNFP::initGrammar(QString s)
     QStringList t_productionList = t_grammarString.split("\n");//分割出一条条产生式
     QStringList t_productionR_list;//暂存储右部
 
-    m_startChar=t_productionList[0].split("->").at(0);//开始符号，为第一条产生式左部
+    m_startChar=t_productionList[0].split("->")[0];//开始符号，为第一条产生式左部
 
-    //扫描每一行
+    //扫描每一行，先存左部非终结符，方便后面判断
     for(const auto &t_subProduction: qAsConst(t_productionList))
     {
         if(t_subProduction.simplified().isEmpty())continue;//略去空行
@@ -65,7 +65,6 @@ void BNFP::initGrammar(QString s)
 
         t_productionR_list=t_productionLRList[1].split("|");//右部
     }
-
 
     for(const auto &t_productionL:m_nonTmrSet)
     {
@@ -79,75 +78,84 @@ void BNFP::initGrammar(QString s)
                 QList<QString> t_candidateCharV=t_candidateStr.split(' ');
                 m_GM_productionMap[t_productionL].pdnRights.push_back(t_candidateCharV);//加入一条候选式
 
-                for(const auto &t_cChar:t_candidateCharV)
-                    //右部如果不是非终结符，则全部当成终结符加入
-                    if(not isTerminator(t_cChar))
-                        m_tmrSet.insert(t_cChar);
+                for(const auto &t_cChar:t_candidateCharV)                    
+                    if(!m_nonTmrSet.contains(t_cChar))
+                        m_tmrSet.insert(t_cChar);//右部如果不是非终结符，则全部当成终结符加入
 
             }
-
         }
     }
-    //SimplifyGrammar();
 }
 
 
 /**
- * @brief BNFP::SimplifyGrammar
+ * @brief BNFP::simplifyGrammar
  * 化简文法主函数
  */
 void BNFP::simplifyGrammar()
 {
-    bool changedFlag=1;//用于判断文法中的产生式是否有变化
-    QSet<QString> temp={m_startChar};//暂时可到达但不可终止的非终结符
-    QSet<QString> Temp={};//可终止且可到达的非终结符
+    bool changedFlag=true;//用于判断文法中的产生式是否有变化
+    QSet<QString> t_reachNoEndSet={m_startChar};//暂时可到达但不可终止的非终结符
+    QSet<QString> t_reachEndSet;//可终止且可到达的非终结符
     while(changedFlag)
     {
-        changedFlag=0;
-        foreach(const QString& str,temp)
+        changedFlag=false;
+        for(const auto& t_RneNonTmr: t_reachNoEndSet)//暂时可达不可终止非终结符
         {
-            for (const QStringList &Ts : m_GM_productionMap[str].pdnRights){//遍历该产生式的所有候选值
-                int Flag=1;//判断当前候选值中的所有字符是否可终止
-                for(const QString &t :Ts){//遍历该候选式中的每个单词
-                    if(m_nonTmrSet.contains(t)&&!Temp.contains(t)){
-                        Flag=0;
-                        if(!temp.contains(t)){
-                            temp.insert(t);
-                            changedFlag=1;
+            //遍历该产生式的所有候选式
+            for (const auto &t_candidateList : m_GM_productionMap[t_RneNonTmr].pdnRights)
+            {
+                bool allEndFlag=true;//当前候选式中的所有字符是否可终止标志
+                //遍历该候选式中的每个单词
+                for(const auto &t_cWord: t_candidateList)
+                {
+                    //若在非终结符集 且 不在可达&可终止集合中
+                    if(m_nonTmrSet.contains(t_cWord) && !t_reachEndSet.contains(t_cWord))
+                    {
+                        allEndFlag=false;//发现有不可终止的
+                        if(!t_reachNoEndSet.contains(t_cWord))//如果它不在可达&不可终止集合中，则加入
+                        {
+                            t_reachNoEndSet.insert(t_cWord);
+                            changedFlag=true;//产生式已经变更
                         }
                     }
                 }
-                if(Flag){
-                    Temp.insert(str);
-                    temp.remove(str);
-                    changedFlag=1;
-                };
+                if(allEndFlag)
+                {
+                    //若候选式中所有单词都可达且可终止，则将当前非终结符移至 可达可终止集合
+                    t_reachEndSet.insert(t_RneNonTmr);
+                    t_reachNoEndSet.remove(t_RneNonTmr);
+                    changedFlag=true;
+                }
             }
         }
     }
 
-    QSet<QString> Tmp(m_nonTmrSet.begin(),m_nonTmrSet.end());//原来的非终结符集
-    if(Tmp!=Temp)
+    QSet<QString> t_nonTmrSet(m_nonTmrSet.begin(),m_nonTmrSet.end());//原来的非终结符集
+    //若两集合不相同，则说明原来的非终结符集合有不是非终结符的
+    if(t_nonTmrSet!=t_reachEndSet)
     {
-        QSet<QString> del=Tmp-Temp;//即将删除的非终结符集
+        QSet<QString> t_deletedSet=t_nonTmrSet-t_reachEndSet;//即将删除的非终结符集
 
-        for(const auto &tmp: del){
-            m_nonTmrSet.remove(m_nonTmrSet.indexOf(tmp));
-            m_GM_productionMap.remove(tmp);
+        for(const auto &t_word: t_deletedSet)
+        {
+            m_nonTmrSet.remove(m_nonTmrSet.indexOf(t_word));//移除掉该“非终结符”
+            m_GM_productionMap.remove(t_word);//移除该“非终结符”的产生式
         }
 
-        for(const auto& str: Temp)
+        //遍历可达可终结集合
+        for(const auto& t_cWord: t_reachEndSet)
         {
             QSet<QStringList> deleteSet={};
-            for (const auto &Ts : m_GM_productionMap[str].pdnRights)//遍历该产生式的所有候选值
+            for (const auto &Ts : m_GM_productionMap[t_cWord].pdnRights)//遍历该产生式的所有候选值
                 for(const auto &t :Ts)//遍历该候选式中的每个单词
-                    if(Tmp.contains(t)&&!m_nonTmrSet.contains(t))//原来是非终结符但被删除掉了
+                    if(t_nonTmrSet.contains(t)&&!m_nonTmrSet.contains(t))//原来是非终结符但被删除掉了
                     {
                         QStringList delTmp=Ts;
                         deleteSet.insert(delTmp);
                     }
             for(const auto& delTmp: deleteSet)
-                m_GM_productionMap[str].pdnRights.removeOne(delTmp);
+                m_GM_productionMap[t_cWord].pdnRights.removeOne(delTmp);
         }
     }
 }
