@@ -67,7 +67,7 @@ private:
     void lFactorCount(QList<QStringList> list,QStringList pdnR,int &count);//记录最长左公因子个数
     QString getNewTmr(QString curTmr);//申请新终结符
 
-    void decode(QString s);//对词法分析程序编码的lex文件进行解码
+    void decodeLex();//对词法分析程序编码的lex文件进行解码
 
 private:
     QString m_grammarStr;//存储待处理文法字符串

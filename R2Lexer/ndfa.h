@@ -160,7 +160,7 @@ private:
     QSet<QChar> opSet={'(',')','|','*','+','?'};//运算符集合
 
     QSet<int> DFAEndStateSet;//存储DFA终态状态号集合
-    QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组（最小化DFA时用到的）
+    QSet<int> dividedSet[ARR_MAX_SIZE]; //划分出来的集合数组，存储DFA状态号集的数组（最小化DFA时用到的）
 
     QMap<QChar, int> opPriorityMap;//存储运算符优先级
 

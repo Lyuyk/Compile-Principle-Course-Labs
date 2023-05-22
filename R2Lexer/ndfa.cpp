@@ -518,7 +518,7 @@ void NDFA::get_e_closure(QSet<int> &tmpSet)
  * @param set
  * @param cur
  * @return i
- * 查询当前DFA节点属于mDFA节点的状态集号
+ * 查询当前DFA节点号cur属于mDFA节点的状态集号
  */
 int NDFA::getStateId(QSet<int> set[], int cur)
 {
@@ -639,7 +639,7 @@ void NDFA::NFA2DFA()
     QSet<int> tmpSet;
     tmpSet.insert(NFAG.startNode->stateNum);//将NFA初态节点放入集合
     get_e_closure(tmpSet);//求NFA初态节点的epsilon闭包得到DFA初态
-    DFAStateArr[DFAStateNum].NFANodeSet=tmpSet;
+    DFAStateArr[DFAStateNum].NFANodeSet=tmpSet;//从初态开始
     if(tmpSet.contains(NFAG.endNode->stateNum))
         DFAEndStateSet.insert(DFAStateNum);
     DFAStateNum++;
@@ -651,23 +651,24 @@ void NDFA::NFA2DFA()
 
     while(!q.empty())
     {
-        DFANode *tmpDFANode=&q.front();//取出队列中一个DFA节点
+        DFANode *t_DFANode=&q.front();//取出队列中一个DFA节点
         q.pop_front();
 
-        tmpSet=tmpDFANode->NFANodeSet;//取出该DFA节点所包含的序号集
-        int t_curState=tmpDFANode->stateNum;//记录当前节点序号
+        tmpSet=t_DFANode->NFANodeSet;//取出该DFA节点所包含的序号集
+        int t_curState=t_DFANode->stateNum;//记录当前DFA节点序号
 
+        //遍历操作符集
         for(const auto &ch: opCharSet)
         {
-            QSet<int> chToSet;//能通过ch到达的节点的序号
-            for(const auto &value: tmpSet)//遍历当前序号集合中的所有序号
+            QSet<int> chToSet;//节点的（出边为ch）的集合
+            for(const auto &t_state: tmpSet)//遍历当前序号集合中的所有序号
             {
                 //找出所有这样的序号
-                if(NFAStateArr[value].value==ch)
-                    chToSet.insert(NFAStateArr[value].toState);
+                if(NFAStateArr[t_state].value==ch)
+                    chToSet.insert(NFAStateArr[t_state].toState);
             }
 
-            if(chToSet.empty())
+            if(chToSet.empty())//若找不到这样的节点，则说明该边需要被丢弃
                 continue;
             get_e_closure(chToSet);//求上得的序号集合的epsilon闭包
 
@@ -675,23 +676,23 @@ void NDFA::NFA2DFA()
             {
                 //若该DFA状态节点不存在
                 //新建DFA节点
-                DFAStateArr[DFAStateNum].NFANodeSet=chToSet;
+                DFAStateArr[DFAStateNum].NFANodeSet=chToSet;//chToSet--ch-->xxx
                 //若包含NFA终态
                 if(chToSet.contains(NFAG.endNode->stateNum))
                     DFAEndStateSet.insert(DFAStateNum);
                 //更新原节点的信息
-                DFAStateArr[t_curState].DFAEdgeMap[ch]=DFAStateNum;
+                DFAStateArr[t_curState].DFAEdgeMap[ch]=DFAStateNum;//当前DFA节点能通过ch去到的新DFA状态
                 DFAStatesSet.insert(chToSet);
-                q.push_back(DFAStateArr[DFAStateNum++]);//节点入队后自增
+                q.push_back(DFAStateArr[DFAStateNum++]);//节点入队后自增，DFA节点新增，寻找更多的
             }
             else
-            {
+            {   //若该DFA状态节点存在
                 for(int i=0;i<DFAStateNum;i++)
                 {
                     if(DFAStateArr[i].NFANodeSet==chToSet)
                     {
                         //更新当前DFA节点状态
-                        DFAStateArr[t_curState].DFAEdgeMap[ch]=i;
+                        DFAStateArr[t_curState].DFAEdgeMap[ch]=i;//当前DFA节点能通过ch边去到的DFA状态发生变更
                         break;
                     }
                 }
@@ -707,37 +708,38 @@ void NDFA::NFA2DFA()
  */
 void NDFA::DFA2mDFA()
 {
-
     mDFAStateNum=1;//未划分，状态数量为1
-    for(int i=0;i<DFAStateNum;i++)
-    {
+    for(int i=0;i<DFAStateNum;i++)//遍历DFA状态集合
+    {   //若DFA状态非终态
         if(!DFAStateArr[i].NFANodeSet.contains(NFAG.endNode->stateNum))
-        {
+        {   //暂时都划分到非终态集合
             dividedSet[1].insert(DFAStateArr[i].stateNum);//非终态集合
             mDFAStateNum=2;//设为2，终态与非终态
 
         }
-        else dividedSet[0].insert(DFAStateArr[i].stateNum);
+        else dividedSet[0].insert(DFAStateArr[i].stateNum);//否则加入终态划分
     }
 
-    bool divFlag=true;//表示是否有新状态划分出来，有则
+    bool divFlag=true;//表示是否有新状态划分出来，有则真，无则假
     while(divFlag)
     {
+        //遍历mDFA状态
         divFlag=false;
         for(int i=0;i<mDFAStateNum;i++)
         {
+            //遍历操作符集
             for(const auto &opChar: opCharSet)
             {
                 int count = 0;
                 stateSet t_stateSet[ARR_TEMP_SIZE];//分出的状态
 
-                for(const auto &state: dividedSet[i])//遍历当前状态集中的所有节点
+                for(const auto &t_state: dividedSet[i])//遍历当前划分状态集中的所有节点
                 {
-                    //若当前DFA节点能通过opChar到达另外一个节点
-                    if(DFAStateArr[state].DFAEdgeMap.contains(opChar))
+                    //若当前DFA节点能通过opChar边到达另外一个节点
+                    if(DFAStateArr[t_state].DFAEdgeMap.contains(opChar))
                     {
-                        //通过opChar到达的节点所属状态集合 号
-                        int toIdx=getStateId(dividedSet,DFAStateArr[state].DFAEdgeMap[opChar]);
+                        //通过opChar到达的节点所属状态划分集合 号
+                        int toIdx=getStateId(dividedSet, DFAStateArr[t_state].DFAEdgeMap[opChar]);
                         bool haveSame=false;
                         for(int j=0;j<count;j++)
                         {
@@ -745,7 +747,7 @@ void NDFA::DFA2mDFA()
                             if(t_stateSet[j].stateSetId==toIdx)
                             {
                                 haveSame=true;
-                                t_stateSet[j].DFAStateSet.insert(state);//加入该状态
+                                t_stateSet[j].DFAStateSet.insert(t_state);//加入该状态
                                 break;
                             }
                         }
@@ -753,7 +755,7 @@ void NDFA::DFA2mDFA()
                         {
                             //若没有相同的
                             t_stateSet[count].stateSetId=toIdx;
-                            t_stateSet[count].DFAStateSet.insert(state);
+                            t_stateSet[count].DFAStateSet.insert(t_state);
                             count++;//todes
                         }
                     }
@@ -766,19 +768,19 @@ void NDFA::DFA2mDFA()
                             if(t_stateSet[j].stateSetId==-1)
                             {
                                 haveSame=true;
-                                t_stateSet[j].DFAStateSet.insert(state);
+                                t_stateSet[j].DFAStateSet.insert(t_state);
                                 break;
                             }
                         }
                         if(!haveSame)
                         {
                             t_stateSet[count].stateSetId=-1;
-                            t_stateSet[count].DFAStateSet.insert(state);
+                            t_stateSet[count].DFAStateSet.insert(t_state);
                             count++;//todes
                         }
                     }
                 }
-                if(count>1)
+                if(count>1)//产生了新的划分
                 {
                     divFlag=true;
                     for(int j=1;j<count;j++)
@@ -797,6 +799,7 @@ void NDFA::DFA2mDFA()
         }
     }
 
+    //遍历所有mDFA状态
     for(int i=0;i<mDFAStateNum;i++)
     {
         mDFANodeArr[i].DFAStatesSet=dividedSet[i];
@@ -916,6 +919,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
     }
     lexCode+="\t}\n";
 
+    //关键字Keywords
     lexCode+="\tif (isIndentifier)if (map[value] != 0) {\n"
              "\t\tfprintf(output_fp, \"%c\", map[value]);\n"
              "\t\tprintf(\"%c\", map[value]);\n"
@@ -927,6 +931,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
              "\t}\n"
              "}\n";
 
+    //主函数
     QFileInfo fileInfo(filePath);
     tmpFilePath=fileInfo.path();
     lexCode+="int main(int argc, char* argv[]) {\n"

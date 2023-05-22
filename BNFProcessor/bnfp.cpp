@@ -343,6 +343,34 @@ QString BNFP::getNewTmr(QString curTmr)
     return curTmr+"'";
 }
 
+void BNFP::decodeLex()
+{
+    QStringList t_lexPrgList=m_lexPrgStr.split('\n');
+    for(const auto &line: t_lexPrgList)
+    {
+        QList<QString> t_wordList=line.trimmed().split(' ');//分开单词
+        for(int i=0;i<t_wordList.size()-1;i++)
+        {
+            QString t_word=t_wordList[i];
+            if(!t_word.contains("ID") && !t_word.contains("Digit") && !t_word.contains("Keyword"))
+            {
+                m_programCode.append(t_word);continue;
+            }
+            QString t_wordType=t_word.split(':').at(0);
+            QString t_wordContent=t_word.split(':').at(1);
+
+            if(t_wordType=="Keyword")
+                m_programCode.append(t_wordContent);
+            else
+            {
+                for(const auto&c: t_wordContent)
+                    m_programCode.append(c);
+            }
+        }
+    }
+    m_programCode.append("#");//规定结束符为#
+}
+
 /**
  * @brief BNFP::lFactorCount
  * @param list
@@ -462,7 +490,7 @@ void BNFP::eliminateLCommonFactor()
                 }
             if(delSet.size()||appendSet.size())Flag=1;
         }
-        for(QString s: delSet.keys())
+        for(const QString &s: delSet.keys())
             for(const QStringList& delTmp: delSet[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
         for(QString s: appendSet.keys())
