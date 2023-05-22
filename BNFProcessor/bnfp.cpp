@@ -160,8 +160,6 @@ void BNFP::simplifyGrammar()
     }
 }
 
-
-
 /**
  * @brief BNFP::printGrammar
  * @param e
@@ -193,8 +191,8 @@ void BNFP::printGrammar(QPlainTextEdit *e)
                 }
             }
         }
-        QString genLine=QString(t_productionL)+" -> "+t_productionRStr.remove(0,2);//字符串处理去掉首个右部'|'
-        grammarString += (genLine+'\n');
+        QString t_Line=QString(t_productionL)+" -> "+t_productionRStr.remove(0,2);//字符串处理去掉首个右部'|'
+        grammarString += (t_Line+'\n');
     }
 
     e->insertPlainText(grammarString);
@@ -249,7 +247,9 @@ void BNFP::eliminateLRecursion(int index, QSet<QString> &updatedL)
     QSet<QString>newRight={};
     QVector<QStringList> newR;
 
-    for (const QStringList &Ts : m_GM_productionMap[left].pdnRights){//遍历该产生式的所有候选值
+    for (const QStringList &Ts : m_GM_productionMap[left].pdnRights)
+    {
+        //遍历该产生式的所有候选值
         int flag=0;//判断是不是左递归
         QString right=Ts[0];
         if(updatedL.contains(right)){
