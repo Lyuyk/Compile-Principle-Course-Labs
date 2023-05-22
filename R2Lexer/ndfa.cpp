@@ -730,7 +730,7 @@ void NDFA::DFA2mDFA()
             //遍历操作符集
             for(const auto &opChar: opCharSet)
             {
-                int count = 0;
+                int t_divCount = 0;//暂存划分状态计数，从0开始
                 stateSet t_stateSet[ARR_TEMP_SIZE];//分出的状态
 
                 for(const auto &t_state: dividedSet[i])//遍历当前划分状态集中的所有节点
@@ -740,30 +740,30 @@ void NDFA::DFA2mDFA()
                     {
                         //通过opChar到达的节点所属状态划分集合 号
                         int toIdx=getStateId(dividedSet, DFAStateArr[t_state].DFAEdgeMap[opChar]);
-                        bool haveSame=false;
-                        for(int j=0;j<count;j++)
+                        bool haveSameDiv=false;
+                        for(int j=0;j<t_divCount;j++)
                         {
                             //若暂时分出来的状态号有相同的
                             if(t_stateSet[j].stateSetId==toIdx)
                             {
-                                haveSame=true;
-                                t_stateSet[j].DFAStateSet.insert(t_state);//加入该状态
+                                haveSameDiv=true;//状态划分未变更，仅划分内状态变动
+                                t_stateSet[j].DFAStateSet.insert(t_state);//加入该状态入暂存划分状态中
                                 break;
                             }
                         }
-                        if(!haveSame)
+                        if(!haveSameDiv)
                         {
-                            //若没有相同的
-                            t_stateSet[count].stateSetId=toIdx;
-                            t_stateSet[count].DFAStateSet.insert(t_state);
-                            count++;//todes
+                            //若状态不在相同的划分，即出现了新的划分
+                            t_stateSet[t_divCount].stateSetId=toIdx;
+                            t_stateSet[t_divCount].DFAStateSet.insert(t_state);
+                            t_divCount++;//暂存划分计数增加
                         }
                     }
                     else
                     {
-                        //若不能到达另外一个节点
+                        //若当前DFA节点不能通过opChar边到达另外一个节点
                         bool haveSame=false;
-                        for(int j=0;j<count;j++)
+                        for(int j=0;j<t_divCount;j++)//遍历所有暂存划分
                         {
                             if(t_stateSet[j].stateSetId==-1)
                             {
@@ -774,16 +774,18 @@ void NDFA::DFA2mDFA()
                         }
                         if(!haveSame)
                         {
-                            t_stateSet[count].stateSetId=-1;
-                            t_stateSet[count].DFAStateSet.insert(t_state);
-                            count++;//todes
+                            //若状态不在相同的划分，即出现了新的划分
+                            t_stateSet[t_divCount].stateSetId=-1;//不可达的标记
+                            t_stateSet[t_divCount].DFAStateSet.insert(t_state);
+                            t_divCount++;//分出来的新状态增加
                         }
                     }
                 }
-                if(count>1)//产生了新的划分
+
+                if(t_divCount>1)//大于1即产生了新的划分
                 {
                     divFlag=true;
-                    for(int j=1;j<count;j++)
+                    for(int j=1;j<t_divCount;j++)//遍历暂存划分集合
                     {
                         for(const auto &state: t_stateSet[j].DFAStateSet)
                         {
@@ -802,8 +804,8 @@ void NDFA::DFA2mDFA()
     //遍历所有mDFA状态
     for(int i=0;i<mDFAStateNum;i++)
     {
-        mDFANodeArr[i].DFAStatesSet=dividedSet[i];
-        for(const auto &state: dividedSet[i])
+        mDFANodeArr[i].DFAStatesSet=dividedSet[i];//保存每一个暂存划分到mDFA中
+        for(const auto &state: dividedSet[i])//遍历每一个mDFA划分子集
         {
             //若为初态
             if(state==0)
@@ -813,16 +815,17 @@ void NDFA::DFA2mDFA()
             //若为终态
             if(DFAEndStateSet.contains(state))
             {
-                mDFAG.endStateSet.insert(i);
+                mDFAG.endStateSet.insert(i);//加入终态集
             }
 
             //遍历所有操作符
             for(const auto &opChar: opCharSet)
             {
+                //若当前状态可通过opChar边到达别的状态
                 if(DFAStateArr[state].DFAEdgeMap.contains(opChar))
                 {
                     int id=getStateId(dividedSet,DFAStateArr[state].DFAEdgeMap[opChar]);
-                    //若该边不存在，插入边
+                    //若该边不存在，插入边（完善mDFA边信息）
                     if(!mDFANodeArr[i].mDFAEdgesMap.contains(opChar))
                     {
                         mDFANodeArr[i].mDFAEdgesMap[opChar]=id;
@@ -862,8 +865,9 @@ QString NDFA::mDFA2Lexer(QString filePath)
         lexCode+="\tmap[\""+tmp+"\"] = value;\n";
         lexCode+="\tfprintf(output_map_fp, \"%s %c\\n\", \""+tmp+"\", value++);\n";
     }
-    lexCode+="}\n"
-             "void coding(FILE* input_fp,FILE* output_fp) {\n"
+    lexCode+="}\n";
+    //生成分析代码
+    lexCode+="void coding(FILE* input_fp,FILE* output_fp) {\n"
              "\tchar tmp = fgetc(input_fp);\n"
              "\tif (tmp == ' ' || tmp == '\\n' || tmp == '\\t'){\n"
              "\t\tfprintf(output_fp, \"%c\", tmp);\n"
@@ -911,18 +915,19 @@ QString NDFA::mDFA2Lexer(QString filePath)
         genLexCase(tmpList,lexCode,num,0);
         lexCode+="\t\t\tdefault: {\n";
         lexCode+="\t\t\t\tflag=true;\n";
-        if(tmpList.contains("letter"))lexCode+="\t\t\t\tisIndentifier = true;\n";
-        lexCode+="\t\t\t}\n";
-        lexCode+="\t\t\t}\n";
-        lexCode+="\t\t\tungetc(tmp, input_fp);\n";
-        lexCode+="\t\t}\n";
+        if(tmpList.contains("letter"))
+            lexCode+="\t\t\t\tisIndentifier = true;\n";
+        lexCode+="\t\t\t}\n"
+                 "\t\t\t}\n"
+                 "\t\t\tungetc(tmp, input_fp);\n"
+                 "\t\t}\n";
     }
     lexCode+="\t}\n";
 
-    //关键字Keywords
+    //关键字Keywords，为适配解码增加Keyword:前缀
     lexCode+="\tif (isIndentifier)if (map[value] != 0) {\n"
-             "\t\tfprintf(output_fp, \"%c\", map[value]);\n"
-             "\t\tprintf(\"%c\", map[value]);\n"
+             "\t\tfprintf(output_fp, \"Keyword:%c\", map[value]);\n"
+             "\t\tprintf(\"Keyword:%c\", map[value]);\n"
              "\t\treturn;\n"
              "\t}\n"
              "\tif (!isAnnotation) {\n"
