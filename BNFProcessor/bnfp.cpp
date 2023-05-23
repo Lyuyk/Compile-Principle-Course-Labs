@@ -109,11 +109,11 @@ void BNFP::simplifyGrammar()
                 //遍历该候选式中的每个单词
                 for(const auto &t_cWord: t_candidateList)
                 {
-                    //若在非终结符集 且 不在可达&可终止集合中
+                    //若在非终结符集 且不在 可达&可终止集合中
                     if(m_nonTmrSet.contains(t_cWord) && !t_reachEndSet.contains(t_cWord))
                     {
                         allEndFlag=false;//发现有不可终止的
-                        if(!t_reachNoEndSet.contains(t_cWord))//如果它不在可达&不可终止集合中，则加入
+                        if(!t_reachNoEndSet.contains(t_cWord))//如果它不在 可达&不可终止集合中，则加入
                         {
                             t_reachNoEndSet.insert(t_cWord);
                             changedFlag=true;//产生式已经变更
@@ -131,8 +131,8 @@ void BNFP::simplifyGrammar()
         }
     }
 
-    QSet<QString> t_nonTmrSet(m_nonTmrSet.begin(),m_nonTmrSet.end());//原来的非终结符集
-    //若两集合不相同，则说明原来的非终结符集合有不是非终结符的
+    QSet<QString> t_nonTmrSet(m_nonTmrSet.begin(),m_nonTmrSet.end());//原来的非终结符集，用于判断
+    //若两集合不相同，则说明原来的非终结符集合有不是非终结符的，我们通过循环判断删除
     if(t_nonTmrSet!=t_reachEndSet)
     {
         QSet<QString> t_deletedSet=t_nonTmrSet-t_reachEndSet;//即将删除的非终结符集
@@ -146,16 +146,18 @@ void BNFP::simplifyGrammar()
         //遍历可达可终结集合
         for(const auto& t_cWord: t_reachEndSet)
         {
-            QSet<QStringList> deleteSet={};
-            for (const auto &Ts : m_GM_productionMap[t_cWord].pdnRights)//遍历该产生式的所有候选值
-                for(const auto &t :Ts)//遍历该候选式中的每个单词
-                    if(t_nonTmrSet.contains(t)&&!m_nonTmrSet.contains(t))//原来是非终结符但被删除掉了
+            QSet<QStringList> t_deletedListSet={};
+            //遍历该产生式的所有候选式
+            for (const auto &t_candidateList : m_GM_productionMap[t_cWord].pdnRights)
+                for(const auto &t_candidateWord :t_candidateList)//遍历该候选式中的每个单词
+                    if(t_nonTmrSet.contains(t_candidateWord) && !m_nonTmrSet.contains(t_candidateWord))//若当中有符号原来是在非终结符集但现在被被删除掉了
                     {
-                        QStringList delTmp=Ts;
-                        deleteSet.insert(delTmp);
+                        QStringList t_deletedList=t_candidateList;
+                        t_deletedListSet.insert(t_deletedList);//这种情况我们将这个单条候选式放入删除列表中
                     }
-            for(const auto& delTmp: deleteSet)
-                m_GM_productionMap[t_cWord].pdnRights.removeOne(delTmp);
+            //遍历删除列表，将需要被删除的候选式删除
+            for(const auto& t_delList: t_deletedListSet)
+                m_GM_productionMap[t_cWord].pdnRights.removeOne(t_delList);
         }
     }
 }
@@ -271,10 +273,12 @@ void BNFP::eliminateLRecursion(int index, QSet<QString> &updatedL)
         //遍历该产生式的所有候选值
         QString right=Ts[0];
         if(right==left){
-            QString newLeft=left+'\'';//新非终结符
+            QString newLeft=getNewTmr(left);//申请新的非终结符
             QVector<QStringList>NR_1;//存储当前非终结符消除直接左递归后的候选式
             QVector<QStringList>NR_2;//存储新非终结符候选式
-            for (const QStringList &ts : m_GM_productionMap[left].pdnRights){//遍历该产生式的所有候选值
+            for (const QStringList &ts : m_GM_productionMap[left].pdnRights)
+            {
+                //遍历该产生式的所有候选式
                 QString r=ts[0];
                 if(r==left){
                     QStringList s=Ts;
@@ -302,7 +306,7 @@ void BNFP::eliminateLRecursion(int index, QSet<QString> &updatedL)
 
 /**
  * @brief BNFP::eliminateLRecursion
- * 消除文法左递归
+ * 消除文法左递归主函数
  */
 void BNFP::eliminateLRecursion()
 {
@@ -327,6 +331,10 @@ QString BNFP::getNewTmr(QString curTmr)
     return curTmr+"'";
 }
 
+/**
+ * @brief BNFP::decodeLex
+ * 解码词法分析程序输出的源程序代码
+ */
 void BNFP::decodeLex()
 {
     QStringList t_lexPrgList=m_lexPrgStr.split('\n');
@@ -648,7 +656,7 @@ void BNFP::constructLL1ParsingTable()
             {
                 if(tmp=="@")
                 {
-                    foreach(const QString& follow,m_GM_productionMap[nt].followSet)
+                    for(const QString& follow: m_GM_productionMap[nt].followSet)
                     {
                         if(!m_LL1Table[nt].contains(follow))
                             m_LL1Table[nt][follow]=content;
