@@ -243,66 +243,68 @@ void BNFP::printLL1ParsingTable(QTableWidget *table)
  * @param updatedL
  * 消除左递归子函数
  */
-void BNFP::eliminateLRecursion(int index, QSet<QString> &updatedL)
+void BNFP::eliminateLRecursion(int index, QSet<QString> &newNonTmrSet)
 {
-    QString left=m_nonTmrSet[index];
-    QSet<QString>newRight={};
-    QVector<QStringList> newR;
+    QString t_left=m_nonTmrSet[index];//左部非终结符
+    QList<QStringList> t_newRightList;//产生式右部
 
-    for (const QStringList &Ts : m_GM_productionMap[left].pdnRights)
+    //遍历该产生式的所有候选式
+    for(const auto &t_candidateList: m_GM_productionMap[t_left].pdnRights)
     {
-        //遍历该产生式的所有候选值
-        int flag=0;//判断是不是左递归
-        QString right=Ts[0];
-        if(updatedL.contains(right)){
-            flag=1;
-            for (const QStringList &ts : m_GM_productionMap[left].pdnRights){
-                QStringList s=Ts;
-                s.removeFirst();//把第一个元素删掉
-                s=ts+s;//用ts换掉本身的第一个元素
-                newR.append(s);
+        bool rcFlag=0;//是否左递归标志
+        QString t_cFirst=t_candidateList[0];//候选式首个单词
+        if(newNonTmrSet.contains(t_cFirst))
+        {   //若暂存终结符集中也出现自己该其则说明含有左递归
+            rcFlag=1;
+            for(const auto &t_cFirst_candidateList : m_GM_productionMap[t_cFirst].pdnRights)
+            {
+                QStringList t_cddList=t_candidateList;
+                t_cddList.removeFirst();//把第一个元素删掉
+                t_cddList=t_cFirst_candidateList+t_cddList;//用t_t...换掉本身的第一个元素，拼起来
+                t_newRightList.append(t_cddList);//更新候选式（消除左递归）
             }
         }
-        if(!flag)newR.append(Ts);
+        if(!rcFlag)//若没有左递归
+            t_newRightList.append(t_candidateList);//则将该候选式加回新的暂存列表中
     }
-    m_GM_productionMap[left].pdnRights=newR;
+    m_GM_productionMap[t_left].pdnRights=t_newRightList;//覆写m_nonTmrSet[index]右部
 
-    //直接左递归
-    for (const QStringList &Ts : m_GM_productionMap[left].pdnRights)
+    //直接左递归消除
+    for(const auto &t_candidateList : m_GM_productionMap[t_left].pdnRights)
     {
-        //遍历该产生式的所有候选值
-        QString right=Ts[0];
-        if(right==left){
-            QString newLeft=getNewTmr(left);//申请新的非终结符
-            QVector<QStringList>NR_1;//存储当前非终结符消除直接左递归后的候选式
-            QVector<QStringList>NR_2;//存储新非终结符候选式
-            for (const QStringList &ts : m_GM_productionMap[left].pdnRights)
+        //遍历该产生式的所有候选式
+        QString t_cFirst=t_candidateList[0];
+        if(t_cFirst==t_left)//相同即出现A->A...直接左递归
+        {
+            QString newLeft=getNewTmr(t_left);//申请新的非终结符
+            QList<QStringList> t_curElrRights;//存储当前非终结符消除直接左递归后的候选式
+            QList<QStringList> t_newNTRights;//存储新非终结符候选式
+            for(const auto &t_cddList: m_GM_productionMap[t_left].pdnRights)//遍历该产生式的所有候选式
             {
-                //遍历该产生式的所有候选式
-                QString r=ts[0];
-                if(r==left){
-                    QStringList s=Ts;
-                    s.removeFirst();
-                    s.append(newLeft);
-                    NR_2.append(s);
+                QString t_cFirst=t_cddList[0];//候选式首词
+                if(t_cFirst==t_left)//左递归出现
+                {
+                    QStringList t_cList=t_candidateList;
+                    t_cList.removeFirst();//删除首词
+                    t_cList.append(newLeft);//新的非终结符
+                    t_newNTRights.append(t_cList);//加入到新非终结符候选式列表中
                 }
-                else{
-                    QStringList s=ts;
-                    s.append(newLeft);
-                    NR_1.append(s);
+                else
+                {
+                    QStringList t_cList=t_cddList;//没左递归直接加入另外一个集合中
+                    t_cList.append(newLeft);
+                    t_curElrRights.append(t_cList);
                 }
             }
-            NR_2.append({"@"});
-            m_GM_productionMap[left].pdnRights=NR_1;//更新当前非终结符的候选式
+            t_newNTRights.append({"@"});//加入eps
+            m_GM_productionMap[t_left].pdnRights=t_curElrRights;//更新当前非终结符的候选式
             //向文法中添加新非终结符
             m_nonTmrSet.append(newLeft);
-            m_GM_productionMap[newLeft].pdnRights=NR_2;
+            m_GM_productionMap[newLeft].pdnRights=t_newNTRights;//添加新非终结符的右部
             break;
         }
     }
 }
-
-
 
 /**
  * @brief BNFP::eliminateLRecursion
@@ -313,13 +315,11 @@ void BNFP::eliminateLRecursion()
     QSet<QString> t_newNonTmrSet;//存储处理后的非终结符
     for(int i=0;i<m_nonTmrSet.size();i++)
     {
-        QString nTmrStr=m_nonTmrSet[i];
+        QString t_nonTmr=m_nonTmrSet[i];//按一定的顺序遍历非终结符，先保存当前非终结符“快照”
         eliminateLRecursion(i,t_newNonTmrSet);
-        t_newNonTmrSet.insert(nTmrStr);
+        t_newNonTmrSet.insert(t_nonTmr);//处理完后放回集合中
     }
 }
-
-
 
 /**
  * @brief BNFP::getNewTmr
@@ -391,12 +391,13 @@ void BNFP::eliminateLCommonFactor()
     int flag=4;
     int Flag=1;
     int size=m_nonTmrSet.size();
-    while(Flag&&flag--){
-    Flag=0;
-    QMap<QString,QSet<QStringList>> delSet={};
-    QMap<QString,QSet<QStringList>> appendSet={};
-    QMap<QString,QVector<QStringList>> newSet={};
-    //遍历完再删 否则容易导致越界
+    while(Flag&&flag--)
+    {
+        Flag=0;
+        QMap<QString,QSet<QStringList>> delSet={};
+        QMap<QString,QSet<QStringList>> appendSet={};
+        QMap<QString,QVector<QStringList>> newSet={};
+        //遍历完再删 否则容易导致越界
         for(int i=0;i<size;i++)//遍历所有产生式
         {
             QString s=m_nonTmrSet.at(i);
@@ -405,7 +406,8 @@ void BNFP::eliminateLCommonFactor()
             //QSet<QStringList> Temp={};//用于记录被提取的候选式 用Set不知道为什么有可能会越界
             QList<QStringList> Temp={};//用于记录被提取的候选式
             QString tmp=Ts.at(0);
-            for(int k=0;k<m_GM_productionMap[s].pdnRights.size();k++){
+            for(int k=0;k<m_GM_productionMap[s].pdnRights.size();k++)
+            {
                 QStringList ts=m_GM_productionMap[s].pdnRights.at(k);
 //                if(ts.at(0)==tmp)Temp.insert(ts);//判断该候选式是否有相同左公因子
                 if(ts.at(0)==tmp)Temp.append(ts);//判断该候选式是否有相同左公因子
@@ -414,14 +416,16 @@ void BNFP::eliminateLCommonFactor()
             {
                 int cnt=1;
                 lFactorCount(Temp,Ts,cnt);//记录最长左公因子个数
-                for (const QStringList &del : Temp){
+                for(const QStringList &del: Temp)
+                {
                     QStringList delTmp=del;
 
                     //delSet.insert(delTmp);
                     delSet[s].insert(delTmp);
                     //G.ntMap[s].right.remove(G.ntMap[s].right.indexOf(delTmp));//将Temp中的候选式从该产生式右部去除
                 }
-                for(const QStringList& STR: Temp){//形成新产生式的右部
+                for(const QStringList& STR: Temp)
+                {//形成新产生式的右部
 //                    Temp.remove(STR);
 //                    if(cnt!=STR.size())Temp.insert(STR.mid(cnt));
 //                    else Temp.insert({"@"});
@@ -444,10 +448,13 @@ void BNFP::eliminateLCommonFactor()
         for(QString s: delSet.keys())
             for(const QStringList& delTmp: delSet[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
+
         for(QString s: appendSet.keys())
             for(const QStringList& appendTmp: appendSet[s])
                 m_GM_productionMap[s].pdnRights.append(appendTmp);
-        for(QString left: newSet.keys()){
+
+        for(QString left: newSet.keys())
+        {
             m_nonTmrSet.append(left);
             m_GM_productionMap[left].pdnRights=newSet[left];
         }
@@ -485,13 +492,23 @@ void BNFP::eliminateLCommonFactor()
         for(const QString &s: delSet.keys())
             for(const QStringList& delTmp: delSet[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
+
         for(QString s: appendSet.keys())
             for(const QStringList& appendTmp: appendSet[s])
                 m_GM_productionMap[s].pdnRights.append(appendTmp);
     }
 
-
     simplifyGrammar();
+}
+
+/**
+ * @brief BNFP::firstNFollowSet
+ * First集与Follow集的求解
+ */
+void BNFP::firstNFollowSet()
+{
+    computeFirstSet();
+    computeFollowSet();
 }
 
 /**
@@ -500,52 +517,54 @@ void BNFP::eliminateLCommonFactor()
  */
 void BNFP::computeFirstSet()
 {
-    bool flag=1; // 标记此轮是否发生了更新
-    while(flag)//直到first集不变
+    bool changedFlag=true; //标记此轮是否发生了更新，即First是否出现更新
+    while(changedFlag)//直到first集不变
     {
-        flag=false;
+        changedFlag=false;
         for(int i=0;i<m_nonTmrSet.size();i++)//遍历所有产生式
         {
-            QString s=m_nonTmrSet[i];
-            QVector<QStringList> Production=m_GM_productionMap[s].pdnRights;
-            for(int j=0;j<Production.size();j++)
+            QString t_nonTmr=m_nonTmrSet[i];//当前左部
+            QVector<QStringList> t_candidateList=m_GM_productionMap[t_nonTmr].pdnRights;//当前右部
+            for(int j=0;j<t_candidateList.size();j++)
             {
-                QString tmp= Production[j][0];
-                if(!m_nonTmrSet.contains(tmp)||tmp == "@")//终结符和epsilon
+                QString t_cFirst= t_candidateList[j][0];
+                if(!m_nonTmrSet.contains(t_cFirst) || t_cFirst == "@")//终结符和epsilon
                 {
-                    if(!m_GM_productionMap[s].firstSet.contains(tmp))//first集合里是否有tmp
+                    if(!m_GM_productionMap[t_nonTmr].firstSet.contains(t_cFirst))//first集合里是否有tmp
                     {
-                      m_GM_productionMap[s].firstSet.insert(tmp);
-                      flag=1;
+                        m_GM_productionMap[t_nonTmr].firstSet.insert(t_cFirst);
+                        changedFlag=1;
                     }
                 }
                 else//非终结符
                 {
                     bool epsilon=false;//是否出现epsilon
-                    for(int k=0;k<Production[j].size();k++)
+                    for(int k=0;k<t_candidateList[j].size();k++)
                     {
-                        tmp=Production[j][k];
-                        if(!m_nonTmrSet.contains(tmp))
+                        t_cFirst=t_candidateList[j][k];
+                        if(!m_nonTmrSet.contains(t_cFirst))
                         {
-                            if(!m_GM_productionMap[s].firstSet.contains(tmp))//first集合里是否有tmp
+                            if(!m_GM_productionMap[t_nonTmr].firstSet.contains(t_cFirst))//first集合里是否有tmp
                             {
-                              m_GM_productionMap[s].firstSet.insert(tmp);
-                              flag=1;
+                                m_GM_productionMap[t_nonTmr].firstSet.insert(t_cFirst);
+                                changedFlag=1;
                             }
                             break;//遇到了终结符可以直接结束了
                         }
 
-                        for(const QString& str: m_GM_productionMap[tmp].firstSet)//查该非终结符的first集合
+                        for(const auto& str: m_GM_productionMap[t_cFirst].firstSet)//查该非终结符的first集合
                         {
-                            if(str=="@")epsilon=1;
-                            if(!m_GM_productionMap[s].firstSet.contains(str))//first集合里是否有tmp
+                            if(str=="@")
+                                epsilon=true;
+                            if(!m_GM_productionMap[t_nonTmr].firstSet.contains(str))//first集合里是否有tmp
                             {
-                              m_GM_productionMap[s].firstSet.insert(str);
-                              flag=1;
+                                m_GM_productionMap[t_nonTmr].firstSet.insert(str);
+                                changedFlag=1;
                             }
                         }
-                        if(!epsilon)break;//该非终结符first集合中无epsilon
-                        epsilon=0;//继续找下一个字符
+                        if(!epsilon)
+                            break;//该非终结符first集合中无epsilon
+                        epsilon=false;//继续找下一个字符
                     }
                 }
             }
@@ -559,11 +578,11 @@ void BNFP::computeFirstSet()
  */
 void BNFP::computeFollowSet()
 {
-    bool flag=1;
+    bool changedFlag=true;
     m_GM_productionMap[m_startChar].followSet.insert("$");//文法开始符号加结束符号
-    while(flag)
+    while(changedFlag)
     {
-        flag=0;
+        changedFlag=false;
         for(int i=0;i<m_nonTmrSet.size();i++)//遍历所有产生式
         {
             QString s=m_nonTmrSet[i];
@@ -580,7 +599,7 @@ void BNFP::computeFollowSet()
                             foreach(const QString& follow,m_GM_productionMap[s].followSet)
                                 if(!m_GM_productionMap[tmp].followSet.contains(follow))
                                 {
-                                    flag=1;
+                                    changedFlag=true;
                                     m_GM_productionMap[tmp].followSet.insert(follow);
                                 }
                         }
@@ -591,7 +610,7 @@ void BNFP::computeFollowSet()
                             {
                                 if(!m_GM_productionMap[tmp].followSet.contains(Tmp))
                                 {
-                                    flag=1;
+                                    changedFlag=true;
                                     m_GM_productionMap[tmp].followSet.insert(Tmp);
                                 }
                             }
@@ -602,7 +621,7 @@ void BNFP::computeFollowSet()
                                     if(follow=="@")continue;
                                     if(!m_GM_productionMap[tmp].followSet.contains(follow))
                                     {
-                                        flag=1;
+                                        changedFlag=true;
                                         m_GM_productionMap[tmp].followSet.insert(follow);
                                     }
                                 }
@@ -618,7 +637,7 @@ void BNFP::computeFollowSet()
                                     for(const auto& follow: m_GM_productionMap[s].followSet)
                                         if(!m_GM_productionMap[tmp].followSet.contains(follow))
                                         {
-                                            flag=1;
+                                            changedFlag=1;
                                             m_GM_productionMap[tmp].followSet.insert(follow);
                                         }
                                 }

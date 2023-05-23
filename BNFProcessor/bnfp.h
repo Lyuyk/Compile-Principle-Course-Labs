@@ -47,8 +47,7 @@ public:
     void simplifyGrammar();//文法化简
     void eliminateLRecursion();//消除左递归
     void eliminateLCommonFactor();//消除左公共因子
-    void computeFirstSet();//求解first与
-    void computeFollowSet();//求解follow集合元素
+    void firstNFollowSet();//求解first与求解follow集合元素
     void constructLL1ParsingTable();//生成LL1分析表
     void LL1Pasing(QTreeWidget *tree);//使用LL1分析表进行语法分析
 
@@ -59,10 +58,13 @@ public:
     QMap<QString, QSet<QString>> getFollowSet();//取得非终结符的follow集
 
 private:        
-    void eliminateLRecursion(int index,QSet<QString>& updatedL);//消除左递归子函数
+    void eliminateLRecursion(int index,QSet<QString>& newNonTmrSet);//消除左递归子函数
 
     void lFactorCount(QList<QStringList> list,QStringList pdnR,int &count);//记录最长左公因子个数
     QString getNewTmr(QString curTmr);//申请新终结符
+
+    void computeFirstSet();//求解first与
+    void computeFollowSet();//求解follow集合元素
 
     void decodeLex();//对词法分析程序编码的lex文件进行解码
 
