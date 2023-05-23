@@ -52,6 +52,7 @@ public:
     void LL1Pasing(QTreeWidget *tree);//使用LL1分析表进行语法分析
 
     void printGrammar(QPlainTextEdit *e);//输出文法
+    void printSet(QTableWidget *table,bool isFirst=true);//输出First/Follow集
     void printLL1ParsingTable(QTableWidget *table);//输出LL1分析表
 
     QMap<QString, QSet<QString>> getFirstSet();//取得非终结符的first集

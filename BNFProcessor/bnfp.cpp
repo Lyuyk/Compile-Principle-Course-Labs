@@ -201,6 +201,42 @@ void BNFP::printGrammar(QPlainTextEdit *e)
 }
 
 /**
+ * @brief BNFP::printSet
+ * @param table
+ * @param isFirst
+ * 输出First/Follow集到表格
+ */
+void BNFP::printSet(QTableWidget *table,bool isFirst)
+{
+    table->setRowCount(m_nonTmrSet.size());//行数
+    table->verticalHeader()->setHidden(true);
+    if(isFirst)
+    {
+        for(int i=0;i<m_nonTmrSet.size();i++)
+        {
+            QString setStr="{";
+            for(const auto &t_first: m_GM_productionMap[m_nonTmrSet[i]].firstSet)
+                setStr+=t_first+",";
+            setStr+="}";
+            table->setItem(i,1,new QTableWidgetItem(setStr));//集合
+            table->setItem(i,0,new QTableWidgetItem(m_nonTmrSet[i]));//非终结符
+        }
+    }
+    else
+    {
+        for(int i=0;i<m_nonTmrSet.size();i++)
+        {
+            QString setStr="{";
+            for(const auto &t_first: m_GM_productionMap[m_nonTmrSet[i]].followSet)
+                setStr+=t_first+",";
+            setStr+="}";
+            table->setItem(i,1,new QTableWidgetItem(setStr));//集合
+            table->setItem(i,0,new QTableWidgetItem(m_nonTmrSet[i]));//非终结符
+        }
+    }
+}
+
+/**
  * @brief BNFP::printLL1ParsingTable
  * @param table
  * 显示LL1构造表
@@ -523,48 +559,51 @@ void BNFP::computeFirstSet()
         changedFlag=false;
         for(int i=0;i<m_nonTmrSet.size();i++)//遍历所有产生式
         {
-            QString t_nonTmr=m_nonTmrSet[i];//当前左部
-            QVector<QStringList> t_candidateList=m_GM_productionMap[t_nonTmr].pdnRights;//当前右部
+            QString t_curLeft=m_nonTmrSet[i];//当前左部
+            QVector<QStringList> t_candidateList=m_GM_productionMap[t_curLeft].pdnRights;//当前右部
+            //遍历当前右部
             for(int j=0;j<t_candidateList.size();j++)
             {
-                QString t_cFirst= t_candidateList[j][0];
-                if(!m_nonTmrSet.contains(t_cFirst) || t_cFirst == "@")//终结符和epsilon
+                QString t_cWord= t_candidateList[j][0];//候选式首字符
+                if(!m_nonTmrSet.contains(t_cWord) || t_cWord == "@")//终结符和epsilon（情况1，直接将其加入First集中）
                 {
-                    if(!m_GM_productionMap[t_nonTmr].firstSet.contains(t_cFirst))//first集合里是否有tmp
+                    if(!m_GM_productionMap[t_curLeft].firstSet.contains(t_cWord))//first集合里是否有t_First
                     {
-                        m_GM_productionMap[t_nonTmr].firstSet.insert(t_cFirst);
-                        changedFlag=1;
+                        m_GM_productionMap[t_curLeft].firstSet.insert(t_cWord);
+                        changedFlag=1;//first集求解情况变更
                     }
                 }
-                else//非终结符
+                else
                 {
-                    bool epsilon=false;//是否出现epsilon
-                    for(int k=0;k<t_candidateList[j].size();k++)
+                    //t_cFirst为非终结符，将其First集加入左部First集
+                    bool epsilonFlag=false;//是否出现epsilon标志
+                    for(int k=0;k<t_candidateList[j].size();k++)//遍历单条候选式N->C1C2...Ck
                     {
-                        t_cFirst=t_candidateList[j][k];
-                        if(!m_nonTmrSet.contains(t_cFirst))
+                        t_cWord=t_candidateList[j][k];
+                        if(!m_nonTmrSet.contains(t_cWord))//若遇到终结符
                         {
-                            if(!m_GM_productionMap[t_nonTmr].firstSet.contains(t_cFirst))//first集合里是否有tmp
+                            if(!m_GM_productionMap[t_curLeft].firstSet.contains(t_cWord))//first集合里是否有该字符
                             {
-                                m_GM_productionMap[t_nonTmr].firstSet.insert(t_cFirst);
-                                changedFlag=1;
+                                m_GM_productionMap[t_curLeft].firstSet.insert(t_cWord);//无则加，实际上就是插入操作
+                                changedFlag=true;
                             }
                             break;//遇到了终结符可以直接结束了
                         }
 
-                        for(const auto& str: m_GM_productionMap[t_cFirst].firstSet)//查该非终结符的first集合
+                        //查该非终结符的first集合
+                        for(const auto &t_firstStr: m_GM_productionMap[t_cWord].firstSet)
                         {
-                            if(str=="@")
-                                epsilon=true;
-                            if(!m_GM_productionMap[t_nonTmr].firstSet.contains(str))//first集合里是否有tmp
+                            if(t_firstStr=="@")//情况2，该情况需要进入下一轮判断，查看规则下一个单词Cx
+                                epsilonFlag=true;
+                            if(!m_GM_productionMap[t_curLeft].firstSet.contains(t_firstStr))//first集合里是否有tmp
                             {
-                                m_GM_productionMap[t_nonTmr].firstSet.insert(str);
+                                m_GM_productionMap[t_curLeft].firstSet.insert(t_firstStr);//将非终结符first集加入当前左部First集中
                                 changedFlag=1;
                             }
                         }
-                        if(!epsilon)
-                            break;//该非终结符first集合中无epsilon
-                        epsilon=false;//继续找下一个字符
+                        if(!epsilonFlag)
+                            break;//该非终结符first集合中无epsilon，停止继续遍历候选式
+                        epsilonFlag=false;//看下一个字符
                     }
                 }
             }
@@ -578,67 +617,68 @@ void BNFP::computeFirstSet()
  */
 void BNFP::computeFollowSet()
 {
-    bool changedFlag=true;
+    bool changedFlag=true;//follow集产生变化标志
     m_GM_productionMap[m_startChar].followSet.insert("$");//文法开始符号加结束符号
     while(changedFlag)
     {
         changedFlag=false;
         for(int i=0;i<m_nonTmrSet.size();i++)//遍历所有产生式
         {
-            QString s=m_nonTmrSet[i];
-            QVector<QStringList> Production=m_GM_productionMap[s].pdnRights;
-            for(int j=0;j<Production.size();j++)//遍历每一个候选式
+            QString t_curLeft=m_nonTmrSet[i];//当前左部
+            QVector<QStringList> t_candidateList=m_GM_productionMap[t_curLeft].pdnRights;//当前右部
+            for(int j=0;j<t_candidateList.size();j++)//遍历每一个候选式
             {
-                for(int k=0;k<Production[j].size();k++)//寻找每个候选式中的每个非终结符
+                for(int k=0;k<t_candidateList[j].size();k++)//寻找每个候选式中的每个非终结符
                 {
-                    QString tmp= Production[j][k];
-                    if(m_nonTmrSet.contains(tmp))//是非终结符
+                    QString t_cWord= t_candidateList[j][k];//当前字符
+                    if(m_nonTmrSet.contains(t_cWord))//是非终结符
                     {
-                        if(k+1==Production[j].size())//当前非终结符为候选式中的最后一个字符
-                        {
-                            foreach(const QString& follow,m_GM_productionMap[s].followSet)
-                                if(!m_GM_productionMap[tmp].followSet.contains(follow))
+                        if(k==t_candidateList[j].size()-1)//当前非终结符为候选式中的最后一个字符（情况2）
+                        {   //将当前左部follow集加入到 候选式当前字符follow集中
+                            for(const QString& t_followStr: m_GM_productionMap[t_curLeft].followSet)
+                                if(!m_GM_productionMap[t_cWord].followSet.contains(t_followStr))
                                 {
                                     changedFlag=true;
-                                    m_GM_productionMap[tmp].followSet.insert(follow);
+                                    m_GM_productionMap[t_cWord].followSet.insert(t_followStr);
                                 }
                         }
                         else
                         {
-                            QString Tmp=Production[j][k+1];//查看下一个字符
-                            if(!m_nonTmrSet.contains(Tmp))//终结符
-                            {
-                                if(!m_GM_productionMap[tmp].followSet.contains(Tmp))
+                            QString t_cNextWord=t_candidateList[j][k+1];//查看下一个字符
+                            if(!m_nonTmrSet.contains(t_cNextWord))//若为终结符（情况1）
+                            {   //简单更新当前字符follow集
+                                if(!m_GM_productionMap[t_cWord].followSet.contains(t_cNextWord))
                                 {
+                                    m_GM_productionMap[t_cWord].followSet.insert(t_cNextWord);
                                     changedFlag=true;
-                                    m_GM_productionMap[tmp].followSet.insert(Tmp);
                                 }
                             }
                             else
-                            {
-                                for(const QString& follow: m_GM_productionMap[Tmp].firstSet)
+                            {   //（情况1）将后面字符除eps外的所有first集元素加进来follow集
+                                for(const QString& follow: m_GM_productionMap[t_cNextWord].firstSet)
                                 {
                                     if(follow=="@")continue;
-                                    if(!m_GM_productionMap[tmp].followSet.contains(follow))
+                                    if(!m_GM_productionMap[t_cWord].followSet.contains(follow))
                                     {
                                         changedFlag=true;
-                                        m_GM_productionMap[tmp].followSet.insert(follow);
+                                        m_GM_productionMap[t_cWord].followSet.insert(follow);
                                     }
                                 }
-                                bool epsilon=1;
-                                for(int x=k+1;x<Production[j].size();x++)//查看是否后面的字符都含有epsilon
+                                bool epsilon=true;
+                                for(int x=k+1;x<t_candidateList[j].size();x++)//查看是否后面的字符都含有epsilon（因为如果后面的字符都含epsilon 相当于是最后一个字符）
                                 {
-                                    QString nt=Production[j][x];
-                                    if(!m_nonTmrSet.contains(nt)||!m_GM_productionMap[nt].firstSet.contains("@"))//如果其中一个不含epsilon
-                                        epsilon=0;
+                                    QString t_word=t_candidateList[j][x];
+                                    if(!m_nonTmrSet.contains(t_word) ||
+                                            !m_GM_productionMap[t_word].firstSet.contains("@"))//如果其中一个不含epsilon（情况1，不需要处理）
+                                        epsilon=false;
                                 }
-                                if(epsilon)//如果后面的字符都含epsilon 相当于是最后一个字符
-                                {
-                                    for(const auto& follow: m_GM_productionMap[s].followSet)
-                                        if(!m_GM_productionMap[tmp].followSet.contains(follow))
+                                if(epsilon)//如果后面的字符都含epsilon 相当于是最后一个字符（情况2）
+                                {   //将当前左部follow集加入到 候选式当前字符follow集中
+                                    for(const auto& t_followStr: m_GM_productionMap[t_curLeft].followSet)
+                                        if(!m_GM_productionMap[t_cWord].followSet.contains(t_followStr))
                                         {
-                                            changedFlag=1;
-                                            m_GM_productionMap[tmp].followSet.insert(follow);
+                                            changedFlag=true;
+                                            m_GM_productionMap[t_cWord].followSet.insert(t_followStr);
                                         }
                                 }
                             }
