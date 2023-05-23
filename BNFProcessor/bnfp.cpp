@@ -205,7 +205,7 @@ void BNFP::printGrammar(QPlainTextEdit *e)
 void BNFP::printSet(QTableWidget *table,bool isFirst)
 {
     table->setRowCount(m_nonTmrSet.size());//行数
-    table->verticalHeader()->setHidden(true);
+
     if(isFirst)
     {
         for(int i=0;i<m_nonTmrSet.size();i++)
@@ -241,7 +241,6 @@ void BNFP::printLL1ParsingTable(QTableWidget *table)
 {
     table->setRowCount(m_nonTmrSet.size());//行数
     table->setColumnCount(m_tmrSet.size()+2);//列数：空、终结符、结束符
-    table->verticalHeader()->setHidden(true);//隐藏序号列
 
     QStringList headerList=m_tmrSet.values();//终结符
     headerList.push_front("");
@@ -423,7 +422,7 @@ void BNFP::eliminateLCommonFactor()
     int rcFlag=4;//递归深度
 
     bool Flag=1;
-    int t_nTSetSize=m_nonTmrSet.size();
+    int t_nTSetSize=m_nonTmrSet.size();//非终结符集合大小
     while(Flag&&rcFlag--)
     {
         Flag=0;
@@ -433,55 +432,62 @@ void BNFP::eliminateLCommonFactor()
         //遍历完再删 否则容易导致越界
         for(int i=0;i<t_nTSetSize;i++)//遍历所有产生式
         {
-            QString s=m_nonTmrSet.at(i);
+            QString t_curNonTmr=m_nonTmrSet.at(i);//当前非终结符
+            QStringList t_curCddList=m_GM_productionMap[t_curNonTmr].pdnRights.at(0);//当前非终结符第一条候选式
+            QString t_curCddPrefix=t_curCddList.at(0);//（公共前缀？）当前非终结符第一条候选式的第一个单词
+            QList<QStringList> t_eCddList={};//记录被提取的候选式
 
-            QStringList Ts=m_GM_productionMap[s].pdnRights.at(0);
-
-            QList<QStringList> Temp={};//用于记录被提取的候选式
-            QString tmp=Ts.at(0);
-            for(int k=0;k<m_GM_productionMap[s].pdnRights.size();k++)
+            //遍历当前非终结符对应的候选式
+            for(int j=0;j<m_GM_productionMap[t_curNonTmr].pdnRights.size();j++)
             {
-                QStringList ts=m_GM_productionMap[s].pdnRights.at(k);
-                if(ts.at(0)==tmp)
-                    Temp.append(ts);//判断该候选式是否有相同左公因子
+                QStringList t_cdd=m_GM_productionMap[t_curNonTmr].pdnRights.at(j);
+                if(t_cdd.at(0)==t_curCddPrefix)//判断该候选式是否有相同左公因子
+                    t_eCddList.append(t_cdd);//有就放入提取列表
             }
-            if(Temp.count()>1&&Temp.count()==m_GM_productionMap[s].pdnRights.size())
+
+            //若整个右部都被提取
+            if(t_eCddList.count()>1 && t_eCddList.count()==m_GM_productionMap[t_curNonTmr].pdnRights.size())
             {
                 int cnt=1;
-                lFactorCount(Temp,Ts,cnt);//记录最长左公因子个数
-                for(const QStringList &del: Temp)
+                lFactorCount(t_eCddList,t_curCddList,cnt);//记录最长左公因子个数
+                for(const auto &del: t_eCddList)
                 {
                     QStringList delTmp=del;
-                    delSet[s].insert(delTmp);
+                    delSet[t_curNonTmr].insert(delTmp);
                 }
-                for(const QStringList& STR: Temp)
-                {//形成新产生式的右部
-                    Temp.removeOne(STR);
-                    if(cnt!=STR.size())Temp.append(STR.mid(cnt));
-                    else if(!Temp.contains({"@"}))Temp.append({"@"});
+                for(const QStringList& STR: t_eCddList)
+                {
+                    //形成新产生式的右部
+                    t_eCddList.removeOne(STR);
+                    if(cnt!=STR.size())
+                        t_eCddList.append(STR.mid(cnt));
+                    else if(!t_eCddList.contains({"@"}))
+                        t_eCddList.append({"@"});
                 }
                 //给新的产生式赋值
-                QString left=s+'\'';
-                newSet[left]=Temp.toVector();
+                QString left=getNewTmr(t_curNonTmr);//申请新的非终结符
+                newSet[left]=t_eCddList.toVector();
 
                 //将化简后的候选式加入该产生式
-                QStringList leftFactor=Ts.mid(0,cnt);
+                QStringList leftFactor=t_curCddList.mid(0,cnt);
                 leftFactor.append(left);
 
-                appendSet[s].insert(leftFactor);
+                appendSet[t_curNonTmr].insert(leftFactor);
             }
+
             if(delSet.size()||appendSet.size()||newSet.size())
                 Flag=1;
         }
-        for(QString s: delSet.keys())
+
+        for(const QString &s: delSet.keys())
             for(const QStringList& delTmp: delSet[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
 
-        for(QString s: appendSet.keys())
+        for(const QString &s: appendSet.keys())
             for(const QStringList& appendTmp: appendSet[s])
                 m_GM_productionMap[s].pdnRights.append(appendTmp);
 
-        for(QString left: newSet.keys())
+        for(const QString &left: newSet.keys())
         {
             m_nonTmrSet.append(left);
             m_GM_productionMap[left].pdnRights=newSet[left];
@@ -689,8 +695,6 @@ void BNFP::computeFollowSet()
     }
 }
 
-
-
 /**
  * @brief BNFP::constructLL1ParsingTable
  * 构建LL(1)分析表主函数
@@ -721,7 +725,7 @@ void BNFP::constructLL1ParsingTable()
                             m_LL1Table[t_curNT][t_follow]=itemContent;
                         else
                         {
-                            if(m_LL1Table[t_curNT][t_follow].split("->")[1]=="@")//人为修改
+                            if(m_LL1Table[t_curNT][t_follow].split("->")[1]=="@")//人为修改，
                                 m_LL1Table[t_curNT][t_follow]=itemContent;
                         }
                     }
@@ -765,5 +769,10 @@ void BNFP::constructLL1ParsingTable()
             }
         }
     }
+}
+
+void BNFP::LL1Parsing(QTreeWidget *tree)
+{
+
 }
 
