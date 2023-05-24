@@ -83,7 +83,10 @@ void NDFA::printNFA(QTableWidget *table)
     table->setHorizontalHeaderLabels(headerStrList);
     //竖轴隐藏
     table->verticalHeader()->setHidden(true);
-    table->horizontalHeader()->setAlternatingRowColors(true);//隔行变色
+    table->setAlternatingRowColors(true);//隔行变色
+    table->setPalette(QPalette(qRgb(240,240,240)));
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);//自动调整列宽
+
 
     for(int state=0;state<m_NFAStateNum;state++)
     {
@@ -127,7 +130,6 @@ void NDFA::printNFA(QTableWidget *table)
             table->item(state,epsColN+1)->setTextAlignment(Qt::AlignCenter);//居中
         }
     }
-    table->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);//自动调整列宽
 }
 
 void NDFA::printDFA(QTableWidget *table)
@@ -138,7 +140,8 @@ void NDFA::printDFA(QTableWidget *table)
     table->setRowCount(m_DFAStateNum);//表格行数
     table->setColumnCount(m_opCharSet.count()+3);//表格列数（状态号，包含NFA状态，操作符。。。，初/终态）
     table->verticalHeader()->setHidden(true);//隐藏竖轴序号列
-    table->horizontalHeader()->setAlternatingRowColors(true);//隔行变色
+    table->setAlternatingRowColors(true);//隔行变色
+    table->setPalette(QPalette(qRgb(240,240,240)));
 
 
     //表头初始化
@@ -176,13 +179,14 @@ void NDFA::printDFA(QTableWidget *table)
                 //可以去到的状态号
                 int toState=m_DFAStateArr[state].DFAEdgeMap[curOpChar];
 
-                QString n_NFASetStr=QString::number(toState)+" { ";
-                for(const auto &n_state:m_DFAStateArr[toState].NFANodeSet)//可去到的状态集
-                {
-                    n_NFASetStr+=QString::number(n_state)+",";
-                }
-                n_NFASetStr.replace(n_NFASetStr.size()-1,1," }");
-                table->setItem(state,colN,new QTableWidgetItem(n_NFASetStr));
+//                QString n_NFASetStr=QString::number(toState)+" { ";
+//                for(const auto &n_state:m_DFAStateArr[toState].NFANodeSet)//可去到的状态集
+//                {
+//                    n_NFASetStr+=QString::number(n_state)+",";
+//                }
+//                n_NFASetStr.replace(n_NFASetStr.size()-1,1," }");
+                //状态多起来显示集合很麻烦
+                table->setItem(state,colN,new QTableWidgetItem(QString::number(toState)));
                 table->item(state,colN)->setTextAlignment(Qt::AlignCenter);//居中
             }
             colN++;
@@ -210,7 +214,9 @@ void NDFA::printMDFA(QTableWidget *table)
     table->setRowCount(m_mDFAStateNum);//表格行数
     table->setColumnCount(m_opCharSet.count()+2);//表格列数
     table->verticalHeader()->setHidden(true);//隐藏竖轴序号列
-    table->horizontalHeader()->setAlternatingRowColors(true);//隔行变色
+    table->setAlternatingRowColors(true);//隔行变色
+    table->setPalette(QPalette(qRgb(240,240,240)));
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);//自动调整列宽
 
     //表头初始化
     QStringList headerStrList=m_opCharSet.values();

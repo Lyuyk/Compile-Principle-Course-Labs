@@ -426,7 +426,7 @@ void BNFP::eliminateLCommonFactor()
 {
     int rcFlag=4;//递归深度
 
-    bool Flag=1;
+    bool Flag=1;//继续下一轮代入提取左公因子标志
     int t_nTSetSize=m_nonTmrSet.size();//非终结符集合大小
     while(Flag&&rcFlag--)
     {
@@ -501,33 +501,34 @@ void BNFP::eliminateLCommonFactor()
         deletedSetMap.clear();
         appendSetMap.clear();
 
+        //遍历非终结符
         for(int i=0;i<t_nTSetSize;i++)
         {
-            QString s=m_nonTmrSet.at(i);
+            QString t_nT=m_nonTmrSet.at(i);
 
-            if(m_GM_productionMap[s].pdnRights.size()>1)
+            if(m_GM_productionMap[t_nT].pdnRights.size()>1)
             {
-                for(int j=0;j<m_GM_productionMap[s].pdnRights.size();j++)
+                for(int j=0;j<m_GM_productionMap[t_nT].pdnRights.size();j++)
                 {
-                    QStringList Ts=m_GM_productionMap[s].pdnRights.at(j);
-                    QString tmp=Ts.at(0);
-                    if(m_nonTmrSet.contains(tmp))
+                    QStringList t_jCdd=m_GM_productionMap[t_nT].pdnRights.at(j);
+                    QString t_c0Word=t_jCdd.at(0);
+                    if(m_nonTmrSet.contains(t_c0Word))
                     {
-                        QStringList del=Ts;
-                        for(int k=0;k<m_GM_productionMap[tmp].pdnRights.size();k++)
+                        QStringList t_delCdd=t_jCdd;
+                        for(int k=0;k<m_GM_productionMap[t_c0Word].pdnRights.size();k++)
                         {
-                            QStringList ts=m_GM_productionMap[tmp].pdnRights.at(k);
+                            QStringList t_kCdd=m_GM_productionMap[t_c0Word].pdnRights.at(k);
 
-                            appendSetMap[s].insert(ts+Ts.mid(1));
+                            appendSetMap[t_nT].insert(t_kCdd+t_jCdd.mid(1));
                         }
 
-                        deletedSetMap[s].insert(del);
+                        deletedSetMap[t_nT].insert(t_delCdd);
                     }
-                    else if(tmp=="@"&& Ts.size()>1)
+                    else if(t_c0Word=="@" && t_jCdd.size()>1)
                     {
-                        QStringList del=Ts;
-                        appendSetMap[s].insert(Ts.mid(1));
-                        deletedSetMap[s].insert(del);
+                        QStringList t_delCdd=t_jCdd;
+                        appendSetMap[t_nT].insert(t_jCdd.mid(1));
+                        deletedSetMap[t_nT].insert(t_delCdd);
                     }
                 }
             }
@@ -535,14 +536,16 @@ void BNFP::eliminateLCommonFactor()
                 Flag=true;
         }
 
-        for(const QString &s: deletedSetMap.keys())
-            for(const QStringList& delTmp: deletedSetMap[s])
-                m_GM_productionMap[s].pdnRights.removeOne(delTmp);
+        for(const QString &delKey: deletedSetMap.keys())
+            for(const QStringList& delTmp: deletedSetMap[delKey])
+                m_GM_productionMap[delKey].pdnRights.removeOne(delTmp);
 
         for(QString s: appendSetMap.keys())
             for(const QStringList& appendTmp: appendSetMap[s])
                 m_GM_productionMap[s].pdnRights.append(appendTmp);
     }
+
+
 
     simplifyGrammar();
 }
