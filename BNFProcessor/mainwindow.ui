@@ -44,7 +44,7 @@
      <property name="font">
       <font>
        <family>Courier New</family>
-       <pointsize>10</pointsize>
+       <pointsize>9</pointsize>
       </font>
      </property>
      <property name="readOnly">
@@ -87,7 +87,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab_edit">
       <attribute name="title">
@@ -104,7 +104,7 @@
        </property>
        <property name="font">
         <font>
-         <family>JetBrains Mono</family>
+         <family>JetBrains Mono NL</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -391,6 +391,11 @@
          <height>591</height>
         </rect>
        </property>
+       <column>
+        <property name="text">
+         <string notr="true">1</string>
+        </property>
+       </column>
       </widget>
       <widget class="QPlainTextEdit" name="plainTextEdit_CST">
        <property name="geometry">
@@ -409,13 +414,13 @@
     <property name="geometry">
      <rect>
       <x>1080</x>
-      <y>10</y>
+      <y>40</y>
       <width>171</width>
-      <height>231</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="title">
-     <string>操作3-7</string>
+     <string>操作3-6</string>
     </property>
     <widget class="QPushButton" name="pushButton_eliminateLeftCommonFactor">
      <property name="geometry">
@@ -427,28 +432,15 @@
       </rect>
      </property>
      <property name="text">
-      <string>消除左公因子</string>
-     </property>
-    </widget>
-    <widget class="QPushButton" name="pushButton_check">
-     <property name="geometry">
-      <rect>
-       <x>30</x>
-       <y>70</y>
-       <width>111</width>
-       <height>31</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>文法检查</string>
+      <string>提取左公因子</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pushButton_set">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>110</y>
-       <width>111</width>
+       <x>10</x>
+       <y>70</y>
+       <width>151</width>
        <height>31</height>
       </rect>
      </property>
@@ -460,7 +452,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>150</y>
+       <y>110</y>
        <width>151</width>
        <height>31</height>
       </rect>
@@ -472,9 +464,9 @@
     <widget class="QPushButton" name="pushButton_CST">
      <property name="geometry">
       <rect>
-       <x>30</x>
-       <y>190</y>
-       <width>111</width>
+       <x>10</x>
+       <y>150</y>
+       <width>151</width>
        <height>31</height>
       </rect>
      </property>

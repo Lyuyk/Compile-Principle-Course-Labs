@@ -52,8 +52,6 @@ private slots:
 
     void on_pushButton_process_clicked();
 
-    void on_pushButton_check_clicked();
-
     void on_pushButton_eliminateLeftRecursion_clicked();
 
     void on_pushButton_eliminateLeftCommonFactor_clicked();
