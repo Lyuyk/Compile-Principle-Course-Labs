@@ -45,22 +45,22 @@ private slots:
     void on_pushButton_save_clicked();
 
     void on_pushButton_arrowChar_clicked();
-
     void on_pushButton_epsilonChar_clicked();
-
     void on_pushButton_orChar_clicked();
 
-    void on_pushButton_process_clicked();
+    void on_pushButton_process_clicked();//全部处理
 
-    void on_pushButton_eliminateLeftRecursion_clicked();
+    void on_pushButton_simplify_clicked();//文法化简
 
-    void on_pushButton_eliminateLeftCommonFactor_clicked();
+    void on_pushButton_eliminateLeftRecursion_clicked();//消除左递归
 
-    void on_pushButton_set_clicked();
+    void on_pushButton_eliminateLeftCommonFactor_clicked();//消除左公因子
 
-    void on_pushButton_simplify_clicked();
+    void on_pushButton_set_clicked();//求解First集&Follow集
 
-    void on_pushButton_clearConsole_clicked();
+    void on_pushButton_LL1_clicked();//构造LL1分析表
+
+    void on_pushButton_clearConsole_clicked();//清空输出台
 
 private:
     void exit();

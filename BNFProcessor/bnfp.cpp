@@ -48,43 +48,45 @@ void BNFP::initGrammar(QString s)
 {
     init();
 
-    QString t_grammarString=s;
-    QStringList t_productionList = t_grammarString.split("\n");//分割出一条条产生式
-    QStringList t_productionR_list;//暂存储右部
+    QStringList t_pdnList = s.split("\n");//分割出一条条产生式
 
-    m_startChar=t_productionList[0].split("->")[0];//开始符号，为第一条产生式左部
+
+    m_startChar=t_pdnList[0].split("->")[0].trimmed();//开始符号，为第一条产生式左部
+    qDebug()<<"m_startChar:"<<m_startChar;
 
     //扫描每一行，先存左部非终结符，方便后面判断
-    for(const auto &t_subProduction: qAsConst(t_productionList))
+    for(const auto &t_line: t_pdnList)
     {
-        if(t_subProduction.simplified().isEmpty())continue;//略去空行
+        if(t_line.simplified().isEmpty())continue;//略去空行
 
-        QStringList t_productionLRList = t_subProduction.split("->");//分离左右部
-        QString t_productionL = t_productionLRList[0].simplified();//左部
-        m_nonTmrSet.push_back(t_productionL);//左部全部为非终结符，加入
-
-        t_productionR_list=t_productionLRList[1].split("|");//右部
+        QString t_pdnL = t_line.split("->")[0].trimmed();//左部
+        m_nonTmrSet.append(t_pdnL);
     }
 
-    for(const auto &t_productionL:m_nonTmrSet)
+    for(const auto t_line: t_pdnList)
     {
-        //遍历右部每一条候选式
-        for(const auto &t_productionR: qAsConst(t_productionR_list))
+        if(t_line.isEmpty())continue;
+        QString t_leftStr=t_line.split("->")[0];//左部
+        QString t_rightStr=t_line.split("->")[1];//右部字符串
+        QStringList t_candidateList=t_rightStr.split('|');//暂存储右部列表
+
+        qDebug()<<t_leftStr;
+        //遍历右部每一条候选式字符串
+        for(const auto &t_cddStr: t_candidateList)
         {
-            QList<QString> t_candidateV=t_productionR.split(' ');//每一条候选式分开
+            QList<QString> t_cddList=t_cddStr.trimmed().split(' ');//每一个单词分开
 
-            for(const auto&t_candidateStr: t_candidateV)//对每一条候选式字符串，遍历每一个操作符
+            m_GM_productionMap[t_leftStr].pdnRights.append(t_cddList);//加入调
+            for(const auto &t_cWord: t_cddList)//对每一条候选式单词
             {
-                QList<QString> t_candidateCharV=t_candidateStr.split(' ');
-                m_GM_productionMap[t_productionL].pdnRights.push_back(t_candidateCharV);//加入一条候选式
-
-                for(const auto &t_cChar:t_candidateCharV)                    
-                    if(!m_nonTmrSet.contains(t_cChar))
-                        m_tmrSet.insert(t_cChar);//右部如果不是非终结符，则全部当成终结符加入
+                    if(!m_nonTmrSet.contains(t_cWord))
+                        m_tmrSet.insert(t_cWord);//右部如果不是非终结符，则全部当成终结符加入
 
             }
         }
     }
+
+
 }
 
 
@@ -100,7 +102,7 @@ void BNFP::simplifyGrammar()
     while(changedFlag)
     {
         changedFlag=false;
-        for(const auto& t_RneNonTmr: t_reachNoEndSet)//暂时可达不可终止非终结符
+        for(const auto &t_RneNonTmr: t_reachNoEndSet)//暂时可达不可终止非终结符
         {
             //遍历该产生式的所有候选式
             for (const auto &t_candidateList : m_GM_productionMap[t_RneNonTmr].pdnRights)

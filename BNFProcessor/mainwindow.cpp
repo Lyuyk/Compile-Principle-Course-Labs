@@ -98,12 +98,12 @@ void MainWindow::on_pushButton_open_clicked()
     while(!textInput.atEnd())
     {
         line=textInput.readLine().toUtf8();//按行读取文件
-        m_grammarStr.append(line.trimmed());
-        ui->plainTextEdit_edit->insertPlainText(line+'\n');//一行行显示
-        m_grammarStr+=line;//初始化GrammarStr
+        m_grammarStr.append(line.trimmed()+'\n');
+        ui->plainTextEdit_edit->appendPlainText(line);//一行行显示
     }
     printConsole("读取完成...");
     srcFile.close();
+    //qDebug()<<m_grammarStr;
 }
 
 /**
@@ -224,3 +224,10 @@ void MainWindow::on_pushButton_clearConsole_clicked()
 {
     ui->plainTextEdit_console->clear();
 }
+
+void MainWindow::on_pushButton_LL1_clicked()
+{
+    BNFProcessor.constructLL1ParsingTable();
+    BNFProcessor.printLL1ParsingTable(ui->tableWidget_LL1);
+}
+

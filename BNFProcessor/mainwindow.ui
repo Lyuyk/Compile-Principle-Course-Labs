@@ -190,7 +190,7 @@
        </property>
        <property name="font">
         <font>
-         <family>JetBrains Mono</family>
+         <family>JetBrains Mono NL</family>
          <pointsize>10</pointsize>
         </font>
        </property>
@@ -226,7 +226,7 @@
         </property>
         <property name="font">
          <font>
-          <family>JetBrains Mono</family>
+          <family>JetBrains Mono NL</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -258,7 +258,7 @@
         </property>
         <property name="font">
          <font>
-          <family>JetBrains Mono</family>
+          <family>JetBrains Mono NL</family>
           <pointsize>10</pointsize>
          </font>
         </property>
@@ -376,6 +376,12 @@
          <height>591</height>
         </rect>
        </property>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono NL</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_CST">
@@ -391,6 +397,12 @@
          <height>591</height>
         </rect>
        </property>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono NL</family>
+         <pointsize>10</pointsize>
+        </font>
+       </property>
        <column>
         <property name="text">
          <string notr="true">1</string>
@@ -405,6 +417,12 @@
          <width>341</width>
          <height>591</height>
         </rect>
+       </property>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono NL</family>
+         <pointsize>10</pointsize>
+        </font>
        </property>
       </widget>
      </widget>
