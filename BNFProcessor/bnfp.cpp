@@ -426,9 +426,9 @@ void BNFP::eliminateLCommonFactor()
     while(Flag&&rcFlag--)
     {
         Flag=0;
-        QMap<QString,QSet<QStringList>> delSet={};
-        QMap<QString,QSet<QStringList>> appendSet={};
-        QMap<QString,QVector<QStringList>> newSet={};
+        QMap<QString,QSet<QStringList>> deletedSetMap={};//记录非终结符要被移除的候选式
+        QMap<QString,QSet<QStringList>> appendSet={};//
+        QMap<QString,QVector<QStringList>> t_newProductionMap={};//新构造的产生式映射
         //遍历完再删 否则容易导致越界
         for(int i=0;i<t_nTSetSize;i++)//遍历所有产生式
         {
@@ -448,53 +448,54 @@ void BNFP::eliminateLCommonFactor()
             //若整个右部都被提取
             if(t_eCddList.count()>1 && t_eCddList.count()==m_GM_productionMap[t_curNonTmr].pdnRights.size())
             {
-                int cnt=1;
-                lFactorCount(t_eCddList,t_curCddList,cnt);//记录最长左公因子个数
-                for(const auto &del: t_eCddList)
+                int t_lFCount=1;
+                lFactorCount(t_eCddList,t_curCddList,t_lFCount);//记录最长左公因子个数
+                for(const auto &t_delECdd: t_eCddList)
                 {
-                    QStringList delTmp=del;
-                    delSet[t_curNonTmr].insert(delTmp);
+                    QStringList t_tdelECdd=t_delECdd;
+                    deletedSetMap[t_curNonTmr].insert(t_tdelECdd);//记录将被移除的候选式
                 }
-                for(const QStringList& STR: t_eCddList)
+                for(const auto &t_eCdd: t_eCddList)
                 {
                     //形成新产生式的右部
-                    t_eCddList.removeOne(STR);
-                    if(cnt!=STR.size())
-                        t_eCddList.append(STR.mid(cnt));
+                    t_eCddList.removeOne(t_eCdd);//一条条更新候选式
+                    if(t_lFCount != t_eCdd.size())
+                        t_eCddList.append(t_eCdd.mid(t_lFCount));
                     else if(!t_eCddList.contains({"@"}))
                         t_eCddList.append({"@"});
                 }
                 //给新的产生式赋值
                 QString left=getNewTmr(t_curNonTmr);//申请新的非终结符
-                newSet[left]=t_eCddList.toVector();
+                t_newProductionMap[left]=t_eCddList.toVector();
 
                 //将化简后的候选式加入该产生式
-                QStringList leftFactor=t_curCddList.mid(0,cnt);
+                QStringList leftFactor=t_curCddList.mid(0,t_lFCount);
                 leftFactor.append(left);
 
                 appendSet[t_curNonTmr].insert(leftFactor);
             }
 
-            if(delSet.size()||appendSet.size()||newSet.size())
-                Flag=1;
+            if(deletedSetMap.size()||appendSet.size()||t_newProductionMap.size())
+                Flag=true;
         }
 
-        for(const QString &s: delSet.keys())
-            for(const QStringList& delTmp: delSet[s])
-                m_GM_productionMap[s].pdnRights.removeOne(delTmp);
+        for(const auto& nTmr: deletedSetMap.keys())
+            for(const auto& delCdd: deletedSetMap[nTmr])
+                m_GM_productionMap[nTmr].pdnRights.removeOne(delCdd);//移除候选式
 
-        for(const QString &s: appendSet.keys())
-            for(const QStringList& appendTmp: appendSet[s])
-                m_GM_productionMap[s].pdnRights.append(appendTmp);
+        for(const auto& nTmr: appendSet.keys())
+            for(const auto& appendTmp: appendSet[nTmr])
+                m_GM_productionMap[nTmr].pdnRights.append(appendTmp);//增添候选式
 
-        for(const QString &left: newSet.keys())
+        for(const auto& left: t_newProductionMap.keys())
         {
             m_nonTmrSet.append(left);
-            m_GM_productionMap[left].pdnRights=newSet[left];
+            m_GM_productionMap[left].pdnRights=t_newProductionMap[left];//增添新候选式
         }
 
-        delSet.clear();
+        deletedSetMap.clear();
         appendSet.clear();
+
         for(int i=0;i<t_nTSetSize;i++)
         {
             QString s=m_nonTmrSet.at(i);
@@ -515,23 +516,22 @@ void BNFP::eliminateLCommonFactor()
                             appendSet[s].insert(ts+Ts.mid(1));
                         }
 
-                        //delSet.insert(del);
-                        delSet[s].insert(del);
+                        deletedSetMap[s].insert(del);
                     }
-                    else if(tmp=="@"&&Ts.size()>1)
+                    else if(tmp=="@"&& Ts.size()>1)
                     {
                         QStringList del=Ts;
                         appendSet[s].insert(Ts.mid(1));
-                        delSet[s].insert(del);
+                        deletedSetMap[s].insert(del);
                     }
                 }
             }
-            if(delSet.size()||appendSet.size())
-                Flag=1;
+            if(deletedSetMap.size()||appendSet.size())
+                Flag=true;
         }
 
-        for(const QString &s: delSet.keys())
-            for(const QStringList& delTmp: delSet[s])
+        for(const QString &s: deletedSetMap.keys())
+            for(const QStringList& delTmp: deletedSetMap[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
 
         for(QString s: appendSet.keys())
@@ -771,8 +771,11 @@ void BNFP::constructLL1ParsingTable()
     }
 }
 
-void BNFP::LL1Parsing(QTreeWidget *tree)
+void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr)
 {
+    m_lexPrgStr=progStr;
+    decodeLex();//解码源程序
+
 
 }
 
