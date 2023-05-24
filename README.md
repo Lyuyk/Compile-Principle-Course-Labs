@@ -45,7 +45,7 @@ Contains the following 3 tasks ( 2023-Spring )
   - [x] Simplify the grammar (Presented in table form)
   - [x] Eliminate the left recursion & left common factor (Presented in table form)
   - [x] Solve the first set & follow set (Presented in table forms)
-  - [ ] Construct LL(1) analysis table (Presented in table form)
+  - [x] Construct LL(1) analysis table (Presented in table form)
   - [ ] Use LL(1) for (TINY Language’s) syntax analysis & then generate a syntax tree (Presented in tree form)
   
 - [ ] Task3: Use mini-C Language’s  to test
