@@ -226,8 +226,6 @@ void MainWindow::on_pushButton_set_clicked()
 }
 
 
-
-
 void MainWindow::on_pushButton_clearConsole_clicked()
 {
     ui->plainTextEdit_console->clear();
@@ -237,5 +235,30 @@ void MainWindow::on_pushButton_LL1_clicked()
 {
     BNFProcessor.constructLL1ParsingTable();
     BNFProcessor.printLL1ParsingTable(ui->tableWidget_LL1);
+}
+
+
+void MainWindow::on_pushButton_clearAll_clicked()
+{
+    BNFProcessor.init();
+    m_grammarStr.clear();
+
+    ui->plainTextEdit_edit->clear();
+    ui->plainTextEdit_leftRecursion->clear();
+    ui->plainTextEdit_leftCommonFactor->clear();
+    ui->tableWidget_LL1->clear();
+    ui->tableWidget_firstSet->clear();
+    ui->tableWidget_followSet->clear();
+    ui->tableWidget_firstSet->setRowCount(0);
+    ui->tableWidget_followSet->setRowCount(0);
+    ui->tableWidget_LL1->setRowCount(0);
+    ui->tableWidget_LL1->setColumnCount(0);
+
+    ui->tabWidget->setCurrentIndex(0);
+
+    ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
+    ui->pushButton_eliminateLeftRecursion->setDisabled(true);
+    ui->pushButton_set->setDisabled(true);
+    ui->pushButton_LL1->setDisabled(true);
 }
 

@@ -62,6 +62,8 @@ private slots:
 
     void on_pushButton_clearConsole_clicked();//清空输出台
 
+    void on_pushButton_clearAll_clicked();
+
 private:
     void exit();
     void printConsole(QString content);//控制台输出
