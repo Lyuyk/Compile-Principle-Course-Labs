@@ -48,6 +48,7 @@ void BNFP::initGrammar(QString s)
 {
     init();
 
+    s.chop(1);
     QStringList t_pdnList = s.split("\n");//分割出一条条产生式
 
 
@@ -63,30 +64,28 @@ void BNFP::initGrammar(QString s)
         m_nonTmrSet.append(t_pdnL);
     }
 
-    for(const auto t_line: t_pdnList)
+    for(const auto &t_line: t_pdnList)
     {
-        if(t_line.isEmpty())continue;
-        QString t_leftStr=t_line.split("->")[0];//左部
-        QString t_rightStr=t_line.split("->")[1];//右部字符串
+        if(t_line.isEmpty())continue;//去掉空行
+        QString t_leftStr=t_line.split("->")[0].trimmed();//左部
+        QString t_rightStr=t_line.split("->")[1].trimmed();//右部字符串
         QStringList t_candidateList=t_rightStr.split('|');//暂存储右部列表
 
-        qDebug()<<t_leftStr;
+        qDebug()<<"t_leftStr:"<<t_leftStr;
         //遍历右部每一条候选式字符串
         for(const auto &t_cddStr: t_candidateList)
         {
             QList<QString> t_cddList=t_cddStr.trimmed().split(' ');//每一个单词分开
+            qDebug()<<"t_cddList:"<<t_cddList;
 
             m_GM_productionMap[t_leftStr].pdnRights.append(t_cddList);//加入调
             for(const auto &t_cWord: t_cddList)//对每一条候选式单词
             {
                     if(!m_nonTmrSet.contains(t_cWord))
                         m_tmrSet.insert(t_cWord);//右部如果不是非终结符，则全部当成终结符加入
-
             }
         }
     }
-
-
 }
 
 
@@ -98,15 +97,17 @@ void BNFP::simplifyGrammar()
 {
     bool changedFlag=true;//用于判断文法中的产生式是否有变化
     QSet<QString> t_reachNoEndSet={m_startChar};//暂时可到达但不可终止的非终结符
-    QSet<QString> t_reachEndSet;//可终止且可到达的非终结符
+    QSet<QString> t_reachEndSet={};//可终止且可到达的非终结符
     while(changedFlag)
     {
         changedFlag=false;
-        for(const auto &t_RneNonTmr: t_reachNoEndSet)//暂时可达不可终止非终结符
+        foreach(const QString &t_RneNonTmr, t_reachNoEndSet)//暂时可达不可终止非终结符
         {
+            qDebug()<<"t_RneNonTmr:"<<t_RneNonTmr;
             //遍历该产生式的所有候选式
-            for (const auto &t_candidateList : m_GM_productionMap[t_RneNonTmr].pdnRights)
+            for(const QStringList &t_candidateList : m_GM_productionMap[t_RneNonTmr].pdnRights)
             {
+                //qDebug()<<t_RneNonTmr;
                 bool allEndFlag=true;//当前候选式中的所有字符是否可终止标志
                 //遍历该候选式中的每个单词
                 for(const auto &t_cWord: t_candidateList)
@@ -122,8 +123,10 @@ void BNFP::simplifyGrammar()
                         }
                     }
                 }
+
                 if(allEndFlag)
                 {
+
                     //若候选式中所有单词都可达且可终止，则将当前非终结符移至 可达可终止集合
                     t_reachEndSet.insert(t_RneNonTmr);
                     t_reachNoEndSet.remove(t_RneNonTmr);
@@ -429,8 +432,8 @@ void BNFP::eliminateLCommonFactor()
     {
         Flag=0;
         QMap<QString,QSet<QStringList>> deletedSetMap={};//记录非终结符要被移除的候选式
-        QMap<QString,QSet<QStringList>> appendSet={};//
-        QMap<QString,QVector<QStringList>> t_newProductionMap={};//新构造的产生式映射
+        QMap<QString,QSet<QStringList>> appendSetMap={};//记录要恢复的候选式
+        QMap<QString,QVector<QStringList>> t_newPdnMap={};//新构造的产生式映射
         //遍历完再删 否则容易导致越界
         for(int i=0;i<t_nTSetSize;i++)//遍历所有产生式
         {
@@ -457,7 +460,7 @@ void BNFP::eliminateLCommonFactor()
                     QStringList t_tdelECdd=t_delECdd;
                     deletedSetMap[t_curNonTmr].insert(t_tdelECdd);//记录将被移除的候选式
                 }
-                for(const auto &t_eCdd: t_eCddList)
+                foreach(const auto &t_eCdd, t_eCddList)
                 {
                     //形成新产生式的右部
                     t_eCddList.removeOne(t_eCdd);//一条条更新候选式
@@ -468,16 +471,16 @@ void BNFP::eliminateLCommonFactor()
                 }
                 //给新的产生式赋值
                 QString left=getNewTmr(t_curNonTmr);//申请新的非终结符
-                t_newProductionMap[left]=t_eCddList.toVector();
+                t_newPdnMap[left]=t_eCddList.toVector();
 
                 //将化简后的候选式加入该产生式
                 QStringList leftFactor=t_curCddList.mid(0,t_lFCount);
                 leftFactor.append(left);
 
-                appendSet[t_curNonTmr].insert(leftFactor);
+                appendSetMap[t_curNonTmr].insert(leftFactor);
             }
 
-            if(deletedSetMap.size()||appendSet.size()||t_newProductionMap.size())
+            if(deletedSetMap.size()||appendSetMap.size()||t_newPdnMap.size())
                 Flag=true;
         }
 
@@ -485,18 +488,18 @@ void BNFP::eliminateLCommonFactor()
             for(const auto& delCdd: deletedSetMap[nTmr])
                 m_GM_productionMap[nTmr].pdnRights.removeOne(delCdd);//移除候选式
 
-        for(const auto& nTmr: appendSet.keys())
-            for(const auto& appendTmp: appendSet[nTmr])
+        for(const auto& nTmr: appendSetMap.keys())
+            for(const auto& appendTmp: appendSetMap[nTmr])
                 m_GM_productionMap[nTmr].pdnRights.append(appendTmp);//增添候选式
 
-        for(const auto& left: t_newProductionMap.keys())
+        for(const auto& left: t_newPdnMap.keys())
         {
             m_nonTmrSet.append(left);
-            m_GM_productionMap[left].pdnRights=t_newProductionMap[left];//增添新候选式
+            m_GM_productionMap[left].pdnRights=t_newPdnMap[left];//增添新候选式
         }
 
         deletedSetMap.clear();
-        appendSet.clear();
+        appendSetMap.clear();
 
         for(int i=0;i<t_nTSetSize;i++)
         {
@@ -515,7 +518,7 @@ void BNFP::eliminateLCommonFactor()
                         {
                             QStringList ts=m_GM_productionMap[tmp].pdnRights.at(k);
 
-                            appendSet[s].insert(ts+Ts.mid(1));
+                            appendSetMap[s].insert(ts+Ts.mid(1));
                         }
 
                         deletedSetMap[s].insert(del);
@@ -523,12 +526,12 @@ void BNFP::eliminateLCommonFactor()
                     else if(tmp=="@"&& Ts.size()>1)
                     {
                         QStringList del=Ts;
-                        appendSet[s].insert(Ts.mid(1));
+                        appendSetMap[s].insert(Ts.mid(1));
                         deletedSetMap[s].insert(del);
                     }
                 }
             }
-            if(deletedSetMap.size()||appendSet.size())
+            if(deletedSetMap.size()||appendSetMap.size())
                 Flag=true;
         }
 
@@ -536,8 +539,8 @@ void BNFP::eliminateLCommonFactor()
             for(const QStringList& delTmp: deletedSetMap[s])
                 m_GM_productionMap[s].pdnRights.removeOne(delTmp);
 
-        for(QString s: appendSet.keys())
-            for(const QStringList& appendTmp: appendSet[s])
+        for(QString s: appendSetMap.keys())
+            for(const QStringList& appendTmp: appendSetMap[s])
                 m_GM_productionMap[s].pdnRights.append(appendTmp);
     }
 

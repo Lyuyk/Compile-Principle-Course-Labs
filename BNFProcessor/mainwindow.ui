@@ -87,7 +87,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>0</number>
+      <number>3</number>
      </property>
      <widget class="QWidget" name="tab_edit">
       <attribute name="title">
@@ -185,7 +185,7 @@
          <x>10</x>
          <y>10</y>
          <width>851</width>
-         <height>581</height>
+         <height>591</height>
         </rect>
        </property>
        <property name="font">
@@ -201,97 +201,74 @@
      </widget>
      <widget class="QWidget" name="tab_check">
       <attribute name="title">
-       <string>文法检查</string>
+       <string>消除左递归</string>
       </attribute>
-      <widget class="QGroupBox" name="groupBox_leftCommonFactor">
+      <widget class="QPlainTextEdit" name="plainTextEdit_leftRecursion">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>10</y>
-         <width>421</width>
-         <height>581</height>
+         <width>851</width>
+         <height>591</height>
         </rect>
        </property>
-       <property name="title">
-        <string>消除左公因子</string>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono NL</family>
+         <pointsize>10</pointsize>
+        </font>
        </property>
-       <widget class="QPlainTextEdit" name="plainTextEdit_leftCommonFactor">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>40</y>
-          <width>401</width>
-          <height>531</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>JetBrains Mono NL</family>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
-      <widget class="QGroupBox" name="groupBox_leftRecursion">
+     </widget>
+     <widget class="QWidget" name="tab">
+      <attribute name="title">
+       <string>提取左公因子</string>
+      </attribute>
+      <widget class="QPlainTextEdit" name="plainTextEdit_leftCommonFactor">
        <property name="geometry">
         <rect>
-         <x>440</x>
+         <x>10</x>
          <y>10</y>
-         <width>421</width>
-         <height>581</height>
+         <width>851</width>
+         <height>591</height>
         </rect>
        </property>
-       <property name="title">
-        <string>消除左递归</string>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono NL</family>
+         <pointsize>10</pointsize>
+        </font>
        </property>
-       <widget class="QPlainTextEdit" name="plainTextEdit_leftRecursion">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>40</y>
-          <width>401</width>
-          <height>531</height>
-         </rect>
-        </property>
-        <property name="font">
-         <font>
-          <family>JetBrains Mono NL</family>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="readOnly">
-         <bool>true</bool>
-        </property>
-       </widget>
+       <property name="readOnly">
+        <bool>true</bool>
+       </property>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_first">
       <attribute name="title">
-       <string>集合</string>
+       <string>First集</string>
       </attribute>
-      <widget class="QGroupBox" name="groupBox">
+      <widget class="QTableWidget" name="tableWidget_firstSet">
        <property name="geometry">
         <rect>
          <x>10</x>
          <y>10</y>
-         <width>421</width>
-         <height>581</height>
+         <width>851</width>
+         <height>591</height>
         </rect>
        </property>
-       <property name="title">
-        <string>First集合</string>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono</family>
+         <pointsize>10</pointsize>
+        </font>
        </property>
-       <widget class="QTableWidget" name="tableWidget_firstSet">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>40</y>
-          <width>401</width>
-          <height>531</height>
-         </rect>
+       <column>
+        <property name="text">
+         <string>符号</string>
         </property>
         <property name="font">
          <font>
@@ -299,68 +276,49 @@
           <pointsize>10</pointsize>
          </font>
         </property>
-        <column>
-         <property name="text">
-          <string>符号</string>
-         </property>
-         <property name="font">
-          <font>
-           <family>JetBrains Mono</family>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>集合</string>
-         </property>
-         <property name="font">
-          <font>
-           <family>JetBrains Mono</family>
-           <pointsize>10</pointsize>
-          </font>
-         </property>
-        </column>
-       </widget>
+       </column>
+       <column>
+        <property name="text">
+         <string>集合</string>
+        </property>
+        <property name="font">
+         <font>
+          <family>JetBrains Mono</family>
+          <pointsize>10</pointsize>
+         </font>
+        </property>
+       </column>
       </widget>
-      <widget class="QGroupBox" name="groupBox_2">
+     </widget>
+     <widget class="QWidget" name="tab_2">
+      <attribute name="title">
+       <string>Follow集</string>
+      </attribute>
+      <widget class="QTableWidget" name="tableWidget_followSet">
        <property name="geometry">
         <rect>
-         <x>440</x>
+         <x>10</x>
          <y>10</y>
-         <width>421</width>
-         <height>581</height>
+         <width>851</width>
+         <height>591</height>
         </rect>
        </property>
-       <property name="title">
-        <string>Follow集合</string>
+       <property name="font">
+        <font>
+         <family>JetBrains Mono</family>
+         <pointsize>10</pointsize>
+        </font>
        </property>
-       <widget class="QTableWidget" name="tableWidget_followSet">
-        <property name="geometry">
-         <rect>
-          <x>10</x>
-          <y>40</y>
-          <width>401</width>
-          <height>531</height>
-         </rect>
+       <column>
+        <property name="text">
+         <string>符号</string>
         </property>
-        <property name="font">
-         <font>
-          <family>JetBrains Mono</family>
-          <pointsize>10</pointsize>
-         </font>
+       </column>
+       <column>
+        <property name="text">
+         <string>集合</string>
         </property>
-        <column>
-         <property name="text">
-          <string>符号</string>
-         </property>
-        </column>
-        <column>
-         <property name="text">
-          <string>集合</string>
-         </property>
-        </column>
-       </widget>
+       </column>
       </widget>
      </widget>
      <widget class="QWidget" name="tab_LL1">

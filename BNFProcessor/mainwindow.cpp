@@ -40,6 +40,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
+    ui->pushButton_LL1->setDisabled(true);
 
     /*菜单栏与槽函数连接*/
     connect(ui->action_exit, &QAction::triggered, this, &MainWindow::exit);
@@ -71,7 +72,7 @@ void MainWindow::exit()
  */
 void MainWindow::printConsole(QString content)
 {
-    QString time=QDateTime::currentDateTime().toString("[ hh:mm:ss.zzz ]");
+    QString time=QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
 
     ui->plainTextEdit_console->insertPlainText(time+content+'\n');
 }
@@ -103,7 +104,7 @@ void MainWindow::on_pushButton_open_clicked()
     }
     printConsole("读取完成...");
     srcFile.close();
-    //qDebug()<<m_grammarStr;
+    //qDebug()<<ui->plainTextEdit_edit->toPlainText();
 }
 
 /**
@@ -158,6 +159,22 @@ void MainWindow::on_pushButton_process_clicked()
 }
 
 /**
+ * @brief MainWindow::on_pushButton_simplify_clicked
+ * 文法化简槽函数
+ */
+void MainWindow::on_pushButton_simplify_clicked()
+{
+    BNFProcessor.initGrammar(m_grammarStr);
+    BNFProcessor.simplifyGrammar();
+    BNFProcessor.printGrammar(ui->plainTextEdit_simplified);
+    ui->tabWidget->setCurrentIndex(1);
+
+    ui->pushButton_eliminateLeftRecursion->setEnabled(true);
+    ui->pushButton_set->setEnabled(true);
+
+}
+
+/**
  * @brief MainWindow::on_pushButton_eliminateLeftRecursion_clicked
  * 消除左递归槽函数
  */
@@ -191,7 +208,7 @@ void MainWindow::on_pushButton_eliminateLeftCommonFactor_clicked()
     BNFProcessor.printGrammar(ui->plainTextEdit_leftCommonFactor);
     printConsole("输出处理结果...");
 
-    ui->tabWidget->setCurrentIndex(2);
+    ui->tabWidget->setCurrentIndex(3);
 }
 
 /**
@@ -203,21 +220,12 @@ void MainWindow::on_pushButton_set_clicked()
     BNFProcessor.firstNFollowSet();
     BNFProcessor.printSet(ui->tableWidget_firstSet,true);
     BNFProcessor.printSet(ui->tableWidget_followSet,false);
+
+    ui->tabWidget->setCurrentIndex(4);
+    ui->pushButton_LL1->setEnabled(true);
 }
 
-/**
- * @brief MainWindow::on_pushButton_simplify_clicked
- * 文法化简槽函数
- */
-void MainWindow::on_pushButton_simplify_clicked()
-{
-    BNFProcessor.initGrammar(m_grammarStr);
-    BNFProcessor.simplifyGrammar();
-    BNFProcessor.printGrammar(ui->plainTextEdit_simplified);
-    ui->pushButton_eliminateLeftRecursion->setEnabled(true);
-    ui->pushButton_set->setEnabled(true);
 
-}
 
 
 void MainWindow::on_pushButton_clearConsole_clicked()
