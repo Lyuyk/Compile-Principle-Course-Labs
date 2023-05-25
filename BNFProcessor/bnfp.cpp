@@ -438,50 +438,60 @@ void BNFP::eliminateLCommonFactor()
         for(int i=0;i<t_nTSetSize;i++)//遍历所有产生式
         {
             QString t_curNonTmr=m_nonTmrSet.at(i);//当前非终结符
-            QStringList t_curCddList=m_GM_productionMap[t_curNonTmr].pdnRights.at(0);//当前非终结符第一条候选式
-            QString t_curCddPrefix=t_curCddList.at(0);//（公共前缀？）当前非终结符第一条候选式的第一个单词
             QList<QStringList> t_eCddList={};//记录被提取的候选式
+            QSet<QString> ePrefix={};//记录已被提取的左公因子
 
-            //遍历当前非终结符对应的候选式
             for(int j=0;j<m_GM_productionMap[t_curNonTmr].pdnRights.size();j++)
             {
-                QStringList t_cdd=m_GM_productionMap[t_curNonTmr].pdnRights.at(j);
-                if(t_cdd.at(0)==t_curCddPrefix)//判断该候选式是否有相同左公因子
-                    t_eCddList.append(t_cdd);//有就放入提取列表
+                if(ePrefix.contains(m_GM_productionMap[t_curNonTmr].pdnRights.at(j).at(0)))//若前缀已被提取过，下次不从这里开始
+                    continue;
+                QStringList t_curCddList=m_GM_productionMap[t_curNonTmr].pdnRights.at(j);//当前非终结符第j条候选式
+                QString t_curCddPrefix=t_curCddList.at(0);//（公共前缀？）当前非终结符第一条候选式的第一个单词
+
+
+                //遍历当前非终结符对应的候选式
+                for(int k=j+1;k<m_GM_productionMap[t_curNonTmr].pdnRights.size();k++)
+                {
+                    QStringList t_cdd=m_GM_productionMap[t_curNonTmr].pdnRights.at(k);
+                    if(t_cdd.at(0)==t_curCddPrefix)//判断该候选式是否有相同左公因子
+                        t_eCddList.append(t_cdd);//有就放入提取列表
+                }
+
+                //不一定需要整个右部都被提取，有两条及以上就可以了
+                if(t_eCddList.count()>1)
+                {
+                    ePrefix.insert(t_curCddPrefix);//记录本次提取前缀
+                    int t_lFCount=1;
+                    lFactorCount(t_eCddList,t_curCddList,t_lFCount);//记录最长左公因子个数
+                    for(const auto &t_delECdd: t_eCddList)
+                    {
+                        QStringList t_tdelECdd=t_delECdd;
+                        deletedSetMap[t_curNonTmr].insert(t_tdelECdd);//记录将被移除的候选式
+                    }
+                    foreach(const auto &t_eCdd, t_eCddList)
+                    {
+                        //形成新产生式的右部
+                        t_eCddList.removeOne(t_eCdd);//一条条更新候选式
+                        if(t_lFCount != t_eCdd.size())
+                            t_eCddList.append(t_eCdd.mid(t_lFCount));
+                        else if(!t_eCddList.contains({"@"}))
+                            t_eCddList.append({"@"});
+                    }
+                    //给新的产生式赋值
+                    QString left=getNewTmr(t_curNonTmr);//申请新的非终结符
+                    t_newPdnMap[left]=t_eCddList.toVector();
+
+                    //将化简后的候选式加入该产生式
+                    QStringList leftFactor=t_curCddList.mid(0,t_lFCount);
+                    leftFactor.append(left);//拼接
+
+                    appendSetMap[t_curNonTmr].insert(leftFactor);
+                }
+
+                if(deletedSetMap.size()||appendSetMap.size()||t_newPdnMap.size())
+                    Flag=true;
             }
 
-            //若整个右部都被提取
-            if(t_eCddList.count()>1 && t_eCddList.count()==m_GM_productionMap[t_curNonTmr].pdnRights.size())
-            {
-                int t_lFCount=1;
-                lFactorCount(t_eCddList,t_curCddList,t_lFCount);//记录最长左公因子个数
-                for(const auto &t_delECdd: t_eCddList)
-                {
-                    QStringList t_tdelECdd=t_delECdd;
-                    deletedSetMap[t_curNonTmr].insert(t_tdelECdd);//记录将被移除的候选式
-                }
-                foreach(const auto &t_eCdd, t_eCddList)
-                {
-                    //形成新产生式的右部
-                    t_eCddList.removeOne(t_eCdd);//一条条更新候选式
-                    if(t_lFCount != t_eCdd.size())
-                        t_eCddList.append(t_eCdd.mid(t_lFCount));
-                    else if(!t_eCddList.contains({"@"}))
-                        t_eCddList.append({"@"});
-                }
-                //给新的产生式赋值
-                QString left=getNewTmr(t_curNonTmr);//申请新的非终结符
-                t_newPdnMap[left]=t_eCddList.toVector();
-
-                //将化简后的候选式加入该产生式
-                QStringList leftFactor=t_curCddList.mid(0,t_lFCount);
-                leftFactor.append(left);
-
-                appendSetMap[t_curNonTmr].insert(leftFactor);
-            }
-
-            if(deletedSetMap.size()||appendSetMap.size()||t_newPdnMap.size())
-                Flag=true;
         }
 
         for(const auto& nTmr: deletedSetMap.keys())
@@ -540,9 +550,11 @@ void BNFP::eliminateLCommonFactor()
             for(const QStringList& delTmp: deletedSetMap[delKey])
                 m_GM_productionMap[delKey].pdnRights.removeOne(delTmp);
 
-        for(QString s: appendSetMap.keys())
-            for(const QStringList& appendTmp: appendSetMap[s])
-                m_GM_productionMap[s].pdnRights.append(appendTmp);
+        for(QString &t_cdd: appendSetMap.keys())
+            for(const QStringList& appendTmp: appendSetMap[t_cdd])
+            {
+                m_GM_productionMap[t_cdd].pdnRights.append(appendTmp);
+            }
     }
 
 
