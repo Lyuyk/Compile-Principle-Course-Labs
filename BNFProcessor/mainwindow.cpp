@@ -75,7 +75,7 @@ void MainWindow::printConsole(QString content)
 {
     QString time=QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
 
-    ui->plainTextEdit_console->insertPlainText(time+content+'\n');
+    ui->plainTextEdit_console->appendPlainText(time+content);
 }
 
 
@@ -273,8 +273,9 @@ void MainWindow::on_pushButton_clearAll_clicked()
 
 void MainWindow::on_pushButton_CST_clicked()
 {
+    QString language=ui->comboBox_language->currentText();
     QString srcProg=ui->plainTextEdit_CST->toPlainText();
-    BNFProcessor.LL1Parsing(ui->treeWidget_CST,srcProg);
+    BNFProcessor.LL1Parsing(ui->treeWidget_CST,srcProg,ui->plainTextEdit_console);
 
     ui->tabWidget->setCurrentIndex(7);
     printConsole("语法分析完成");

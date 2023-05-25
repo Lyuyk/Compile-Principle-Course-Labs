@@ -252,7 +252,7 @@ void BNFP::printLL1ParsingTable(QTableWidget *table)
     table->setColumnCount(m_tmrSet.size()+2);//列数：空、终结符、结束符
 
     QStringList headerList=m_tmrSet.values();//终结符
-    headerList.push_front("");
+    headerList.push_front("M[N,T]");
     headerList.push_back("$");//结束符号
     table->setHorizontalHeaderLabels(headerList);
 
@@ -438,7 +438,7 @@ void BNFP::decodeLex()
             }
         }
     }
-    m_programCode.append("#");//规定结束符为#
+    m_programCode.append("$");//规定结束符为$
 }
 
 /**
@@ -845,13 +845,60 @@ void BNFP::constructLL1ParsingTable()
     }
 }
 
-void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr)
+void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console)
 {
+    //分析、查表、替换 23重复直至结束或错误
     m_lexPrgStr=progStr;//保存lexProgStr
     decodeLex();//解码源程序
 
-    qDebug()<<m_programCode;
+    QStack<QString> parseStk, tokenStk;
+    parseStk.push("$");
+    parseStk.push(m_startChar);
 
 
+    for(int i = m_programCode.size()-1;i>=0;i--)
+        tokenStk.push(m_programCode.at(i));
+
+//    int idx=0;//Code Tokens index
+    int count=0;
+
+//    QString t_NTmr;//行（非终结符）
+//    QString t_Tmr;//列（终结符）
+    //QPair<QString, QString> pair;
+
+    while(parseStk.top()!="$" && tokenStk.top()!="$")
+    {
+        qDebug()<<count++;
+        if(m_tmrSet.contains(parseStk.top())&& tokenStk.top()==parseStk.top())
+        {
+            /*match*/
+            parseStk.pop();
+            tokenStk.pop();
+        }
+        else if(m_nonTmrSet.contains(parseStk.top())
+                && m_tmrSet.contains(tokenStk.top())
+                && !(m_LL1Table[parseStk.top()][tokenStk.top()]==""))
+        {
+            //gen
+            parseStk.pop();
+            //逆序压栈
+            qDebug()<<"tt";
+            qDebug()<<m_LL1Table[parseStk.top()][tokenStk.top()];
+            QStringList t_strList=m_LL1Table[parseStk.top()][tokenStk.top()].split(' ');
+            for(int i=t_strList.size()-1;i>0;i--)
+            {
+                parseStk.push(t_strList.at(i));
+            }
+        }
+        else
+        {
+            printInfo("语法有误(inWhile)",console);
+        }
+    }
+
+    if(parseStk.top()=="$" && tokenStk.top()=="$")
+        printInfo("语法通过",console);
+    else
+        printInfo("语法有误",console);
 }
 
