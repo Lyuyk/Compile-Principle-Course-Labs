@@ -858,19 +858,11 @@ QString NDFA::mDFA2Lexer(QString filePath)
              "#include<stdlib.h>\n"
              "#include<string.h>\n"
              "#include<ctype.h>\n"
+            "#include<set>"
              "#include<unordered_map>\n";
     //关键字映射map
-    lexCode+="std::unordered_map<std::string, unsigned char> map;\n";
-    //初始化关键字映射map
-    lexCode+="void mapInitialize(FILE* output_map_fp) {\n";
-    lexCode+="\tunsigned char value = 128;\n";
+    lexCode+="std::set<std::string> keywordSet={}\n";
 
-    for(const auto &tmp : keywordList)
-    {
-        lexCode+="\tmap[\""+tmp+"\"] = value;\n";
-        lexCode+="\tfprintf(output_map_fp, \"%s %c\\n\", \""+tmp+"\", value++);\n";
-    }
-    lexCode+="}\n";
     //生成分析代码
     lexCode+="void coding(FILE* input_fp,FILE* output_fp) {\n"
              "\tchar tmp = fgetc(input_fp);\n"
@@ -930,18 +922,28 @@ QString NDFA::mDFA2Lexer(QString filePath)
     }
     lexCode+="\t}\n";
 
-    //关键字Keywords，为适配解码增加Keyword:前缀
-    lexCode+="\tif (isIndentifier)\n"
-             "\tif (map[value] >= 128) {\n"
-             "\t\tfprintf(output_fp, \"Keyword:%c\", map[value]);\n"
-             "\t\tprintf(\"Keyword:%c\", map[value]);\n"
-             "\t\treturn;\n"
-             "\t}\n"
-             "\tif (!isAnnotation) {\n"
-             "\t\tfprintf(output_fp, value.c_str(), sizeof(value.c_str()));\n"
-             "\t\tprintf(value.c_str());\n"
-             "\t}\n"
-             "}\n";
+    //关键字Keywords，为适配解码增加Keyword:前缀，数字Digit:前缀，
+
+    lexCode+="\tif (keyWordSet.count(value)) {\n"
+            "\t\tfprintf(output_fp, \"Keyword:%s \", value.c_str());\n"
+            "\t\tprintf(\"Keyword:%s \", value.c_str());\n"
+            "\t\treturn;\n"
+            "\t}\n"
+            "\tif (isIdentifier) {\n"
+            "\t\tfprintf(output_fp, \"ID:%s \", value.c_str());\n"
+            "\t\tprintf(\"ID:%s \", value.c_str());\n"
+            "return;\n"
+            "\t}\n"
+            "\tif (isDigit) {\n"
+            "\t\tfprintf(output_fp, \"Digit:%s \", value.c_str());\n"
+            "\t\tprintf(\"Digit:%s \", value.c_str());\n"
+            "\t\treturn;\n"
+            "\t}\n"
+            "\tif (!isAnnotation) {\n"
+            "\t\tfprintf(output_fp, \"%s \", value.c_str());\n"
+            "\t\tprintf(\"%s \", value.c_str());\n"
+            "\t}\n"
+            "};\n";
 
     //主函数
     QFileInfo fileInfo(filePath);
@@ -953,24 +955,23 @@ QString NDFA::mDFA2Lexer(QString filePath)
              "\t\treturn 1;\n"
              "\t}\n";
 
-    lexCode+="\tFILE* output_fp = fopen(\""+t_tmpFilePath+"/output.txt"+"\", \"w\");\n"
+    lexCode+="\tFILE* output_fp = fopen(\""+t_tmpFilePath+"/output.lex"+"\", \"w\");\n"
              "\tif (output_fp == NULL) {\n"
              "\t\tprintf(\"Failed to open output file\");\n"
              "\t\tfclose(input_fp);\n"
              "\t\treturn 1;\n"
              "\t}\n";
 
-    lexCode+="\tFILE* output_map_fp = fopen(\""+t_tmpFilePath+"/output_map.txt"+"\", \"w\");\n"
-             "\tif (output_map_fp == NULL) {\n"
-             "\t\tprintf(\"Failed to open output_map file\");\n"
-             "\t\tfclose(input_fp);\n"
-             "\t\tfclose(output_fp);\n"
-             "\t\treturn 1;\n"
-             "\t}\n";
 
-    lexCode+="\tmapInitialize(output_map_fp);\n"
-             "\tfclose(output_map_fp);\n"
-             "\tchar c;\n"
+    lexCode+="keywordSet = { ";
+    for(const auto &tmp : keywordList)
+    {
+        lexCode+="\""+tmp+"\",";
+    }
+    lexCode.chop(1);
+    lexCode+=" }\n";
+
+    lexCode+="\tchar c;\n"
              "\twhile ((c=fgetc(input_fp)) != EOF) {\n"
              "\t\tungetc(c, input_fp);\n"
              "\t\tcoding(input_fp, output_fp);\n"

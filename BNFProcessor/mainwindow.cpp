@@ -235,6 +235,8 @@ void MainWindow::on_pushButton_LL1_clicked()
 {
     BNFProcessor.constructLL1ParsingTable();
     BNFProcessor.printLL1ParsingTable(ui->tableWidget_LL1);
+    ui->tabWidget->setCurrentIndex(6);
+    ui->pushButton_CST->setEnabled(true);
 }
 
 

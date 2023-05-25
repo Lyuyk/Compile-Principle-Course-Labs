@@ -53,7 +53,7 @@ void BNFP::initGrammar(QString s)
 
 
     m_startChar=t_pdnList[0].split("->")[0].trimmed();//开始符号，为第一条产生式左部
-    qDebug()<<"m_startChar:"<<m_startChar;
+    //qDebug()<<"m_startChar:"<<m_startChar;
 
     //扫描每一行，先存左部非终结符，方便后面判断
     for(const auto &t_line: t_pdnList)
@@ -71,12 +71,12 @@ void BNFP::initGrammar(QString s)
         QString t_rightStr=t_line.split("->")[1].trimmed();//右部字符串
         QStringList t_candidateList=t_rightStr.split('|');//暂存储右部列表
 
-        qDebug()<<"t_leftStr:"<<t_leftStr;
+        //qDebug()<<"t_leftStr:"<<t_leftStr;
         //遍历右部每一条候选式字符串
         for(const auto &t_cddStr: t_candidateList)
         {
             QList<QString> t_cddList=t_cddStr.trimmed().split(' ');//每一个单词分开
-            qDebug()<<"t_cddList:"<<t_cddList;
+            //qDebug()<<"t_cddList:"<<t_cddList;
 
             m_GM_productionMap[t_leftStr].pdnRights.append(t_cddList);//加入调
             for(const auto &t_cWord: t_cddList)//对每一条候选式单词
@@ -231,10 +231,10 @@ void BNFP::printSet(QTableWidget *table,bool isFirst)
     {
         for(int i=0;i<m_nonTmrSet.size();i++)
         {
-            QString setStr="{";
+            QString setStr="{ ";
             for(const auto &t_first: m_GM_productionMap[m_nonTmrSet[i]].followSet)
-                setStr+=t_first+",";
-            setStr+="}";
+                setStr+=t_first+" ";
+            setStr+=" }";
             table->setItem(i,1,new QTableWidgetItem(setStr));//集合
             table->setItem(i,0,new QTableWidgetItem(m_nonTmrSet[i]));//非终结符
         }
