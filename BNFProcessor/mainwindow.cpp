@@ -244,6 +244,7 @@ void MainWindow::on_pushButton_clearAll_clicked()
     m_grammarStr.clear();
 
     ui->plainTextEdit_edit->clear();
+    ui->plainTextEdit_simplified->clear();
     ui->plainTextEdit_leftRecursion->clear();
     ui->plainTextEdit_leftCommonFactor->clear();
     ui->tableWidget_LL1->clear();
@@ -260,5 +261,6 @@ void MainWindow::on_pushButton_clearAll_clicked()
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
+    printConsole("已复位");
 }
 

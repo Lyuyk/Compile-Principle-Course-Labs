@@ -17,7 +17,7 @@
    </font>
   </property>
   <property name="windowTitle">
-   <string>文法问题处理器 GPProcessor v1.0</string>
+   <string>文法问题处理器 BNFProcessor</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <widget class="QGroupBox" name="groupBox_console">
@@ -87,7 +87,7 @@
       </rect>
      </property>
      <property name="currentIndex">
-      <number>3</number>
+      <number>4</number>
      </property>
      <widget class="QWidget" name="tab_edit">
       <attribute name="title">

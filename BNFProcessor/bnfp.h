@@ -63,6 +63,7 @@ private:
 
     void lFactorCount(QList<QStringList> list,QStringList pdnR,int &count);//记录最长左公因子个数
     QString getNewTmr(QString curTmr);//申请新终结符
+    QString findL(QMap<QString,QVector<QStringList>> newSet,QList<QStringList> Temp);
 
     void computeFirstSet();//求解first与
     void computeFollowSet();//求解follow集合元素

@@ -883,6 +883,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
              "\tint state = "+QString::number(m_state)+";\n"
              "\tbool flag = false;\n"
              "\tbool isIndentifier = false;\n"
+            "\tbool isDigit = false;\n"
              "\tbool isAnnotation = false;\n"
              "\tstd::string value;\n"
              "\twhile (!flag) {\n"
@@ -930,7 +931,8 @@ QString NDFA::mDFA2Lexer(QString filePath)
     lexCode+="\t}\n";
 
     //关键字Keywords，为适配解码增加Keyword:前缀
-    lexCode+="\tif (isIndentifier)if (map[value] != 0) {\n"
+    lexCode+="\tif (isIndentifier)\n"
+             "\tif (map[value] >= 128) {\n"
              "\t\tfprintf(output_fp, \"Keyword:%c\", map[value]);\n"
              "\t\tprintf(\"Keyword:%c\", map[value]);\n"
              "\t\treturn;\n"
@@ -943,7 +945,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
 
     //主函数
     QFileInfo fileInfo(filePath);
-    m_tmpFilePath=fileInfo.path();
+    QString t_tmpFilePath=fileInfo.path();
     lexCode+="int main(int argc, char* argv[]) {\n"
              "\tFILE* input_fp = fopen(\""+filePath+"\", \"r\");\n"
              "\tif (input_fp == NULL) {\n"
@@ -951,14 +953,14 @@ QString NDFA::mDFA2Lexer(QString filePath)
              "\t\treturn 1;\n"
              "\t}\n";
 
-    lexCode+="\tFILE* output_fp = fopen(\""+m_tmpFilePath+"/output.txt"+"\", \"w\");\n"
+    lexCode+="\tFILE* output_fp = fopen(\""+t_tmpFilePath+"/output.txt"+"\", \"w\");\n"
              "\tif (output_fp == NULL) {\n"
              "\t\tprintf(\"Failed to open output file\");\n"
              "\t\tfclose(input_fp);\n"
              "\t\treturn 1;\n"
              "\t}\n";
 
-    lexCode+="\tFILE* output_map_fp = fopen(\""+m_tmpFilePath+"/output_map.txt"+"\", \"w\");\n"
+    lexCode+="\tFILE* output_map_fp = fopen(\""+t_tmpFilePath+"/output_map.txt"+"\", \"w\");\n"
              "\tif (output_map_fp == NULL) {\n"
              "\t\tprintf(\"Failed to open output_map file\");\n"
              "\t\tfclose(input_fp);\n"

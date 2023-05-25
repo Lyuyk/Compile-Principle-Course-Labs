@@ -209,15 +209,19 @@ void BNFP::printGrammar(QPlainTextEdit *e)
  */
 void BNFP::printSet(QTableWidget *table,bool isFirst)
 {
+    QStringList headerList={"符号","集合"};
     table->setRowCount(m_nonTmrSet.size());//行数
+    table->setColumnCount(2);
+    table->setHorizontalHeaderLabels(headerList);
+    table->horizontalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
     if(isFirst)
     {
         for(int i=0;i<m_nonTmrSet.size();i++)
         {
-            QString setStr="{";
+            QString setStr="{ ";
             for(const auto &t_first: m_GM_productionMap[m_nonTmrSet[i]].firstSet)
-                setStr+=t_first+",";
+                setStr+=t_first+" ";
             setStr+="}";
             table->setItem(i,1,new QTableWidgetItem(setStr));//集合
             table->setItem(i,0,new QTableWidgetItem(m_nonTmrSet[i]));//非终结符
@@ -368,6 +372,44 @@ QString BNFP::getNewTmr(QString curTmr)
 }
 
 /**
+ * @brief BNFP::findL
+ * @param newSet
+ * @param Temp
+ * @return
+ * 防止产生相同的候选式
+ */
+QString BNFP::findL(QMap<QString, QVector<QStringList> > newSet, QList<QStringList> Temp)
+{
+    QSet<QStringList> tempSet;
+    foreach(const auto& t, Temp)
+    {
+        tempSet.insert(t);
+    }
+    foreach(const auto& s, m_nonTmrSet)
+    {
+        QSet<QStringList> rTempSet;
+        foreach(const auto& t, m_GM_productionMap[s].pdnRights.toList())
+        {
+            rTempSet.insert(t);
+        }
+        if(rTempSet==tempSet)
+            return s;
+    }
+    foreach(QString left,newSet.keys())
+    {
+        QSet<QStringList> lTempSet;
+        foreach(const auto& t, newSet[left].toList())
+        {
+            lTempSet.insert(t);
+        }
+        if(lTempSet==tempSet)
+            return left;
+    }
+
+    return "";
+}
+
+/**
  * @brief BNFP::decodeLex
  * 解码词法分析程序输出的源程序代码
  */
@@ -411,7 +453,7 @@ void BNFP::lFactorCount(QList<QStringList> list, QStringList pdnR, int &count)
     int t_count=count+1;
     for(const auto& t_pdnR:list)
     {
-        if(t_count>t_pdnR.size() || t_pdnR.at(count)!=pdnR.at(count))
+        if(t_count>t_pdnR.size() || count>=pdnR.size()||t_pdnR.at(count)!=pdnR.at(count))
             return;
     }
     count=t_count;
@@ -425,24 +467,75 @@ void BNFP::lFactorCount(QList<QStringList> list, QStringList pdnR, int &count)
 void BNFP::eliminateLCommonFactor()
 {
     int rcFlag=4;//递归深度
-
     bool Flag=1;//继续下一轮代入提取左公因子标志
-    int t_nTSetSize=m_nonTmrSet.size();//非终结符集合大小
-    while(Flag&&rcFlag--)
+
+    while(rcFlag-- &&Flag)
     {
+        int t_nTSetSize=m_nonTmrSet.size();//非终结符集合大小
+
         Flag=0;
         QMap<QString,QSet<QStringList>> deletedSetMap={};//记录非终结符要被移除的候选式
         QMap<QString,QSet<QStringList>> appendSetMap={};//记录要恢复的候选式
         QMap<QString,QVector<QStringList>> t_newPdnMap={};//新构造的产生式映射
-        //遍历完再删 否则容易导致越界
+
+        //遍历完再删 否则容易导致下标越界
         for(int i=0;i<t_nTSetSize;i++)//遍历所有产生式
         {
             QString t_curNonTmr=m_nonTmrSet.at(i);//当前非终结符
-            QList<QStringList> t_eCddList={};//记录被提取的候选式
+
+            //遍历非终结符
+            for(int i=0;i<t_nTSetSize;i++)
+            {
+                QString t_nT=m_nonTmrSet.at(i);
+
+                if(m_GM_productionMap[t_nT].pdnRights.size()>1)
+                {
+                    for(int j=0;j<m_GM_productionMap[t_nT].pdnRights.size();j++)
+                    {
+                        QStringList t_jCdd=m_GM_productionMap[t_nT].pdnRights.at(j);
+                        QString t_c0Word=t_jCdd.at(0);
+                        if(m_nonTmrSet.contains(t_c0Word))
+                        {
+                            QStringList t_delCdd=t_jCdd;
+                            for(int k=0;k<m_GM_productionMap[t_c0Word].pdnRights.size();k++)
+                            {
+                                QStringList t_kCdd=m_GM_productionMap[t_c0Word].pdnRights.at(k);
+
+                                appendSetMap[t_nT].insert(t_kCdd+t_jCdd.mid(1));
+                            }
+
+                            deletedSetMap[t_nT].insert(t_delCdd);
+                        }
+                        else if(t_c0Word=="@" && t_jCdd.size()>1)
+                        {
+                            QStringList t_delCdd=t_jCdd;
+                            appendSetMap[t_nT].insert(t_jCdd.mid(1));
+                            deletedSetMap[t_nT].insert(t_delCdd);
+                        }
+                    }
+                }
+                if(deletedSetMap.size()||appendSetMap.size())
+                    Flag=true;
+            }
+
+            for(const QString &delKey: deletedSetMap.keys())
+                for(const QStringList& delTmp: deletedSetMap[delKey])
+                    m_GM_productionMap[delKey].pdnRights.removeOne(delTmp);
+
+            for(QString &t_cdd: appendSetMap.keys())
+                for(const QStringList& appendTmp: appendSetMap[t_cdd])
+                    m_GM_productionMap[t_cdd].pdnRights.append(appendTmp);
+
+            deletedSetMap.clear();
+            appendSetMap.clear();
+
+
             QSet<QString> ePrefix={};//记录已被提取的左公因子
 
             for(int j=0;j<m_GM_productionMap[t_curNonTmr].pdnRights.size();j++)
             {
+                QList<QStringList> t_eCddList={};//记录被提取的候选式
+
                 if(ePrefix.contains(m_GM_productionMap[t_curNonTmr].pdnRights.at(j).at(0)))//若前缀已被提取过，下次不从这里开始
                     continue;
                 QStringList t_curCddList=m_GM_productionMap[t_curNonTmr].pdnRights.at(j);//当前非终结符第j条候选式
@@ -450,10 +543,10 @@ void BNFP::eliminateLCommonFactor()
 
 
                 //遍历当前非终结符对应的候选式
-                for(int k=j+1;k<m_GM_productionMap[t_curNonTmr].pdnRights.size();k++)
+                for(int k=0;k<m_GM_productionMap[t_curNonTmr].pdnRights.size();k++)
                 {
                     QStringList t_cdd=m_GM_productionMap[t_curNonTmr].pdnRights.at(k);
-                    if(t_cdd.at(0)==t_curCddPrefix)//判断该候选式是否有相同左公因子
+                    if(t_cdd.at(0)==t_curCddPrefix && !t_eCddList.contains(t_cdd))//判断该候选式是否有相同左公因子
                         t_eCddList.append(t_cdd);//有就放入提取列表
                 }
 
@@ -461,11 +554,13 @@ void BNFP::eliminateLCommonFactor()
                 if(t_eCddList.count()>1)
                 {
                     ePrefix.insert(t_curCddPrefix);//记录本次提取前缀
+
                     int t_lFCount=1;
                     lFactorCount(t_eCddList,t_curCddList,t_lFCount);//记录最长左公因子个数
                     for(const auto &t_delECdd: t_eCddList)
                     {
                         QStringList t_tdelECdd=t_delECdd;
+
                         deletedSetMap[t_curNonTmr].insert(t_tdelECdd);//记录将被移除的候选式
                     }
                     foreach(const auto &t_eCdd, t_eCddList)
@@ -478,8 +573,16 @@ void BNFP::eliminateLCommonFactor()
                             t_eCddList.append({"@"});
                     }
                     //给新的产生式赋值
-                    QString left=getNewTmr(t_curNonTmr);//申请新的非终结符
-                    t_newPdnMap[left]=t_eCddList.toVector();
+                    QString left=findL(t_newPdnMap,t_eCddList);
+                    if(left=="")
+                    {
+
+                        left=getNewTmr(t_curNonTmr);//申请新的非终结符
+                        while(t_newPdnMap.contains(left)||m_nonTmrSet.contains(left))
+                            left=getNewTmr(left);
+                        t_newPdnMap[left]=t_eCddList.toVector();
+                    }
+
 
                     //将化简后的候选式加入该产生式
                     QStringList leftFactor=t_curCddList.mid(0,t_lFCount);
@@ -488,11 +591,12 @@ void BNFP::eliminateLCommonFactor()
                     appendSetMap[t_curNonTmr].insert(leftFactor);
                 }
 
-                if(deletedSetMap.size()||appendSetMap.size()||t_newPdnMap.size())
-                    Flag=true;
+
             }
 
         }
+        if(deletedSetMap.size()||appendSetMap.size()||t_newPdnMap.size())
+            Flag=true;
 
         for(const auto& nTmr: deletedSetMap.keys())
             for(const auto& delCdd: deletedSetMap[nTmr])
@@ -508,57 +612,7 @@ void BNFP::eliminateLCommonFactor()
             m_GM_productionMap[left].pdnRights=t_newPdnMap[left];//增添新候选式
         }
 
-        deletedSetMap.clear();
-        appendSetMap.clear();
-
-        //遍历非终结符
-        for(int i=0;i<t_nTSetSize;i++)
-        {
-            QString t_nT=m_nonTmrSet.at(i);
-
-            if(m_GM_productionMap[t_nT].pdnRights.size()>1)
-            {
-                for(int j=0;j<m_GM_productionMap[t_nT].pdnRights.size();j++)
-                {
-                    QStringList t_jCdd=m_GM_productionMap[t_nT].pdnRights.at(j);
-                    QString t_c0Word=t_jCdd.at(0);
-                    if(m_nonTmrSet.contains(t_c0Word))
-                    {
-                        QStringList t_delCdd=t_jCdd;
-                        for(int k=0;k<m_GM_productionMap[t_c0Word].pdnRights.size();k++)
-                        {
-                            QStringList t_kCdd=m_GM_productionMap[t_c0Word].pdnRights.at(k);
-
-                            appendSetMap[t_nT].insert(t_kCdd+t_jCdd.mid(1));
-                        }
-
-                        deletedSetMap[t_nT].insert(t_delCdd);
-                    }
-                    else if(t_c0Word=="@" && t_jCdd.size()>1)
-                    {
-                        QStringList t_delCdd=t_jCdd;
-                        appendSetMap[t_nT].insert(t_jCdd.mid(1));
-                        deletedSetMap[t_nT].insert(t_delCdd);
-                    }
-                }
-            }
-            if(deletedSetMap.size()||appendSetMap.size())
-                Flag=true;
-        }
-
-        for(const QString &delKey: deletedSetMap.keys())
-            for(const QStringList& delTmp: deletedSetMap[delKey])
-                m_GM_productionMap[delKey].pdnRights.removeOne(delTmp);
-
-        for(QString &t_cdd: appendSetMap.keys())
-            for(const QStringList& appendTmp: appendSetMap[t_cdd])
-            {
-                m_GM_productionMap[t_cdd].pdnRights.append(appendTmp);
-            }
     }
-
-
-
     simplifyGrammar();
 }
 
