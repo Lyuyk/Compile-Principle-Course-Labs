@@ -559,6 +559,7 @@ bool NDFA::genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool fl
                 codeStr+="\t\t\tcase \'"+QString(char('A'+j))+"\':\n";
             }
             codeStr.chop(1);//去掉末尾字符
+            if(flag)codeStr+="isIdentifier = true; ";
         }
         else if(tmpKey=="digit")
         {
@@ -568,6 +569,7 @@ bool NDFA::genLexCase(QList<QString> tmpList, QString &codeStr, int idx, bool fl
                 codeStr+="\t\t\tcase \'"+QString::number(j)+"\':\n";
             }
             codeStr.chop(1);
+            if(flag)codeStr+="isDigit = true; ";
         }
         else if(tmpKey=="~")
         {
@@ -622,7 +624,7 @@ void NDFA::add(NDFA::NFANode *n1, NDFA::NFANode *n2, QString ch)
 void NDFA::add(NFANode *n1, NFANode *n2)
 {
     n1->epsToSet.insert(n2->stateNum);
-    qDebug()<<"addEps:"<<n2->stateNum;
+    //qDebug()<<"addEps:"<<n2->stateNum;
 }
 
 /**
@@ -858,10 +860,10 @@ QString NDFA::mDFA2Lexer(QString filePath)
              "#include<stdlib.h>\n"
              "#include<string.h>\n"
              "#include<ctype.h>\n"
-            "#include<set>"
+            "#include<set>\n"
              "#include<unordered_map>\n";
     //关键字映射map
-    lexCode+="std::set<std::string> keywordSet={}\n";
+    lexCode+="std::set<std::string> keywordSet={};\n";
 
     //生成分析代码
     lexCode+="void coding(FILE* input_fp,FILE* output_fp) {\n"
@@ -874,7 +876,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
              "\tungetc(tmp, input_fp);\n"
              "\tint state = "+QString::number(m_state)+";\n"
              "\tbool flag = false;\n"
-             "\tbool isIndentifier = false;\n"
+             "\tbool isIdentifier = false;\n"
             "\tbool isDigit = false;\n"
              "\tbool isAnnotation = false;\n"
              "\tstd::string value;\n"
@@ -914,7 +916,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
         lexCode+="\t\t\tdefault: {\n";
         lexCode+="\t\t\t\tflag=true;\n";
         if(tmpList.contains("letter"))
-            lexCode+="\t\t\t\tisIndentifier = true;\n";
+            lexCode+="\t\t\t\tisIdentifier = true;\n";
         lexCode+="\t\t\t}\n"
                  "\t\t\t}\n"
                  "\t\t\tungetc(tmp, input_fp);\n"
@@ -924,7 +926,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
 
     //关键字Keywords，为适配解码增加Keyword:前缀，数字Digit:前缀，
 
-    lexCode+="\tif (keyWordSet.count(value)) {\n"
+    lexCode+="\tif (keywordSet.count(value)) {\n"
             "\t\tfprintf(output_fp, \"Keyword:%s \", value.c_str());\n"
             "\t\tprintf(\"Keyword:%s \", value.c_str());\n"
             "\t\treturn;\n"
@@ -969,7 +971,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
         lexCode+="\""+tmp+"\",";
     }
     lexCode.chop(1);
-    lexCode+=" }\n";
+    lexCode+=" };\n";
 
     lexCode+="\tchar c;\n"
              "\twhile ((c=fgetc(input_fp)) != EOF) {\n"
