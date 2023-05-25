@@ -198,13 +198,26 @@ void MainWindow::on_pushButton_Lexer_clicked()
     printConsole("生成词法分析程序...");
     NDFAG.mDFA2Lexer(srcFilePath);//调用主函数
     printConsole("词法分析程序生成完成");
-    printConsole("词法分析程序输出于："+srcFilePath);
 
     /*==========显示处理=================*/
     //切换表格
     ui->tabWidget_Graph->setCurrentIndex(4);
     //显示词法分析程序
     NDFAG.printLexer(ui->plainTextEdit_Lexer);
+
+    /*==========文件处理=================*/
+    QFile tgtFile(srcFilePath+"/_lexer.c");
+    if(!tgtFile.open(QIODevice::ReadWrite|QIODevice::Text|QIODevice::Truncate))
+    {
+        QMessageBox::warning(NULL, "文件", "文件打开/写入失败");
+        return;
+    }
+    QTextStream outputFile(&tgtFile);
+    QString tgStr=ui->plainTextEdit_Lexer->toPlainText();
+    outputFile<<tgStr;
+    tgtFile.close();
+    printConsole("正则表达式文件保存成功");
+    printConsole("词法分析程序输出于："+srcFilePath);
 }
 
 /**

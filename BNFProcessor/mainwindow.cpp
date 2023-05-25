@@ -41,6 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
+    //ui->pushButton_CST->setDisabled(true);
 
     /*菜单栏与槽函数连接*/
     connect(ui->action_exit, &QAction::triggered, this, &MainWindow::exit);
@@ -219,12 +220,13 @@ void MainWindow::on_pushButton_set_clicked()
 {
     BNFProcessor.firstNFollowSet();
     BNFProcessor.printSet(ui->tableWidget_firstSet,true);
+    printConsole("First集计算完成");
+    printConsole("Follow集计算完成");
     BNFProcessor.printSet(ui->tableWidget_followSet,false);
 
     ui->tabWidget->setCurrentIndex(4);
     ui->pushButton_LL1->setEnabled(true);
 }
-
 
 void MainWindow::on_pushButton_clearConsole_clicked()
 {
@@ -237,6 +239,7 @@ void MainWindow::on_pushButton_LL1_clicked()
     BNFProcessor.printLL1ParsingTable(ui->tableWidget_LL1);
     ui->tabWidget->setCurrentIndex(6);
     ui->pushButton_CST->setEnabled(true);
+    printConsole("构建LL1表完成");
 }
 
 
@@ -257,6 +260,7 @@ void MainWindow::on_pushButton_clearAll_clicked()
     ui->tableWidget_LL1->setRowCount(0);
     ui->tableWidget_LL1->setColumnCount(0);
 
+
     ui->tabWidget->setCurrentIndex(0);
 
     ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
@@ -264,5 +268,15 @@ void MainWindow::on_pushButton_clearAll_clicked()
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
     printConsole("已复位");
+}
+
+
+void MainWindow::on_pushButton_CST_clicked()
+{
+    QString srcProg=ui->plainTextEdit_CST->toPlainText();
+    BNFProcessor.LL1Parsing(ui->treeWidget_CST,srcProg);
+
+    ui->tabWidget->setCurrentIndex(7);
+    printConsole("语法分析完成");
 }
 

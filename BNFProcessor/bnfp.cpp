@@ -433,7 +433,7 @@ void BNFP::decodeLex()
                 m_programCode.append(t_wordContent);
             else
             {
-                for(const auto&c: t_wordContent)
+                for(const auto&c: t_wordContent)//数字与与标识符不需要整存
                     m_programCode.append(c);
             }
         }
@@ -847,8 +847,10 @@ void BNFP::constructLL1ParsingTable()
 
 void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr)
 {
-    m_lexPrgStr=progStr;
+    m_lexPrgStr=progStr;//保存lexProgStr
     decodeLex();//解码源程序
+
+    qDebug()<<m_programCode;
 
 
 }

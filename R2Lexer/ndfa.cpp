@@ -924,7 +924,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
     }
     lexCode+="\t}\n";
 
-    //关键字Keywords，为适配解码增加Keyword:前缀，数字Digit:前缀，
+    //为适配解码增加Keyword:前缀，数字Digit:前缀，ID:标识符前缀
 
     lexCode+="\tif (keywordSet.count(value)) {\n"
             "\t\tfprintf(output_fp, \"Keyword:%s \", value.c_str());\n"
@@ -951,7 +951,7 @@ QString NDFA::mDFA2Lexer(QString filePath)
     QFileInfo fileInfo(filePath);
     QString t_tmpFilePath=fileInfo.path();
     lexCode+="int main(int argc, char* argv[]) {\n"
-             "\tFILE* input_fp = fopen(\""+filePath+"\", \"r\");\n"
+             "\tFILE* input_fp = fopen(\""+filePath+"/_sample.tny\", \"r\");\n"
              "\tif (input_fp == NULL) {\n"
              "\t\tprintf(\"Failed to open input file\");\n"
              "\t\treturn 1;\n"

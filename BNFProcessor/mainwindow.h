@@ -64,6 +64,8 @@ private slots:
 
     void on_pushButton_clearAll_clicked();
 
+    void on_pushButton_CST_clicked();
+
 private:
     void exit();
     void printConsole(QString content);//控制台输出
@@ -72,6 +74,7 @@ private:
     BNFP BNFProcessor;//BNF文法处理器类对象
 
     QString m_grammarStr;//文法字符串
+    QString tmp;
 
 private:
     Ui::MainWindow *ui;

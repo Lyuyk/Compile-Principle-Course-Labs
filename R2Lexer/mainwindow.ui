@@ -97,7 +97,7 @@
         <string/>
        </property>
        <property name="placeholderText">
-        <string>打开的正则表达式将在此处显示</string>
+        <string>打开的正则表达式将在此处显示，第一行输入正则表达式，第二行输入语言的关键字，若要输入单词，需要使用前后双反斜杠包围；若输入的字符属于以下（()*+?）任意一种，同样需要使用双反斜杠包围；若需要转义\字符则需要在前方使用`转义。~*表示省略包围~*当中的所有内容。</string>
        </property>
       </widget>
      </widget>
