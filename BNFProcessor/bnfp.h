@@ -59,11 +59,12 @@ public:
     void eliminateLCommonFactor();//消除左公共因子
     void firstNFollowSet();//求解first与求解follow集合元素
     void constructLL1ParsingTable();//生成LL1分析表
-    void LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析//todo
+    bool LL1Parsing(QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析//todo
 
     void printGrammar(QPlainTextEdit *e);//输出文法
     void printSet(QTableWidget *table,bool isFirst=true);//输出First/Follow集
     void printLL1ParsingTable(QTableWidget *table);//输出LL1分析表
+    void printParseTree(QTreeWidget *t);//输出树
 
     QMap<QString, QSet<QString>> getFirstSet();//取得非终结符的first集
     QMap<QString, QSet<QString>> getFollowSet();//取得非终结符的follow集
@@ -82,6 +83,7 @@ private:
 
     void printInfo(QString content,QPlainTextEdit* e){e->appendPlainText(QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ")+content);}
 
+    QTreeWidgetItem* getChildItem(parseTreeNode* parentNode,QTreeWidgetItem* parentItem);
 private:
     QString m_grammarStr;//存储待处理文法字符串
 

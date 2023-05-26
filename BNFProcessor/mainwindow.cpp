@@ -171,7 +171,6 @@ void MainWindow::on_pushButton_simplify_clicked()
     ui->tabWidget->setCurrentIndex(1);
 
     ui->pushButton_eliminateLeftRecursion->setEnabled(true);
-    ui->pushButton_set->setEnabled(true);
 
 }
 
@@ -209,6 +208,7 @@ void MainWindow::on_pushButton_eliminateLeftCommonFactor_clicked()
     BNFProcessor.printGrammar(ui->plainTextEdit_leftCommonFactor);
     printConsole("输出处理结果...");
 
+    ui->pushButton_set->setEnabled(true);
     ui->tabWidget->setCurrentIndex(3);
 }
 
@@ -275,9 +275,13 @@ void MainWindow::on_pushButton_CST_clicked()
 {
     QString language=ui->comboBox_language->currentText();
     QString srcProg=ui->plainTextEdit_CST->toPlainText();
-    BNFProcessor.LL1Parsing(ui->treeWidget_CST,srcProg,ui->plainTextEdit_console,language);
-
+    bool flag=BNFProcessor.LL1Parsing(srcProg,ui->plainTextEdit_console,language);
+    //BNFProcessor.printParseTree(ui->treeWidget_CST);
     ui->tabWidget->setCurrentIndex(7);
-    printConsole("语法分析完成");
+    printConsole("语法分析结束");
+    if(!flag)
+        QMessageBox::warning(NULL, "LL1分析", "源程序语法有误，详情请查看控制台输出");
+
+
 }
 

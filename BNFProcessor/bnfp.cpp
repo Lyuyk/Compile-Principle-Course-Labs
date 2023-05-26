@@ -282,6 +282,29 @@ void BNFP::printLL1ParsingTable(QTableWidget *table)
     }
 }
 
+QTreeWidgetItem* BNFP::getChildItem(parseTreeNode* parentNode,QTreeWidgetItem *parentItem)
+{
+    if(parentNode->children.isEmpty())
+        return parentItem;
+
+    QList<QTreeWidgetItem*> childItemList;
+    foreach(const auto& child,parentNode->children)//当前节点孩子
+    {
+        childItemList.append(new QTreeWidgetItem({child->value}));
+        QTreeWidgetItem* childItem=getChildItem(child,parentItem);
+    }
+    parentItem->addChildren(childItemList);
+    return parentItem;
+}
+
+void BNFP::printParseTree(QTreeWidget *t)
+{
+    QTreeWidgetItem *item=new QTreeWidgetItem({parseTreeRoot->value});
+    QTreeWidgetItem *i=getChildItem(parseTreeRoot,item);
+
+    t->addTopLevelItem(i);
+}
+
 /**
  * @brief BNFP::eliminateLRecursion
  * @param index
@@ -424,6 +447,8 @@ void BNFP::decodeLex(QString language)
     //qDebug()<<t_lexPrgList;
     for(const auto &line: t_lexPrgList)
     {
+        if(line.trimmed().isEmpty())continue;
+        qDebug()<<line;
         QList<QString> t_wordList=line.simplified().split(' ');//分开单词
         //qDebug()<<t_wordList;
         for(int i=0;i<t_wordList.size();i++)
@@ -881,9 +906,10 @@ void BNFP::constructLL1ParsingTable()
  * @param language 解码语言类型（TINY/MiniC）
  * LL1分析主函数
  */
-void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console,QString language)
+bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
 {
     //分析、查表、替换 23重复直至结束或错误
+    m_lexPrgStr.clear();
     m_lexPrgStr=progStr;//保存lexProgStr
     m_programCode.clear();
     decodeLex(language);//解码源程序
@@ -905,7 +931,7 @@ void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console
         if(parseStk.isEmpty())
         {
             printInfo("LL1 Parser: err01",console);
-            return;
+            return false;
         }
         QString token=m_programCode[i];
         QString parseStr=parseStk.pop();
@@ -915,7 +941,7 @@ void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console
         {
             qDebug()<<parseStr<<token;
             printInfo("LL1 Parser: err02",console);
-            return;
+            return false;
         }
 
         parseTreeNode* curNode=pTreeNodeStk.pop();
@@ -928,7 +954,7 @@ void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console
                 qDebug()<<parseStk;
                 qDebug()<<parseStr<<token;
                 printInfo("LL1 Parser: err03",console);
-                return;
+                return false;
             }
             QStringList pdnR=m_LL1Table[parseStr][token];
 
@@ -949,7 +975,7 @@ void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console
             {
                 qDebug()<<parseStr<<token;
                 printInfo("LL1 Parser: err04",console);
-                return;
+                return false;
             }
             if(language=="TINY")
             {
@@ -971,6 +997,7 @@ void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console
     }
     parseTreeRoot=root;
     printInfo("语法正确",console);
+    return true;
 
 //    //课件做法
 //    while(parseStk.top()!="$" && tokenStk.top()!="$")
