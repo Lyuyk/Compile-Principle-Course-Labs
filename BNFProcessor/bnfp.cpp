@@ -103,7 +103,7 @@ void BNFP::simplifyGrammar()
         changedFlag=false;
         foreach(const QString &t_RneNonTmr, t_reachNoEndSet)//暂时可达不可终止非终结符
         {
-            qDebug()<<"t_RneNonTmr:"<<t_RneNonTmr;
+            //qDebug()<<"t_RneNonTmr:"<<t_RneNonTmr;
             //遍历该产生式的所有候选式
             for(const QStringList &t_candidateList : m_GM_productionMap[t_RneNonTmr].pdnRights)
             {
@@ -269,8 +269,13 @@ void BNFP::printLL1ParsingTable(QTableWidget *table)
             QString t_tStr=headerList[j];
             if(m_LL1Table[t_curNonTmr].contains(t_tStr))
             {
-                table->setItem(i,colN,
-                               new QTableWidgetItem(m_LL1Table[t_curNonTmr][t_tStr]));
+                QStringList t_sList=m_LL1Table[t_curNonTmr][t_tStr];
+                QString str=t_curNonTmr+"->";
+                foreach(const auto &s, t_sList)
+                    str+=s+' ';
+                str.chop(1);
+
+                table->setItem(i,colN,new QTableWidgetItem(str));
             }
             colN++;
         }
@@ -413,29 +418,51 @@ QString BNFP::findL(QMap<QString, QVector<QStringList> > newSet, QList<QStringLi
  * @brief BNFP::decodeLex
  * 解码词法分析程序输出的源程序代码
  */
-void BNFP::decodeLex()
+void BNFP::decodeLex(QString language)
 {
     QStringList t_lexPrgList=m_lexPrgStr.split('\n');
+    //qDebug()<<t_lexPrgList;
     for(const auto &line: t_lexPrgList)
     {
-        QList<QString> t_wordList=line.trimmed().split(' ');//分开单词
-        for(int i=0;i<t_wordList.size()-1;i++)
+        QList<QString> t_wordList=line.simplified().split(' ');//分开单词
+        //qDebug()<<t_wordList;
+        for(int i=0;i<t_wordList.size();i++)
         {
             QString t_word=t_wordList[i];
             if(!t_word.contains("ID") && !t_word.contains("Digit") && !t_word.contains("Keyword"))
             {
-                m_programCode.append(t_word);continue;
+                //qDebug()<<t_word;
+                m_programCode.append(t_word);
+                    continue;
             }
             QString t_wordType=t_word.split(':').at(0);
             QString t_wordContent=t_word.split(':').at(1);
 
             if(t_wordType=="Keyword")
-                m_programCode.append(t_wordContent);
-            else
             {
-                for(const auto&c: t_wordContent)//数字与与标识符不需要整存
-                    m_programCode.append(c);
+                m_programCode.append(t_wordContent);
             }
+            else if(t_wordType=="ID")
+            {
+                if(language=="TINY")
+                    m_programCode.append("identifier");
+                else if(language=="MiniC")
+                    m_programCode.append("ID");
+                else m_programCode.append(t_wordType);
+
+                m_programCode.append(t_wordContent);
+            }
+            else if(t_wordType=="Digit")
+            {
+                if(language=="TINY")
+                    m_programCode.append("number");
+                else if(language=="MiniC")
+                    m_programCode.append("NUM");
+                else m_programCode.append(t_wordType);
+
+                m_programCode.append(t_wordContent);
+            }
+
         }
     }
     m_programCode.append("$");//规定结束符为$
@@ -781,44 +808,45 @@ void BNFP::constructLL1ParsingTable()
         QVector<QStringList> t_candidateList=m_GM_productionMap[t_curNT].pdnRights;//当前非终结符对应的产生式
         for(int j=0;j<t_candidateList.size();j++)//遍历候选式
         {
-            QStringList t_firstCandidate=t_candidateList[j];//当前非终结符对应的产生式中的一个候选式
-            QString t_cddStr="";//候选式字符串
-            for(int k=0;k<t_firstCandidate.size();k++)
-                t_cddStr+=t_firstCandidate[k]+' ';
-            t_cddStr.chop(1);//把最后多出来的空格去掉
-            QString itemContent=t_curNT+"->"+t_cddStr;//要填进ll1分析表中的内容
+            QStringList t_candidate=t_candidateList[j];//当前非终结符对应的产生式中的一个候选式
 
-            QString t_cFirst=t_firstCandidate[0];//该候选式的第一个字符
+//            QString t_cddStr="";//候选式字符串
+//            for(int k=0;k<t_candidate.size();k++)
+//                t_cddStr+=t_candidate[k]+' ';
+//            t_cddStr.chop(1);//把最后多出来的空格去掉
+//            QString itemContent=t_curNT+"->"+t_cddStr;//要填进ll1分析表中的内容
+
+            QString t_cFirst=t_candidate[0];//该候选式的第一个字符
             if(!m_nonTmrSet.contains(t_cFirst))//不是非终结符
             {
                 if(t_cFirst=="@")//情况2
                 {
-                    for(const auto& t_follow: m_GM_productionMap[t_curNT].followSet)
+                    foreach(const auto& t_follow, m_GM_productionMap[t_curNT].followSet)
                     {
                         if(!m_LL1Table[t_curNT].contains(t_follow))
-                            m_LL1Table[t_curNT][t_follow]=itemContent;
+                            m_LL1Table[t_curNT][t_follow]=t_candidate;
                         else
                         {
-                            if(m_LL1Table[t_curNT][t_follow].split("->")[1]=="@")//人为修改，
-                                m_LL1Table[t_curNT][t_follow]=itemContent;
+                            if(m_LL1Table[t_curNT][t_follow][0]=="@")//人为修改，
+                                m_LL1Table[t_curNT][t_follow]=t_candidate;
                         }
                     }
                     continue;
                 }
-                m_LL1Table[t_curNT][t_cFirst]=itemContent;//存入表中
+                m_LL1Table[t_curNT][t_cFirst]=t_candidate;//存入表中
             }
             else//若为非终结符
             {
                 bool epsFlag=false;
-                int t_firstCddSize=t_firstCandidate.size();//
-                for(int k=0;k<t_firstCddSize;k++)
+                int t_1CddSize=t_candidate.size();//
+                for(int k=0;k<t_1CddSize;k++)
                 {
-                    t_cFirst=t_firstCandidate[k];
+                    t_cFirst=t_candidate[k];
                     if(!m_nonTmrSet.contains(t_cFirst))//不是非终结符,这里其实是假如第一个非终结符的first集合为空才有可能进来
                     {
                         if(t_cFirst=="@")
                             continue;//epsilon不需加进去，没有候选式的epsilon会出现在中间
-                        m_LL1Table[t_curNT][t_cFirst]=itemContent;//填表
+                        m_LL1Table[t_curNT][t_cFirst]=t_candidate;//填表
                         break;//可以退出循环了
                     }
                     else//非终结符
@@ -828,14 +856,14 @@ void BNFP::constructLL1ParsingTable()
                             if(t_first=="@")
                                 epsFlag=true;//记录存在epsilon（情况2）
                             else
-                                m_LL1Table[t_curNT][t_first]=itemContent;//情况1，直接填入
+                                m_LL1Table[t_curNT][t_first]=t_candidate;//情况1，直接填入
                         }
                         if(epsFlag)
                         {
                             epsFlag=false;
-                            if(k+1==t_firstCddSize)//到最后一个了还是有epsilon就看follow集
+                            if(k==t_1CddSize-1)//到最后一个了还是有epsilon就看follow集
                                 for(const auto& follow: m_GM_productionMap[t_curNT].followSet)
-                                    m_LL1Table[t_curNT][follow]=itemContent;
+                                    m_LL1Table[t_curNT][follow]=t_candidate;
                         }
                         else break;
                     }
@@ -845,60 +873,135 @@ void BNFP::constructLL1ParsingTable()
     }
 }
 
-void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console)
+/**
+ * @brief BNFP::LL1Parsing
+ * @param tree
+ * @param progStr 待解码lex编码
+ * @param console 控制台输出
+ * @param language 解码语言类型（TINY/MiniC）
+ * LL1分析主函数
+ */
+void BNFP::LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console,QString language)
 {
     //分析、查表、替换 23重复直至结束或错误
     m_lexPrgStr=progStr;//保存lexProgStr
-    decodeLex();//解码源程序
+    m_programCode.clear();
+    decodeLex(language);//解码源程序
 
-    QStack<QString> parseStk, tokenStk;
+    QStack<QString> parseStk;
     parseStk.push("$");
     parseStk.push(m_startChar);
 
+    qDebug()<<m_programCode;
 
-    for(int i = m_programCode.size()-1;i>=0;i--)
-        tokenStk.push(m_programCode.at(i));
+    QStack<parseTreeNode*> pTreeNodeStk;
+    parseTreeNode* root=new parseTreeNode(m_startChar);
+    pTreeNodeStk.push(root);
 
-//    int idx=0;//Code Tokens index
-    int count=0;
+    int i=0;//Code index
 
-//    QString t_NTmr;//行（非终结符）
-//    QString t_Tmr;//列（终结符）
-    //QPair<QString, QString> pair;
-
-    while(parseStk.top()!="$" && tokenStk.top()!="$")
+    while(i<m_programCode.size())
     {
-        qDebug()<<count++;
-        if(m_tmrSet.contains(parseStk.top())&& tokenStk.top()==parseStk.top())
+        if(parseStk.isEmpty())
         {
-            /*match*/
-            parseStk.pop();
-            tokenStk.pop();
+            printInfo("LL1 Parser: err01",console);
+            return;
         }
-        else if(m_nonTmrSet.contains(parseStk.top())
-                && m_tmrSet.contains(tokenStk.top())
-                && !(m_LL1Table[parseStk.top()][tokenStk.top()]==""))
+        QString token=m_programCode[i];
+        QString parseStr=parseStk.pop();
+        if(token==parseStr && token=="$")break;//end
+
+        if(pTreeNodeStk.isEmpty())
         {
-            //gen
-            parseStk.pop();
-            //逆序压栈
-            qDebug()<<"tt";
-            qDebug()<<m_LL1Table[parseStk.top()][tokenStk.top()];
-            QStringList t_strList=m_LL1Table[parseStk.top()][tokenStk.top()].split(' ');
-            for(int i=t_strList.size()-1;i>0;i--)
+            qDebug()<<parseStr<<token;
+            printInfo("LL1 Parser: err02",console);
+            return;
+        }
+
+        parseTreeNode* curNode=pTreeNodeStk.pop();
+
+        if(m_nonTmrSet.contains(parseStr))//非终结符
+        {
+            if(!m_LL1Table[parseStr].contains(token))
             {
-                parseStk.push(t_strList.at(i));
+                //qDebug()<<m_LL1Table[parseStr];
+                qDebug()<<parseStk;
+                qDebug()<<parseStr<<token;
+                printInfo("LL1 Parser: err03",console);
+                return;
             }
+            QStringList pdnR=m_LL1Table[parseStr][token];
+
+            for(int j=pdnR.size()-1;j>=0;j--)
+            {
+                if(pdnR[j]=="@")continue;//略去eps
+                parseStk.push(pdnR[j]);
+
+                parseTreeNode* newTNode=new parseTreeNode(pdnR[j]);
+                pTreeNodeStk.push(newTNode);
+                curNode->children.insert(curNode->children.begin(),newTNode);
+            }
+
         }
         else
         {
-            printInfo("语法有误(inWhile)",console);
+            if(parseStr!=token)
+            {
+                qDebug()<<parseStr<<token;
+                printInfo("LL1 Parser: err04",console);
+                return;
+            }
+            if(language=="TINY")
+            {
+                if(token=="identifier"||token=="number")
+                {
+                    token=m_programCode[++i];
+                }
+            }
+            else if(language=="MiniC")
+            {
+                if(token=="ID"||token=="NUM")
+                {
+                    token=m_programCode[++i];
+                }
+            }
+            curNode->value=token;
+            i++;
         }
     }
+    parseTreeRoot=root;
+    printInfo("语法正确",console);
 
-    if(parseStk.top()=="$" && tokenStk.top()=="$")
-        printInfo("语法通过",console);
-    else
-        printInfo("语法有误",console);
+//    //课件做法
+//    while(parseStk.top()!="$" && tokenStk.top()!="$")
+//    {
+//        qDebug()<<count++;
+//        if(m_tmrSet.contains(parseStk.top())&& tokenStk.top()==parseStk.top())
+//        {
+//            /*match*/
+//            parseStk.pop();
+//            tokenStk.pop();
+//        }
+//        else if(m_nonTmrSet.contains(parseStk.top())
+//                && m_tmrSet.contains(tokenStk.top())
+//                && !(m_LL1Table[parseStk.top()][tokenStk.top()]==""))
+//        {
+//            //gen
+//            parseStk.pop();
+//            //逆序压栈
+//            qDebug()<<"tt";
+//            qDebug()<<m_LL1Table[parseStk.top()][tokenStk.top()];
+//            QStringList t_strList=m_LL1Table[parseStk.top()][tokenStk.top()].split(' ');
+//            for(int i=t_strList.size()-1;i>0;i--)
+//            {
+//                parseStk.push(t_strList.at(i));
+//            }
+//        }
+//        else
+//        {
+//            printInfo("语法有误(inWhile)",console);
+//        }
+//    }
+
 }
 

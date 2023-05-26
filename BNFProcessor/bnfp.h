@@ -37,6 +37,15 @@ struct pdnR
     QSet<QString> followSet;//产生式右部Follow集
 };
 
+//分析树结构体，任意多叉树
+struct parseTreeNode
+{
+    QString value;
+    QList<parseTreeNode*> children;
+
+    parseTreeNode(QString val):value(val){}
+};
+
 class BNFP
 {
 public:
@@ -50,7 +59,7 @@ public:
     void eliminateLCommonFactor();//消除左公共因子
     void firstNFollowSet();//求解first与求解follow集合元素
     void constructLL1ParsingTable();//生成LL1分析表
-    void LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console);//使用LL1分析表进行语法分析//todo
+    void LL1Parsing(QTreeWidget *tree, QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析//todo
 
     void printGrammar(QPlainTextEdit *e);//输出文法
     void printSet(QTableWidget *table,bool isFirst=true);//输出First/Follow集
@@ -69,7 +78,7 @@ private:
     void computeFirstSet();//求解first与
     void computeFollowSet();//求解follow集合元素
 
-    void decodeLex();//对词法分析程序编码的lex文件进行解码
+    void decodeLex(QString language);//对词法分析程序编码的lex文件进行解码
 
     void printInfo(QString content,QPlainTextEdit* e){e->appendPlainText(QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ")+content);}
 
@@ -84,10 +93,12 @@ private:
     //QMap<QString, QSet<QString>> m_firstSetMap;//first集合元素//todo
     //QMap<QString, QSet<QString>> m_followSetMap;//follow集合元素
 
-    QMap<QString, QMap<QString,QString>> m_LL1Table;//LL1分析表
+    QMap<QString, QMap<QString,QStringList>> m_LL1Table;//LL1分析表
 
     QString m_lexPrgStr;//存储词法分析程序编码的源程序串
     QList<QString> m_programCode;//用户输入的待分析的程序
+
+    parseTreeNode *parseTreeRoot;
 };
 
 #endif // BNFP_H
