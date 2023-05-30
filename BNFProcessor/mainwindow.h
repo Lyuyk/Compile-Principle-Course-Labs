@@ -78,17 +78,6 @@ private:
     QString tmp;
 
 private:
-    void resizeEvent(QResizeEvent *event)
-    {
-        updateContent();
-    }
-
-    void updateContent()
-    {
-        updateGeometry();
-    }
-
-private:
     Ui::MainWindow *ui;
 };
 #endif // MAINWINDOW_H
