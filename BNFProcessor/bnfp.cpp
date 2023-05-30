@@ -48,7 +48,7 @@ void BNFP::initGrammar(QString s)
 {
     init();
 
-    s.chop(1);
+    if(s.at(s.size()-1)=='\n')s.chop(1);
     QStringList t_pdnList = s.split("\n");//分割出一条条产生式
 
 
@@ -81,8 +81,8 @@ void BNFP::initGrammar(QString s)
             m_GM_productionMap[t_leftStr].pdnRights.append(t_cddList);//加入调
             for(const auto &t_cWord: t_cddList)//对每一条候选式单词
             {
-                    if(!m_nonTmrSet.contains(t_cWord))
-                        m_tmrSet.insert(t_cWord);//右部如果不是非终结符，则全部当成终结符加入
+                if(!m_nonTmrSet.contains(t_cWord))
+                    m_tmrSet.insert(t_cWord);//右部如果不是非终结符，则全部当成终结符加入
             }
         }
     }
@@ -165,6 +165,7 @@ void BNFP::simplifyGrammar()
                 m_GM_productionMap[t_cWord].pdnRights.removeOne(t_delList);
         }
     }
+    qDebug()<<"simp:"<<m_tmrSet;
 }
 
 /**
@@ -380,6 +381,7 @@ void BNFP::eliminateLRecursion(int index, QSet<QString> &newNonTmrSet)
  */
 void BNFP::eliminateLRecursion()
 {
+    qDebug()<<m_tmrSet;
     QSet<QString> t_newNonTmrSet;//存储处理后的非终结符
     for(int i=0;i<m_nonTmrSet.size();i++)
     {
@@ -591,7 +593,7 @@ void BNFP::eliminateLCommonFactor()
                 if(ePrefix.contains(m_GM_productionMap[t_curNonTmr].pdnRights.at(j).at(0)))//若前缀已被提取过，下次不从这里开始
                     continue;
                 QStringList t_curCddList=m_GM_productionMap[t_curNonTmr].pdnRights.at(j);//当前非终结符第j条候选式
-                QString t_curCddPrefix=t_curCddList.at(0);//（公共前缀？）当前非终结符第一条候选式的第一个单词
+                QString t_curCddPrefix=t_curCddList.at(0);//（假设公共前缀）当前非终结符第一条候选式的第一个单词
 
 
                 //遍历当前非终结符对应的候选式

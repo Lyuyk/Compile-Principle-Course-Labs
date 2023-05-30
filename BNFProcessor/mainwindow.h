@@ -39,6 +39,7 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+
 private slots:
     void on_pushButton_open_clicked();
 
@@ -75,6 +76,17 @@ private:
 
     QString m_grammarStr;//文法字符串
     QString tmp;
+
+private:
+    void resizeEvent(QResizeEvent *event)
+    {
+        updateContent();
+    }
+
+    void updateContent()
+    {
+        updateGeometry();
+    }
 
 private:
     Ui::MainWindow *ui;

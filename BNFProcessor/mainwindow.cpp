@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
-    //ui->pushButton_CST->setDisabled(true);
+    ui->pushButton_CST->setDisabled(true);
 
     /*菜单栏与槽函数连接*/
     connect(ui->action_exit, &QAction::triggered, this, &MainWindow::exit);
@@ -105,7 +105,7 @@ void MainWindow::on_pushButton_open_clicked()
     }
     printConsole("读取完成...");
     srcFile.close();
-    //qDebug()<<ui->plainTextEdit_edit->toPlainText();
+
 }
 
 /**
@@ -156,6 +156,8 @@ void MainWindow::on_pushButton_process_clicked()
     on_pushButton_eliminateLeftRecursion_clicked();
     on_pushButton_eliminateLeftCommonFactor_clicked();
     on_pushButton_set_clicked();
+    on_pushButton_LL1_clicked();
+    on_pushButton_CST_clicked();
 
 }
 
@@ -165,6 +167,7 @@ void MainWindow::on_pushButton_process_clicked()
  */
 void MainWindow::on_pushButton_simplify_clicked()
 {
+    m_grammarStr=ui->plainTextEdit_edit->toPlainText();
     BNFProcessor.initGrammar(m_grammarStr);
     BNFProcessor.simplifyGrammar();
     BNFProcessor.printGrammar(ui->plainTextEdit_simplified);
@@ -275,13 +278,19 @@ void MainWindow::on_pushButton_CST_clicked()
 {
     QString language=ui->comboBox_language->currentText();
     QString srcProg=ui->plainTextEdit_CST->toPlainText();
+    if(srcProg.isEmpty())
+    {
+        ui->tabWidget->setCurrentIndex(7);
+        QMessageBox::warning(NULL, "提示", "请输入源程序再进行语法分析");
+        return;
+    }
     bool flag=BNFProcessor.LL1Parsing(srcProg,ui->plainTextEdit_console,language);
     //BNFProcessor.printParseTree(ui->treeWidget_CST);
     ui->tabWidget->setCurrentIndex(7);
     printConsole("语法分析结束");
     if(!flag)
         QMessageBox::warning(NULL, "LL1分析", "源程序语法有误，详情请查看控制台输出");
-
-
 }
+
+
 
