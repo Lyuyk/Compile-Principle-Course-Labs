@@ -13,7 +13,7 @@ Contains the following 4 labs ( 2022-Fall )
 
 ### Environment
 
-Qt Creator 9.0.0 based on Qt 6.4.2
+Qt Creator 10.0.1 based on Qt 6.4.1
 
 MinGW 11.2.0 64bit
 
@@ -46,7 +46,8 @@ Contains the following 3 tasks ( 2023-Spring )
   - [x] Eliminate the left recursion & left common factor (Presented in table form)
   - [x] Solve the first set & follow set (Presented in table forms)
   - [x] Construct LL(1) analysis table (Presented in table form)
-  - [ ] Use LL(1) for (TINY Language’s) syntax analysis & then generate a syntax tree (Presented in tree form)
+  - [x] Use LL(1) table for (TINY Language’s) syntax analysis 
+    - [ ] & then generate a syntax tree (Presented in tree form)
   
 - [ ] Task3: Use mini-C Language’s  to test
   - [x] Use mini-C Language’s Lex to test & use at least one TINY’s source program to test the generated lexer
