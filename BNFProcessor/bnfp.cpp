@@ -109,6 +109,7 @@ void BNFP::simplifyGrammar()
             {
                 //qDebug()<<t_RneNonTmr;
                 bool allEndFlag=true;//当前候选式中的所有字符是否可终止标志
+
                 //遍历该候选式中的每个单词
                 for(const auto &t_cWord: t_candidateList)
                 {
@@ -165,7 +166,22 @@ void BNFP::simplifyGrammar()
                 m_GM_productionMap[t_cWord].pdnRights.removeOne(t_delList);
         }
     }
-    qDebug()<<"simp:"<<m_tmrSet;
+
+    //防止提取左公因子多次代入后产生如X->@xxx..这样的产生式
+    for(const auto &t_NT: m_GM_productionMap.keys())
+    {
+        for(const auto &t_cdd: m_GM_productionMap[t_NT].pdnRights)
+        {
+            if(t_cdd[0]=="@"&&t_cdd.size()>1)
+            {
+                QStringList tmp=t_cdd;
+                tmp.removeFirst();
+
+                m_GM_productionMap[t_NT].pdnRights.removeOne(t_cdd);
+                m_GM_productionMap[t_NT].pdnRights.append(tmp);
+            }
+        }
+    }
 }
 
 /**
