@@ -314,10 +314,31 @@ QTreeWidgetItem* BNFP::getChildItem(parseTreeNode* parentNode,QTreeWidgetItem *p
     return parentItem;
 }
 
+/**
+ * @brief BNFP::printParseTree
+ * @param t
+ * 层序遍历打印节点
+ */
 void BNFP::printParseTree(QTreeWidget *t)
 {
-    QTreeWidgetItem *item=new QTreeWidgetItem({parseTreeRoot->value});
-    QTreeWidgetItem *i=getChildItem(parseTreeRoot,item);
+    if(parseTreeRoot==NULL)
+        return;
+
+    QStack<parseTreeNode*> stk;
+
+    stk.push(parseTreeRoot);
+    QTreeWidgetItem *rootItem=new QTreeWidgetItem({parseTreeRoot->value});
+
+    while(!stk.empty())
+    {
+
+        parseTreeNode* curNode=stk.top();
+
+    }
+
+
+
+    QTreeWidgetItem *i=getChildItem(parseTreeRoot,rootItem);
 
     t->addTopLevelItem(i);
 }
@@ -928,9 +949,9 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
 {
     //分析、查表、替换 23重复直至结束或错误
     m_lexPrgStr.clear();
-    m_lexPrgStr=progStr;//保存lexProgStr
     m_programCode.clear();
-    decodeLex(language);//解码源程序
+    m_lexPrgStr=progStr;//保存lexProgStr
+    decodeLex(language);//解码源程序并存入m_programCode中
 
     QStack<QString> parseStk;
     parseStk.push("$");
@@ -949,6 +970,7 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
         if(parseStk.isEmpty())
         {
             printInfo("LL1 Parser: err01",console);
+            printInfo("Info: parseStack is empty.",console);
             return false;
         }
         QString token=m_programCode[i];
@@ -959,6 +981,7 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
         {
             qDebug()<<parseStr<<token;
             printInfo("LL1 Parser: err02",console);
+            printInfo("Info: parseStr:"+parseStr+", token:"+token,console);
             return false;
         }
 
@@ -968,10 +991,8 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
         {
             if(!m_LL1Table[parseStr].contains(token))
             {
-                //qDebug()<<m_LL1Table[parseStr];
-                qDebug()<<parseStk;
-                qDebug()<<parseStr<<token;
                 printInfo("LL1 Parser: err03",console);
+                printInfo("Info: parseStr:"+parseStr+", token:"+token,console);
                 return false;
             }
             QStringList pdnR=m_LL1Table[parseStr][token];
@@ -979,20 +1000,19 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
             for(int j=pdnR.size()-1;j>=0;j--)
             {
                 if(pdnR[j]=="@")continue;//略去eps
-                parseStk.push(pdnR[j]);
+                    parseStk.push(pdnR[j]);
 
                 parseTreeNode* newTNode=new parseTreeNode(pdnR[j]);
                 pTreeNodeStk.push(newTNode);
                 curNode->children.insert(curNode->children.begin(),newTNode);
             }
-
         }
         else
         {
             if(parseStr!=token)
             {
-                qDebug()<<parseStr<<token;
                 printInfo("LL1 Parser: err04",console);
+                printInfo("Info: parseStr:"+parseStr+", token:"+token,console);
                 return false;
             }
             if(language=="TINY")

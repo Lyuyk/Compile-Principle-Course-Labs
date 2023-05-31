@@ -23,6 +23,7 @@
 #include <QTreeWidget>
 #include <QDateTime>
 #include <QHeaderView>
+#include <QQueue>
 #include <QString>
 #include <QChar>
 #include <QStack>
