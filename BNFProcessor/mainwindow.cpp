@@ -41,7 +41,7 @@ MainWindow::MainWindow(QWidget *parent)
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
-    ui->pushButton_CST->setDisabled(true);
+    //ui->pushButton_CST->setDisabled(true);
 
     /*菜单栏与槽函数连接*/
     connect(ui->action_exit, &QAction::triggered, this, &MainWindow::exit);
@@ -284,12 +284,17 @@ void MainWindow::on_pushButton_CST_clicked()
         QMessageBox::warning(NULL, "提示", "请输入源程序再进行语法分析");
         return;
     }
-    bool flag=BNFProcessor.LL1Parsing(srcProg,ui->plainTextEdit_console,language);
-    //BNFProcessor.printParseTree(ui->treeWidget_CST);
+    bool passedFlag=BNFProcessor.LL1Parsing(srcProg,ui->plainTextEdit_console,language);
+
     ui->tabWidget->setCurrentIndex(7);
     printConsole("语法分析结束");
-    if(!flag)
+    if(!passedFlag)
         QMessageBox::warning(NULL, "LL1分析", "源程序语法有误，详情请查看控制台输出");
+    else
+    {
+        ui->tabWidget->setCurrentIndex(8);
+        BNFProcessor.printParseTree(ui->treeWidget_CST);
+    }
 }
 
 

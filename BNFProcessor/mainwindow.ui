@@ -38,7 +38,7 @@
          <item>
           <widget class="QTabWidget" name="tabWidget">
            <property name="currentIndex">
-            <number>7</number>
+            <number>8</number>
            </property>
            <widget class="QWidget" name="tab_edit">
             <attribute name="title">
@@ -324,6 +324,23 @@
                 </layout>
                </item>
               </layout>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="tab_3">
+            <attribute name="title">
+             <string>分析树</string>
+            </attribute>
+            <layout class="QHBoxLayout" name="horizontalLayout_19">
+             <item>
+              <widget class="QTreeWidget" name="treeWidget_CST">
+               <property name="font">
+                <font>
+                 <family>JetBrains Mono NL</family>
+                 <pointsize>10</pointsize>
+                </font>
+               </property>
+              </widget>
              </item>
             </layout>
            </widget>

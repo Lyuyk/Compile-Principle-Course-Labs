@@ -38,6 +38,8 @@ void BNFP::init()
     m_GM_productionMap.clear();
     m_LL1Table.clear();
     m_programCode.clear();
+    m_parseTreeRoot=NULL;
+    m_treeRoot=NULL;
 }
 
 /**
@@ -321,26 +323,27 @@ QTreeWidgetItem* BNFP::getChildItem(parseTreeNode* parentNode,QTreeWidgetItem *p
  */
 void BNFP::printParseTree(QTreeWidget *t)
 {
-    if(parseTreeRoot==NULL)
-        return;
+//    if(parseTreeRoot==NULL)
+//        return;
 
-    QStack<parseTreeNode*> stk;
+//    QStack<parseTreeNode*> stk;
 
-    stk.push(parseTreeRoot);
-    QTreeWidgetItem *rootItem=new QTreeWidgetItem({parseTreeRoot->value});
+//    stk.push(parseTreeRoot);
+//    QTreeWidgetItem *rootItem=new QTreeWidgetItem({parseTreeRoot->value});
 
-    while(!stk.empty())
-    {
+//    while(!stk.empty())
+//    {
 
-        parseTreeNode* curNode=stk.top();
+//        parseTreeNode* curNode=stk.top();
 
-    }
+//    }
 
 
 
-    QTreeWidgetItem *i=getChildItem(parseTreeRoot,rootItem);
+//    QTreeWidgetItem *i=getChildItem(parseTreeRoot,rootItem);
+    t->clear();
 
-    t->addTopLevelItem(i);
+    t->addTopLevelItem(m_treeRoot);
 }
 
 /**
@@ -960,8 +963,11 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
     qDebug()<<m_programCode;
 
     QStack<parseTreeNode*> pTreeNodeStk;
+    QStack<QTreeWidgetItem*> tStk;
     parseTreeNode* root=new parseTreeNode(m_startChar);
+    QTreeWidgetItem* treeI=new QTreeWidgetItem({m_startChar});
     pTreeNodeStk.push(root);
+    tStk.push(treeI);
 
     int i=0;//Code index
 
@@ -986,6 +992,7 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
         }
 
         parseTreeNode* curNode=pTreeNodeStk.pop();
+        QTreeWidgetItem* curTree=tStk.pop();
 
         if(m_nonTmrSet.contains(parseStr))//非终结符
         {
@@ -1003,8 +1010,13 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
                     parseStk.push(pdnR[j]);
 
                 parseTreeNode* newTNode=new parseTreeNode(pdnR[j]);
+                QTreeWidgetItem* newChild=new QTreeWidgetItem({pdnR[j]});
+
                 pTreeNodeStk.push(newTNode);
+                tStk.push(newChild);
+
                 curNode->children.insert(curNode->children.begin(),newTNode);
+                curTree->addChild(newChild);
             }
         }
         else
@@ -1030,10 +1042,12 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
                 }
             }
             curNode->value=token;
+            curTree->setText(0,token);
             i++;
         }
     }
-    parseTreeRoot=root;
+    m_parseTreeRoot=root;
+    m_treeRoot=treeI;
     printInfo("语法正确",console);
     return true;
 

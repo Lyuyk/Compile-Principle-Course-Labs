@@ -101,7 +101,8 @@ private:
     QString m_lexPrgStr;//存储词法分析程序编码的源程序串
     QList<QString> m_programCode;//用户输入的待分析的程序
 
-    parseTreeNode *parseTreeRoot;
+    parseTreeNode *m_parseTreeRoot;
+    QTreeWidgetItem *m_treeRoot;
 };
 
 #endif // BNFP_H
