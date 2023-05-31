@@ -14,7 +14,81 @@
 
 ### 测试MiniC词法
 
+#### 正则表达式
 
+```
+(_|\letter\)(_|\letter\|\digit\)*|\digit\+(.\digit\+)?|_|\+\|-|\*\|/|%|<|<=|>|>=|==|!=|=|;|,|\(\|\)\|[|]|{|}|//~*\`\n\
+else|if|int|float|return|void|do|while
+```
+
+#### 词法分析测试示例用例（不保证完全正确）
+
+```miniC
+//Sample program
+//In MiniC language-computes factorial
+//}
+int x = 2; // an integer
+int fact = 2;
+if ( x > 1 )  //don't compute if x <= 0 
+    do 
+        fact = fact * x;
+        x = x - 1;
+    while x >= 1;
+return fact; //return 2^x
+
+```
 
 ### 测试MiniC语法
+
+#### 文法
+
+```
+program->definition-list
+definition-list->definition-list definition | definition
+definition->variable-definition | function-definition
+variable-definition->type-indicator ID ;|type-indicator ID [ NUM ] ;
+type-indicator->int | float | void
+function-definition-> type-indicator ID ( parameters ) compound-stmt
+parameters->parameter-list | void
+parameter-list->parameter-list, parameter | parameter
+parameter-> type-indicator ID | type-indicator ID [ ]
+compound-stmt-> { local-definitions statement-list }
+local-definitions-> local-definitions variable-definition |empty
+statement-list-> statement-list statement | empty
+statement->expression-stmt | compound-stmt | condition-stmt |dowhile-stmt | return-stmt
+expression-stmt-> expression ; | ;
+condition-stmt-> if ( expression ) statement|if ( expression ) statement else statement
+dowhile-stmt->do statement while ( expression ) ;
+return-stmt->return ;| return expression ;
+expression-> variable = expression | simple-expression
+variable->ID |ID [ expression ]
+simple-expression->additive-expression relop additive-expression|additive-expression
+relop-><=|<|>|>=|==|!=
+additive-expression->additive-expression addop term | term
+addop->+|-
+term->term mulop factor | factor
+mulop->*|/|%
+factor->( expression )| variable | call | NUM
+call->ID ( arguments )
+arguments->argument-list | empty
+argument-list->argument-list , expression | expression
+
+```
+
+#### 语法分析测试示例用例（不保证完全正确）
+
+```
+Keyword:void ID:func ( Keyword:void ) 
+{
+Keyword:int ID:x [ Digit:2 ] ; 
+Keyword:int ID:fact [ Digit:2 ] ; 
+Keyword:if ( ID:x > Digit:1 ) Keyword:do 
+ID:fact = ID:fact * ID:x ; 
+ID:x = ID:x - Digit:1 
+Keyword:while ( ID:x >= Digit:1 ) ; 
+Keyword:return ID:fact ; 
+}
+
+
+```
 
