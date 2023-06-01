@@ -57,11 +57,15 @@ Contains the following 3 tasks ( 2023-Spring )
 
 Same as above
 
+### Suggested arrangement
 
-
-## Suggested arrangement
-
-
+| Time          | Arrangement                                                  |
+| ------------- | :----------------------------------------------------------- |
+| week1         | Course Description                                           |
+| week1~week5   | Complete the software design and documentation requirements for the first project task, and test and write test reports in TINY language lexicography |
+| week6~week10  | Complete the software design and documentation requirements for the second project task, and test and write test reports in Tiny language syntax |
+| week11~week13 | 1. Test the entire project in Mini-C (including lexical and grammatical tests) and write a test report<br/>2. Complete the integration and self-assessment of the final lab report<br/>3. Complete the writing of the system manual<br/>4. Record a video explaining the project report (15 minutes) |
+| week14        | Complete the following:<br/>1. Organize the project design source program, test text and test source program, test report, project executable, instruction manual, project design report and lecture<br/>explanation video. <br/>2. Submit all the above materials by 12pm on Friday, week 14, in the Tonru Cloud Classroom. |
 
 
 
