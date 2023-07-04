@@ -256,6 +256,7 @@ void MainWindow::on_pushButton_clearAll_clicked()
     ui->plainTextEdit_leftRecursion->clear();
     ui->plainTextEdit_leftCommonFactor->clear();
     ui->tableWidget_LL1->clear();
+    ui->treeWidget_CST->clear();
     ui->tableWidget_firstSet->clear();
     ui->tableWidget_followSet->clear();
     ui->tableWidget_firstSet->setRowCount(0);
@@ -263,14 +264,13 @@ void MainWindow::on_pushButton_clearAll_clicked()
     ui->tableWidget_LL1->setRowCount(0);
     ui->tableWidget_LL1->setColumnCount(0);
 
-
     ui->tabWidget->setCurrentIndex(0);
 
     ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
-    printConsole("已复位");
+    printConsole("所有操作已复位");
 }
 
 
@@ -294,6 +294,7 @@ void MainWindow::on_pushButton_CST_clicked()
     {
         ui->tabWidget->setCurrentIndex(8);
         BNFProcessor.printParseTree(ui->treeWidget_CST);
+        printConsole("输出分析树");
     }
 }
 

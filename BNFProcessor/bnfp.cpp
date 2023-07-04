@@ -341,6 +341,7 @@ void BNFP::printParseTree(QTreeWidget *t)
 
 
 //    QTreeWidgetItem *i=getChildItem(parseTreeRoot,rootItem);
+    t->headerItem()->setHidden(true);
     t->clear();
 
     t->addTopLevelItem(m_treeRoot);
