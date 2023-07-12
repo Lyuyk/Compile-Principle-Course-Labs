@@ -66,6 +66,7 @@ public:
     void printSet(QTableWidget *table,bool isFirst=true);//输出First/Follow集
     void printLL1ParsingTable(QTableWidget *table);//输出LL1分析表
     void printParseTree(QTreeWidget *t);//输出树
+    void printAST(QTreeWidget *t);
 
     QMap<QString, QSet<QString>> getFirstSet();//取得非终结符的first集
     QMap<QString, QSet<QString>> getFollowSet();//取得非终结符的follow集
@@ -82,9 +83,10 @@ private:
 
     void decodeLex(QString language);//对词法分析程序编码的lex文件进行解码
 
-    void printInfo(QString content,QPlainTextEdit* e){e->appendPlainText(QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ")+content);}
+    void printInfo(QString content,QPlainTextEdit* e){e->appendPlainText(QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ")+content);}//向控制台输出信息
 
     QTreeWidgetItem* getChildItem(parseTreeNode* parentNode,QTreeWidgetItem* parentItem);
+
 private:
     QString m_grammarStr;//存储待处理文法字符串
 

@@ -38,7 +38,7 @@
          <item>
           <widget class="QTabWidget" name="tabWidget">
            <property name="currentIndex">
-            <number>9</number>
+            <number>8</number>
            </property>
            <widget class="QWidget" name="tab_edit">
             <attribute name="title">
@@ -340,11 +340,6 @@
                  <pointsize>10</pointsize>
                 </font>
                </property>
-               <column>
-                <property name="text">
-                 <string notr="true">1</string>
-                </property>
-               </column>
               </widget>
              </item>
             </layout>
@@ -366,7 +361,7 @@
                   </widget>
                  </item>
                  <item>
-                  <widget class="QLabel" name="label_4">
+                  <widget class="QLabel" name="label_language">
                    <property name="text">
                     <string>TINY</string>
                    </property>
@@ -388,7 +383,7 @@
                 </layout>
                </item>
                <item>
-                <widget class="QTreeWidget" name="treeWidget"/>
+                <widget class="QTreeWidget" name="treeWidget_AST"/>
                </item>
               </layout>
              </item>

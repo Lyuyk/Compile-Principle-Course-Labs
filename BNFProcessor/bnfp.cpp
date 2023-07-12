@@ -319,32 +319,26 @@ QTreeWidgetItem* BNFP::getChildItem(parseTreeNode* parentNode,QTreeWidgetItem *p
 /**
  * @brief BNFP::printParseTree
  * @param t
- * 层序遍历打印节点
+ * 输出高级语言（TINY/MiniC）源程序分析树
  */
 void BNFP::printParseTree(QTreeWidget *t)
 {
-//    if(parseTreeRoot==NULL)
-//        return;
-
-//    QStack<parseTreeNode*> stk;
-
-//    stk.push(parseTreeRoot);
-//    QTreeWidgetItem *rootItem=new QTreeWidgetItem({parseTreeRoot->value});
-
-//    while(!stk.empty())
-//    {
-
-//        parseTreeNode* curNode=stk.top();
-
-//    }
-
-
-
-//    QTreeWidgetItem *i=getChildItem(parseTreeRoot,rootItem);
     t->headerItem()->setHidden(true);
     t->clear();
 
     t->addTopLevelItem(m_treeRoot);
+}
+
+/**
+ * @brief BNFP::printAST
+ * @param t
+ * 输出语法分析树
+ */
+void BNFP::printAST(QTreeWidget *t)
+{
+    t->headerItem()->setHidden(true);
+    t->clear();
+
 }
 
 /**
@@ -961,14 +955,14 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
     parseStk.push("$");
     parseStk.push(m_startChar);
 
-    qDebug()<<m_programCode;
+    //qDebug()<<m_programCode;
 
     QStack<parseTreeNode*> pTreeNodeStk;
-    QStack<QTreeWidgetItem*> tStk;
+    QStack<QTreeWidgetItem*> qTreeStk;
     parseTreeNode* root=new parseTreeNode(m_startChar);
     QTreeWidgetItem* treeI=new QTreeWidgetItem({m_startChar});
     pTreeNodeStk.push(root);
-    tStk.push(treeI);
+    qTreeStk.push(treeI);
 
     int i=0;//Code index
 
@@ -993,7 +987,7 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
         }
 
         parseTreeNode* curNode=pTreeNodeStk.pop();
-        QTreeWidgetItem* curTree=tStk.pop();
+        QTreeWidgetItem* curTree=qTreeStk.pop();
 
         if(m_nonTmrSet.contains(parseStr))//非终结符
         {
@@ -1014,7 +1008,7 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
                 QTreeWidgetItem* newChild=new QTreeWidgetItem({pdnR[j]});
 
                 pTreeNodeStk.push(newTNode);
-                tStk.push(newChild);
+                qTreeStk.push(newChild);
 
                 curNode->children.insert(curNode->children.begin(),newTNode);
                 curTree->addChild(newChild);
@@ -1084,4 +1078,6 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
 //    }
 
 }
+
+
 
