@@ -47,6 +47,15 @@ struct parseTreeNode
     parseTreeNode(QString val):value(val){}
 };
 
+//语法树结构体
+struct syntaxTreeNode
+{
+    QString value;
+    QList<syntaxTreeNode*> children;
+
+    syntaxTreeNode(QString val):value(val){}
+};
+
 class BNFP
 {
 public:
@@ -87,6 +96,7 @@ private:
 
     QTreeWidgetItem* getChildItem(parseTreeNode* parentNode,QTreeWidgetItem* parentItem);
 
+
 private:
     QString m_grammarStr;//存储待处理文法字符串
 
@@ -94,9 +104,6 @@ private:
     QList<QString> m_nonTmrSet;//非终结符集合，Qt6中QList与QVector基本无异
     QSet<QString> m_tmrSet;//终结符集合
     QMap<QString, pdnR> m_GM_productionMap;//文法产生式（左部->右部候选式vector[终结符/非终结符]
-
-    //QMap<QString, QSet<QString>> m_firstSetMap;//first集合元素//todo
-    //QMap<QString, QSet<QString>> m_followSetMap;//follow集合元素
 
     QMap<QString, QMap<QString,QStringList>> m_LL1Table;//LL1分析表
 
