@@ -287,14 +287,14 @@ void MainWindow::on_pushButton_CST_clicked()
     bool passedFlag=BNFProcessor.LL1Parsing(srcProg,ui->plainTextEdit_console,language);
 
     ui->tabWidget->setCurrentIndex(7);
-    printConsole("语法分析结束");
+    printConsole(language+"语言语法分析结束");
     if(!passedFlag)
         QMessageBox::warning(NULL, "LL1分析", "源程序语法有误，详情请查看控制台输出");
     else
     {
         ui->tabWidget->setCurrentIndex(8);
         BNFProcessor.printParseTree(ui->treeWidget_CST);
-        printConsole("输出分析树");
+        printConsole("输出"+language+"分析树");
     }
 }
 

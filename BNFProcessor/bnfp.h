@@ -69,7 +69,7 @@ public:
     void eliminateLCommonFactor();//消除左公共因子
     void firstNFollowSet();//求解first与求解follow集合元素
     void constructLL1ParsingTable();//生成LL1分析表
-    bool LL1Parsing(QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析//todo
+    bool LL1Parsing(QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析
 
     void printGrammar(QPlainTextEdit *e);//输出文法
     void printSet(QTableWidget *table,bool isFirst=true);//输出First/Follow集
@@ -90,11 +90,14 @@ private:
     void computeFirstSet();//求解first与
     void computeFollowSet();//求解follow集合元素
 
-    void decodeLex(QString language);//对词法分析程序编码的lex文件进行解码
-
-    void printInfo(QString content,QPlainTextEdit* e){e->appendPlainText(QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ")+content);}//向控制台输出信息
-
+    //对词法分析程序编码的lex文件进行解码
+    void decodeLex(QString language);
+    //向控制台输出信息
+    void printInfo(QString content,QPlainTextEdit* e){e->appendPlainText(QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ")+content);}
+    //取得节点孩子
     QTreeWidgetItem* getChildItem(parseTreeNode* parentNode,QTreeWidgetItem* parentItem);
+    //TINY语言语法树生成子函数
+    syntaxTreeNode* genTINYSyntaxTree(parseTreeNode* root);
 
 
 private:
@@ -110,8 +113,11 @@ private:
     QString m_lexPrgStr;//存储词法分析程序编码的源程序串
     QList<QString> m_programCode;//用户输入的待分析的程序
 
-    parseTreeNode *m_parseTreeRoot;
-    QTreeWidgetItem *m_treeRoot;
+    parseTreeNode *m_parseTreeRoot;//高级语言分析树
+    QTreeWidgetItem *m_parseTreeRootI;//显示分析树用生成的树根节点
+
+    syntaxTreeNode *m_syntaxTreeRoot;//高级语言语法树
+    QTreeWidgetItem *m_syntaxTreeRootI;//显示语法树用 生成的树根节点
 };
 
 #endif // BNFP_H
