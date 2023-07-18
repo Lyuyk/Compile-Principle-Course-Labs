@@ -301,6 +301,7 @@ void BNFP::printLL1ParsingTable(QTableWidget *table)
     }
 }
 
+
 QTreeWidgetItem* BNFP::getChildItem(parseTreeNode* parentNode,QTreeWidgetItem *parentItem)
 {
     if(parentNode->children.isEmpty())
@@ -457,15 +458,26 @@ void BNFP::printParseTree(QTreeWidget *t)
     t->addTopLevelItem(m_parseTreeRootI);
 }
 
+
+
+
 /**
- * @brief BNFP::printAST
- * @param t
+ * @brief BNFP::printTINYAST
+ * @param t 语法分析树
  * 输出语法分析树
  */
-void BNFP::printAST(QTreeWidget *t)
+void BNFP::printTINYAST(QTreeWidget *t)
 {
     t->headerItem()->setHidden(true);
     t->clear();
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+
+    t->addTopLevelItem(m_treeRoot);
+=======
+>>>>>>> 434bc8a32f560cae50b33f8ec0dd79e46756f3f7
+>>>>>>> Stashed changes
 }
 
 /**
@@ -1204,6 +1216,19 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
 //        }
 //    }
 
+}
+
+/**
+ * @brief BNFP::genAST
+ * @param language 生成语法树的语言类型
+ * 生成语法树
+ */
+void BNFP::genAST(QString language)
+{
+    if(language=="TINY")
+    {
+
+    }
 }
 
 

@@ -69,13 +69,23 @@ public:
     void eliminateLCommonFactor();//消除左公共因子
     void firstNFollowSet();//求解first与求解follow集合元素
     void constructLL1ParsingTable();//生成LL1分析表
+<<<<<<< Updated upstream
     bool LL1Parsing(QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析
+=======
+<<<<<<< HEAD
+    bool LL1Parsing(QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析并生成语法树（以及显示分析树）
+    void genAST(QString language);//生成语法树
+=======
+    bool LL1Parsing(QString progStr,QPlainTextEdit *console,QString language);//使用LL1分析表进行语法分析
+>>>>>>> 434bc8a32f560cae50b33f8ec0dd79e46756f3f7
+>>>>>>> Stashed changes
 
     void printGrammar(QPlainTextEdit *e);//输出文法
     void printSet(QTableWidget *table,bool isFirst=true);//输出First/Follow集
     void printLL1ParsingTable(QTableWidget *table);//输出LL1分析表
     void printParseTree(QTreeWidget *t);//输出树
-    void printAST(QTreeWidget *t);
+    void printTINYAST(QTreeWidget *t);//生成TINY语言的语法树
+
 
     QMap<QString, QSet<QString>> getFirstSet();//取得非终结符的first集
     QMap<QString, QSet<QString>> getFollowSet();//取得非终结符的follow集
@@ -99,6 +109,11 @@ private:
     //TINY语言语法树生成子函数
     syntaxTreeNode* genTINYSyntaxTree(parseTreeNode* root);
 
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 
 private:
     QString m_grammarStr;//存储待处理文法字符串
@@ -108,6 +123,16 @@ private:
     QSet<QString> m_tmrSet;//终结符集合
     QMap<QString, pdnR> m_GM_productionMap;//文法产生式（左部->右部候选式vector[终结符/非终结符]
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+
+    //QMap<QString, QSet<QString>> m_firstSetMap;//first集合元素//todo
+    //QMap<QString, QSet<QString>> m_followSetMap;//follow集合元素
+
+=======
+>>>>>>> 434bc8a32f560cae50b33f8ec0dd79e46756f3f7
+>>>>>>> Stashed changes
     QMap<QString, QMap<QString,QStringList>> m_LL1Table;//LL1分析表
 
     QString m_lexPrgStr;//存储词法分析程序编码的源程序串
