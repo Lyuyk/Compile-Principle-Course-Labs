@@ -41,19 +41,28 @@ struct pdnR
 //分析树结构体，任意多叉树
 struct parseTreeNode
 {
+    QString name;
     QString value;
     QList<parseTreeNode*> children;
 
-    parseTreeNode(QString val):value(val){}
+    parseTreeNode(QString val):value(val),name(val){}
 };
 
 //语法树结构体
 struct syntaxTreeNode
 {
-    QString value;
+    bool flag;
+    bool deleted;
+    QString nodeName;
+    QString nodeValue;
     QList<syntaxTreeNode*> children;
 
-    syntaxTreeNode(QString val):value(val){}
+    void append(syntaxTreeNode* STN)
+    {
+        children.append(STN);
+    }
+
+    syntaxTreeNode(QString val):nodeValue(val),nodeName(val){}
 };
 
 class BNFP
@@ -77,7 +86,7 @@ public:
     void printSet(QTableWidget *table,bool isFirst=true);//输出First/Follow集
     void printLL1ParsingTable(QTableWidget *table);//输出LL1分析表
     void printParseTree(QTreeWidget *t);//输出树
-    void printAST(QTreeWidget *t);//输出高级语言的语法树
+    void printAST(QTreeWidget *t,QString language);//输出高级语言的语法树
 
     QMap<QString, QSet<QString>> getFirstSet();//取得非终结符的first集
     QMap<QString, QSet<QString>> getFollowSet();//取得非终结符的follow集
@@ -100,8 +109,9 @@ private:
     QTreeWidgetItem* getChildItem(parseTreeNode* parentNode,QTreeWidgetItem* parentItem);
     //TINY语言语法树生成子函数
     syntaxTreeNode* genTINYSyntaxTree(parseTreeNode* root);
-
-
+    void reformTINYSyntaxTree(syntaxTreeNode* root);
+    //语法树转换成能显示的qtree
+    QTreeWidgetItem* exChangeTree(syntaxTreeNode* root);
 
 private:
     QString m_grammarStr;//存储待处理文法字符串
