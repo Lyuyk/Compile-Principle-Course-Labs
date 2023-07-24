@@ -38,7 +38,7 @@
          <item>
           <widget class="QTabWidget" name="tabWidget">
            <property name="currentIndex">
-            <number>8</number>
+            <number>9</number>
            </property>
            <widget class="QWidget" name="tab_edit">
             <attribute name="title">
@@ -340,6 +340,11 @@
                  <pointsize>10</pointsize>
                 </font>
                </property>
+               <column>
+                <property name="text">
+                 <string notr="true">1</string>
+                </property>
+               </column>
               </widget>
              </item>
             </layout>
@@ -380,10 +385,29 @@
                    </property>
                   </spacer>
                  </item>
+                 <item>
+                  <widget class="QPushButton" name="pushButton_AST">
+                   <property name="minimumSize">
+                    <size>
+                     <width>0</width>
+                     <height>0</height>
+                    </size>
+                   </property>
+                   <property name="text">
+                    <string>显示语法树</string>
+                   </property>
+                  </widget>
+                 </item>
                 </layout>
                </item>
                <item>
-                <widget class="QTreeWidget" name="treeWidget_AST"/>
+                <widget class="QTreeWidget" name="treeWidget_AST">
+                 <column>
+                  <property name="text">
+                   <string notr="true">1</string>
+                  </property>
+                 </column>
+                </widget>
                </item>
               </layout>
              </item>

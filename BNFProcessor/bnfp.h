@@ -41,28 +41,33 @@ struct pdnR
 //分析树结构体，任意多叉树
 struct parseTreeNode
 {
-    QString name;
     QString value;
-    QList<parseTreeNode*> children;
+    QList<parseTreeNode*> children;//分析树孩子
 
-    parseTreeNode(QString val):value(val),name(val){}
+    parseTreeNode(QString val):value(val){}
 };
 
 //语法树结构体
 struct syntaxTreeNode
 {
-    bool flag;
-    bool deleted;
-    QString nodeName;
-    QString nodeValue;
-    QList<syntaxTreeNode*> children;
+    bool flag=false;
+    bool isDeleted=false;
+    QString nodeType="";
+    QString nodeValue="";
+    QList<syntaxTreeNode*> children;//存储节点孩子
 
-    void append(syntaxTreeNode* STN)
+    void append(syntaxTreeNode* syntaxTreeNode)//添加节点
     {
-        children.append(STN);
+        children.append(syntaxTreeNode);
     }
 
-    syntaxTreeNode(QString val):nodeValue(val),nodeName(val){}
+    syntaxTreeNode(QString val)
+    {
+        nodeValue=val;
+        nodeType=val;
+        isDeleted=false;
+        flag=false;
+    }
 };
 
 class BNFP
@@ -94,11 +99,11 @@ public:
 private:        
     void eliminateLRecursion(int index,QSet<QString>& newNonTmrSet);//消除左递归子函数
 
-    void lFactorCount(QList<QStringList> list,QStringList pdnR,int &count);//记录最长左公因子个数
+    void lFactorCount(QList<QStringList> list,QStringList pdnR,int &count);//记录最长左公因子个数（防止重复提取左公因子）
     QString getNewTmr(QString curTmr);//申请新终结符
     QString findL(QMap<QString,QVector<QStringList>> newSet,QList<QStringList> Temp);
 
-    void computeFirstSet();//求解first与
+    void computeFirstSet();//求解first集合元素
     void computeFollowSet();//求解follow集合元素
 
     //对词法分析程序编码的lex文件进行解码
@@ -111,7 +116,7 @@ private:
     syntaxTreeNode* genTINYSyntaxTree(parseTreeNode* root);
     void reformTINYSyntaxTree(syntaxTreeNode* root);
     //语法树转换成能显示的qtree
-    QTreeWidgetItem* exChangeTree(syntaxTreeNode* root);
+    QTreeWidgetItem* exchangeTree(syntaxTreeNode* root);
 
 private:
     QString m_grammarStr;//存储待处理文法字符串

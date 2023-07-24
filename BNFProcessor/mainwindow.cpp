@@ -34,7 +34,10 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->tabWidget->setCurrentIndex(0);
+
+
+
+    ui->tabWidget->setCurrentIndex(grammarTab);
 
     //界面交互处理
     ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
@@ -49,6 +52,7 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_save, &QAction::triggered, this, &MainWindow::on_pushButton_save_clicked);
     connect(ui->action_simplify, &QAction::triggered, this, &MainWindow::on_pushButton_process_clicked);
     connect(ui->action_set, &QAction::triggered, this, &MainWindow::on_pushButton_set_clicked);
+
 
 }
 
@@ -171,7 +175,7 @@ void MainWindow::on_pushButton_simplify_clicked()
     BNFProcessor.initGrammar(m_grammarStr);
     BNFProcessor.simplifyGrammar();
     BNFProcessor.printGrammar(ui->plainTextEdit_simplified);
-    ui->tabWidget->setCurrentIndex(1);
+    ui->tabWidget->setCurrentIndex(simplifyTab);
 
     ui->pushButton_eliminateLeftRecursion->setEnabled(true);
 
@@ -192,7 +196,7 @@ void MainWindow::on_pushButton_eliminateLeftRecursion_clicked()
     BNFProcessor.printGrammar(ui->plainTextEdit_leftRecursion);
     printConsole("输出处理结果...");
 
-    ui->tabWidget->setCurrentIndex(2);
+    ui->tabWidget->setCurrentIndex(leftCurTab);
     ui->pushButton_eliminateLeftCommonFactor->setEnabled(true);
 }
 
@@ -212,7 +216,7 @@ void MainWindow::on_pushButton_eliminateLeftCommonFactor_clicked()
     printConsole("输出处理结果...");
 
     ui->pushButton_set->setEnabled(true);
-    ui->tabWidget->setCurrentIndex(3);
+    ui->tabWidget->setCurrentIndex(leftCommonTab);
 }
 
 /**
@@ -224,10 +228,11 @@ void MainWindow::on_pushButton_set_clicked()
     BNFProcessor.firstNFollowSet();
     BNFProcessor.printSet(ui->tableWidget_firstSet,true);
     printConsole("First集计算完成");
-    printConsole("Follow集计算完成");
-    BNFProcessor.printSet(ui->tableWidget_followSet,false);
 
-    ui->tabWidget->setCurrentIndex(4);
+    BNFProcessor.printSet(ui->tableWidget_followSet,false);
+    printConsole("Follow集计算完成");
+
+    ui->tabWidget->setCurrentIndex(firstSetTab);
     ui->pushButton_LL1->setEnabled(true);
 }
 
@@ -240,7 +245,7 @@ void MainWindow::on_pushButton_LL1_clicked()
 {
     BNFProcessor.constructLL1ParsingTable();
     BNFProcessor.printLL1ParsingTable(ui->tableWidget_LL1);
-    ui->tabWidget->setCurrentIndex(6);
+    ui->tabWidget->setCurrentIndex(ll1TableTab);
     ui->pushButton_CST->setEnabled(true);
     printConsole("构建LL1表完成");
 }
@@ -264,7 +269,7 @@ void MainWindow::on_pushButton_clearAll_clicked()
     ui->tableWidget_LL1->setRowCount(0);
     ui->tableWidget_LL1->setColumnCount(0);
 
-    ui->tabWidget->setCurrentIndex(0);
+    ui->tabWidget->setCurrentIndex(grammarTab);
 
     ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
@@ -280,23 +285,32 @@ void MainWindow::on_pushButton_CST_clicked()
     QString srcProg=ui->plainTextEdit_CST->toPlainText();
     if(srcProg.isEmpty())
     {
-        ui->tabWidget->setCurrentIndex(7);
+        ui->tabWidget->setCurrentIndex(syntaxTab);
         QMessageBox::warning(NULL, "提示", "请输入源程序再进行语法分析");
         return;
     }
     bool passedFlag=BNFProcessor.LL1Parsing(srcProg,ui->plainTextEdit_console,language);
 
-    ui->tabWidget->setCurrentIndex(7);
+    ui->tabWidget->setCurrentIndex(syntaxTab);
     printConsole(language+"语言语法分析结束");
     if(!passedFlag)
         QMessageBox::warning(NULL, "LL1分析", "源程序语法有误，详情请查看控制台输出");
     else
     {
-        ui->tabWidget->setCurrentIndex(8);
+        ui->tabWidget->setCurrentIndex(CSTTab);
         BNFProcessor.printParseTree(ui->treeWidget_CST);
         printConsole("输出"+language+"分析树");
     }
 }
 
-
+/**
+ * @brief MainWindow::on_pushButton_AST_clicked
+ * 语法树生成（调试）
+ */
+void MainWindow::on_pushButton_AST_clicked()
+{
+    QString language=ui->comboBox_language->currentText();
+    BNFProcessor.printAST(ui->treeWidget_AST,language);
+    printConsole("输出"+language+"语法树");
+}
 

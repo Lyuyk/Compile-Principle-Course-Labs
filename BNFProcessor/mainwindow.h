@@ -67,6 +67,8 @@ private slots:
 
     void on_pushButton_CST_clicked();
 
+    void on_pushButton_AST_clicked();
+
 private:
     void exit();
     void printConsole(QString content);//控制台输出
@@ -76,6 +78,9 @@ private:
 
     QString m_grammarStr;//文法字符串
     QString tmp;
+
+    enum tabs{grammarTab,simplifyTab,leftCurTab,leftCommonTab,
+                firstSetTab,followSetTab,ll1TableTab,syntaxTab,CSTTab,ASTTab}tabIdx;
 
 private:
     Ui::MainWindow *ui;
