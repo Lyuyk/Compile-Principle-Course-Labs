@@ -326,95 +326,104 @@ QTreeWidgetItem* BNFP::getChildItem(parseTreeNode* parentNode,QTreeWidgetItem *p
  */
 syntaxTreeNode *BNFP::genTINYSyntaxTree(parseTreeNode *root)
 {
-    if(root==NULL)return NULL;
+    if(root==nullptr)
+        return nullptr;
 
-    syntaxTreeNode* currentNode=NULL;
+    syntaxTreeNode* currentNode=nullptr;
     if(root->value=="program")// program->stmt-sequence
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         currentNode=new syntaxTreeNode("start");
-        currentNode->append(genTINYSyntaxTree(root->children[0]));
+        currentNode->addChild(genTINYSyntaxTree(root->children[0]));
     }
     else if(root->value=="stmt-sequence")// stmt-sequence->statement stmt-sequence'
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         currentNode=new syntaxTreeNode("");
         currentNode->flag=true;//要把该节点孩子提上来，先做标记后续再处理
-        currentNode->append(genTINYSyntaxTree(root->children[0]));//statement
-        currentNode->append(genTINYSyntaxTree(root->children[1]));//stmt-sequence'
+        currentNode->addChild(genTINYSyntaxTree(root->children[0]));//statement
+        currentNode->addChild(genTINYSyntaxTree(root->children[1]));//stmt-sequence'
     }
     else if(root->value=="statement")// statement->identifier := exp|write exp|repeat stmt-sequence until exp|read identifier|if exp then stmt-sequence statement'
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         if(root->children.size()==2 && root->children[0]->value=="read")//read identifier情况
         {
             currentNode=new syntaxTreeNode("read");
             currentNode->nodeValue=root->children[1]->value;//把identifier的值赋给该节点即可
+//            qDebug()<<root->children[1]->value;
         }
-        else if(root->children.size()==2&&root->children[0]->value=="write")//write exp情况
+        else if(root->children.size()==2 && root->children[0]->value=="write")//write exp情况
         {
             currentNode=new syntaxTreeNode("write");
-            currentNode->append(genTINYSyntaxTree(root->children[1]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[1]));
         }
         else if(root->children.size()==3)//identifier := exp情况
         {
-            currentNode=new syntaxTreeNode("assgin");
+            currentNode=new syntaxTreeNode("assign");
             currentNode->nodeValue=root->children[0]->value;
-            currentNode->append(genTINYSyntaxTree(root->children[2]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[2]));
         }
         else if(root->children.size()==4)//repeat stmt-sequence until exp
         {
             currentNode=new syntaxTreeNode("repeat");
-            currentNode->append(genTINYSyntaxTree(root->children[1]));
-            currentNode->append(genTINYSyntaxTree(root->children[3]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[1]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[3]));
         }
         else if(root->children.size()==5)//if exp then stmt-sequence statement'
         {
             currentNode=new syntaxTreeNode("if");
-            currentNode->append(genTINYSyntaxTree(root->children[1]));
-            currentNode->append(genTINYSyntaxTree(root->children[3]));
-            currentNode->append(genTINYSyntaxTree(root->children[4]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[1]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[3]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[4]));
         }
     }
     else if(root->value=="exp")//exp->( exp ) term' simple-exp' exp'|number term' simple-exp' exp'|identifier term' simple-exp' exp'
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         currentNode=new syntaxTreeNode("");
-        currentNode->flag=1;//要把该节点孩子提上来，先做标记后续再处理
+        currentNode->flag=true;//要把该节点孩子提上来，先做标记后续再处理
         if(root->children.size()==6)//( exp ) term' simple-exp' exp'情况
         {
-            currentNode->append(genTINYSyntaxTree(root->children[1]));
-            currentNode->append(genTINYSyntaxTree(root->children[3]));
-            currentNode->append(genTINYSyntaxTree(root->children[4]));
-            currentNode->append(genTINYSyntaxTree(root->children[5]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[1]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[3]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[4]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[5]));
         }
-        else
+        else // identifier term' simple-exp' exp'情况
         {
-            currentNode->append(genTINYSyntaxTree(root->children[0]));
-            currentNode->append(genTINYSyntaxTree(root->children[1]));
-            currentNode->append(genTINYSyntaxTree(root->children[2]));
-            currentNode->append(genTINYSyntaxTree(root->children[3]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[0]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[1]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[2]));
+            currentNode->addChild(genTINYSyntaxTree(root->children[3]));
         }
     }
     else if(root->value=="simple-exp")//simple-exp->term simple-exp'
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         currentNode=new syntaxTreeNode("");
-        currentNode->flag=1;//要把该节点孩子提上来，先做标记后续再处理
-        currentNode->append(genTINYSyntaxTree(root->children[0]));//term
-        currentNode->append(genTINYSyntaxTree(root->children[1]));//simple-exp'
+        currentNode->flag=true;//要把该节点孩子提上来，先做标记后续再处理
+        currentNode->addChild(genTINYSyntaxTree(root->children[0]));//term
+        currentNode->addChild(genTINYSyntaxTree(root->children[1]));//simple-exp'
     }
     else if(root->value=="term")//term->factor term'
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         currentNode=new syntaxTreeNode("");
-        currentNode->flag=1;//要把该节点孩子提上来，先做标记后续再处理
-        currentNode->append(genTINYSyntaxTree(root->children[0]));//factor
-        currentNode->append(genTINYSyntaxTree(root->children[1]));//term'
+        currentNode->flag=true;//要把该节点孩子提上来，先做标记后续再处理
+        currentNode->addChild(genTINYSyntaxTree(root->children[0]));//factor
+        currentNode->addChild(genTINYSyntaxTree(root->children[1]));//term'
     }
     else if(root->value=="factor")//factor->( exp )|number|identifier
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         if(root->children.size()==1)//number identifier
             currentNode=genTINYSyntaxTree(root->children[0]);
         else
@@ -422,53 +431,63 @@ syntaxTreeNode *BNFP::genTINYSyntaxTree(parseTreeNode *root)
     }
     else if(root->value=="stmt-sequence'")//stmt-sequence'->; statement stmt-sequence'|@
     {
-        //qDebug()<<root->nodeName<<root->children.size();
-        if(!root->children.size())return nullptr;//@
+//        qDebug()<<root->value<<root->children.size();
+
+        if(!root->children.size())
+            return nullptr;//@
         currentNode=new syntaxTreeNode("");
-        currentNode->flag=1;//要把该节点孩子提上来，先做标记后续再处理
-        currentNode->append(genTINYSyntaxTree(root->children[1]));//statement
-        currentNode->append(genTINYSyntaxTree(root->children[2]));//stmt-sequence'
+        currentNode->flag=true;//要把该节点孩子提上来，先做标记后续再处理
+        currentNode->addChild(genTINYSyntaxTree(root->children[1]));//statement
+        currentNode->addChild(genTINYSyntaxTree(root->children[2]));//stmt-sequence'
     }
     else if(root->value=="simple-exp'")//simple-exp'->@|+ term simple-exp'|- term simple-exp'
     {
-        //qDebug()<<root->nodeName<<root->children.size();
-        if(!root->children.size())return NULL;//@
+//        qDebug()<<root->value<<root->children.size();
+
+        if(!root->children.size())
+            return nullptr;//@
         currentNode=new syntaxTreeNode("op");
         currentNode->nodeValue=root->children[0]->value;
-        currentNode->append(genTINYSyntaxTree(root->children[1]));//term
-        currentNode->append(genTINYSyntaxTree(root->children[2]));//simple-exp'
+        currentNode->addChild(genTINYSyntaxTree(root->children[1]));//term
+        currentNode->addChild(genTINYSyntaxTree(root->children[2]));//simple-exp'
     }
     else if(root->value=="term'")//term'->@ | * factor term' | / factor term'
     {
-        //qDebug()<<root->nodeName<<root->children.size();
-        if(!root->children.size())return NULL;//@
-        currentNode=new syntaxTreeNode("op");
-        currentNode->nodeValue=root->children[0]->value;
-        currentNode->append(genTINYSyntaxTree(root->children[1]));//factor
-        currentNode->append(genTINYSyntaxTree(root->children[2]));//term'
-    }
-    else if(root->value=="exp'")//exp'->@|= simple-exp|< simple-exp
-    {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         if(root->children.size()==0)
             return nullptr;//@
         currentNode=new syntaxTreeNode("op");
         currentNode->nodeValue=root->children[0]->value;
-        currentNode->append(genTINYSyntaxTree(root->children[1]));//simple-exp
+        currentNode->addChild(genTINYSyntaxTree(root->children[1]));//factor
+        currentNode->addChild(genTINYSyntaxTree(root->children[2]));//term'
+    }
+    else if(root->value=="exp'")//exp'->@|= simple-exp|< simple-exp
+    {
+//        qDebug()<<root->value<<root->children.size();
+
+        if(root->children.size()==0)
+            return nullptr;//@
+        currentNode=new syntaxTreeNode("op");
+        currentNode->nodeValue=root->children[0]->value;
+        currentNode->addChild(genTINYSyntaxTree(root->children[1]));//simple-exp
     }
     else if(root->value=="statement'")//statement'->end|else stmt-sequence end
     {
-        //qDebug()<<root->nodeName<<root->children.size();
+//        qDebug()<<root->value<<root->children.size();
+
         if(root->children.size()==1)//处理空串
             return nullptr;//end
         currentNode=genTINYSyntaxTree(root->children[1]);
     }
-    else if(root->value=="identifier" || root->value=="number")
+    else if(root->type=="identifier" || root->type=="number")
     {
-        //qDebug()<<root->nodeName<<root->children.size();
-        currentNode=new syntaxTreeNode(root->value);
+//        qDebug()<<root->value<<root->children.size();
+
+        currentNode=new syntaxTreeNode(root->type);
         currentNode->nodeValue=root->value;
     }
+    qDebug()<<currentNode->nodeType<<":"<<currentNode->nodeValue;
     return currentNode;
 }
 
@@ -485,26 +504,37 @@ void BNFP::reformTINYSyntaxTree(syntaxTreeNode *root)
         isEnd=true;
         for(int i=0;i<root->children.size();i++)//遍历所有孩子
         {
-            if(root->children.at(i)==nullptr)continue;
+//            if(root->children.at(i)==nullptr)
+//            {
+//                root->children.removeAt(i);//剪枝
+//                continue;
+//            }
 
             syntaxTreeNode* currentChild=root->children.at(i);
-            if(currentChild->isDeleted)continue;//节点已经被假删除了
-            if(currentChild->flag)//如果该节点需要把孩子提上来
+            if(currentChild->isDeleted)
+            {
+                continue;//节点已经被假删除了
+            }
+            qDebug()<<"for()";
+            qDebug()<<currentChild->flag<<currentChild->nodeValue;
+            if(currentChild->flag || currentChild->nodeValue=="")//如果该节点需要把孩子提上来
             {
                 bool isOp=false;//记录是否有孙子是运算符
                 for(int j=0;j<currentChild->children.size();j++)//遍历所有孙子
                 {
 
                     syntaxTreeNode* currentGrandChild=currentChild->children.at(j);//当前孙子节点
-                    if(currentGrandChild!=nullptr && currentGrandChild->nodeValue=="op")//判断是否有孙子节点为运算符 假如是运算符就把运算符提上来且把孩子节点的flag设为false，而后再将该孙子节点的flag设为true
+                    if(currentGrandChild!=nullptr && currentGrandChild->nodeType=="op")//判断是否有孙子节点为运算符 假如是运算符就把运算符提上来且把孩子节点的flag设为false，而后再将该孙子节点的flag设为true
                     {
+                        //qDebug()<<"opX:"<<currentGrandChild->nodeType<<currentGrandChild->nodeValue;
                         currentChild->nodeType="op";
                         currentChild->nodeValue=currentGrandChild->nodeValue;
-                        currentChild->flag=0;
+                        currentChild->flag=false;
 
                         currentGrandChild->nodeType="";
                         currentGrandChild->nodeValue="";
-                        currentGrandChild->flag=1;
+                        currentGrandChild->flag=false;
+                        currentGrandChild->isDeleted=true;
 
                         isOp=true;
                     }
@@ -514,7 +544,8 @@ void BNFP::reformTINYSyntaxTree(syntaxTreeNode *root)
                 isEnd=false;
                 for(int j=0;j<currentChild->children.size();j++)//遍历所有孙子，把他们都交给爷爷
                 {
-                    root->children.append(currentChild->children[j]);
+                    root->addChild(currentChild->children[j]);
+
                 }
                 currentChild->isDeleted=true;//被假删除了
                 break;//QList中的内容已修改，跳出循环重新判断
@@ -522,7 +553,7 @@ void BNFP::reformTINYSyntaxTree(syntaxTreeNode *root)
         }
     }
     for(int i=0;i<root->children.size();i++)//遍历根节点的所有孩子
-        if(root->children[i]!=nullptr && !root->children[i]->isDeleted)//若该孩子没有被假删除（即未处理完成）
+        if(!root->children[i]->isDeleted)//若该孩子没有被假删除（即未处理完成）
             reformTINYSyntaxTree(root->children[i]);//递归到孩子节点
 }
 
@@ -549,9 +580,11 @@ QTreeWidgetItem *BNFP::exchangeTree(syntaxTreeNode *root)
         //遍历当前语法树节点的所有孩子
         for(syntaxTreeNode* child: curNode->children)
         {
-            if(child==nullptr)continue;
+            //qDebug()<<"---------------------------";
+            if(child->nodeValue==""&&curNode->children.size()>1)continue;
 
             QTreeWidgetItem* copyChildI=new QTreeWidgetItem({child->nodeValue});//复制当前孩子节点
+            //qDebug()<<child->nodeType<<child->nodeValue;
             curCopyNodeI->addChild(copyChildI);//加入当前语法树节点的孩子中
 
             nodeMap[child]=copyChildI;//将孩子节点加入映射中，等待后续处理
@@ -1212,8 +1245,6 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
     parseStk.push("$");
     parseStk.push(m_startChar);
 
-    //qDebug()<<m_programCode;
-
     QStack<parseTreeNode*> pTreeNodeStk;
     QStack<QTreeWidgetItem*> qTreeStk;
     parseTreeNode* root=new parseTreeNode(m_startChar);
@@ -1231,9 +1262,9 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
             printInfo("Info: parseStack is empty.",console);
             return false;
         }
-        QString token=m_programCode[i];//
+        QString token=m_programCode[i];
         QString parseStr=parseStk.pop();
-        if(token==parseStr && token=="$")break;//end
+        if(token==parseStr && token=="$")break;//end标志
 
         if(pTreeNodeStk.isEmpty())
         {
@@ -1288,6 +1319,7 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
             {
                 if(token=="identifier"||token=="number")
                 {
+                    curNode->type=token;//注明类型
                     token=m_programCode[++i];
                 }
             }
@@ -1295,6 +1327,7 @@ bool BNFP::LL1Parsing(QString progStr,QPlainTextEdit *console,QString language)
             {
                 if(token=="ID"||token=="NUM")
                 {
+                    curNode->type=token;//注明类型
                     token=m_programCode[++i];
                 }
             }

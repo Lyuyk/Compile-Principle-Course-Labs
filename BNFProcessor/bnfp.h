@@ -38,35 +38,31 @@ struct pdnR
     QSet<QString> followSet;//产生式右部Follow集
 };
 
-//分析树结构体，任意多叉树
+//分析树结构体（任意多叉树）
 struct parseTreeNode
 {
-    QString value;
+    QString type;//节点类型
+    QString value;//节点的值
     QList<parseTreeNode*> children;//分析树孩子
 
-    parseTreeNode(QString val):value(val){}
+    parseTreeNode(QString val):type(val),value(val){}
 };
 
-//语法树结构体
+//语法树结构体（任意多叉树）
 struct syntaxTreeNode
 {
     bool flag=false;
     bool isDeleted=false;
-    QString nodeType="";
-    QString nodeValue="";
+    QString nodeType="#";
+    QString nodeValue="#";
     QList<syntaxTreeNode*> children;//存储节点孩子
 
-    void append(syntaxTreeNode* syntaxTreeNode)//添加节点
-    {
-        children.append(syntaxTreeNode);
-    }
+    syntaxTreeNode(QString val):flag(false),isDeleted(false),nodeType(val),nodeValue(val){}
 
-    syntaxTreeNode(QString val)
+    void addChild(syntaxTreeNode* syntaxTreeNode)//添加节点
     {
-        nodeValue=val;
-        nodeType=val;
-        isDeleted=false;
-        flag=false;
+        if(syntaxTreeNode!=nullptr)//如果为空则不添加
+            children.append(syntaxTreeNode);
     }
 };
 

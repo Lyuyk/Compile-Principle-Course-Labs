@@ -34,9 +34,6 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-
-
-
     ui->tabWidget->setCurrentIndex(grammarTab);
 
     //界面交互处理
@@ -52,8 +49,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->action_save, &QAction::triggered, this, &MainWindow::on_pushButton_save_clicked);
     connect(ui->action_simplify, &QAction::triggered, this, &MainWindow::on_pushButton_process_clicked);
     connect(ui->action_set, &QAction::triggered, this, &MainWindow::on_pushButton_set_clicked);
-
-
 }
 
 MainWindow::~MainWindow()
@@ -162,7 +157,7 @@ void MainWindow::on_pushButton_process_clicked()
     on_pushButton_set_clicked();
     on_pushButton_LL1_clicked();
     on_pushButton_CST_clicked();
-
+    on_pushButton_AST_clicked();
 }
 
 /**
