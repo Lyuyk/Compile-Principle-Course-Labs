@@ -38,7 +38,7 @@
          <item>
           <widget class="QTabWidget" name="tabWidget">
            <property name="currentIndex">
-            <number>9</number>
+            <number>8</number>
            </property>
            <widget class="QWidget" name="tab_edit">
             <attribute name="title">
@@ -333,35 +333,13 @@
             </attribute>
             <layout class="QHBoxLayout" name="horizontalLayout_19">
              <item>
-              <widget class="QTreeWidget" name="treeWidget_CST">
-               <property name="font">
-                <font>
-                 <family>JetBrains Mono NL</family>
-                 <pointsize>10</pointsize>
-                </font>
-               </property>
-               <column>
-                <property name="text">
-                 <string notr="true">1</string>
-                </property>
-               </column>
-              </widget>
-             </item>
-            </layout>
-           </widget>
-           <widget class="QWidget" name="tab_4">
-            <attribute name="title">
-             <string>语法树</string>
-            </attribute>
-            <layout class="QHBoxLayout" name="horizontalLayout_21">
-             <item>
-              <layout class="QVBoxLayout" name="verticalLayout_9">
+              <layout class="QVBoxLayout" name="verticalLayout_10">
                <item>
                 <layout class="QHBoxLayout" name="horizontalLayout_20">
                  <item>
                   <widget class="QLabel" name="label_3">
                    <property name="text">
-                    <string>语言：</string>
+                    <string>当前语言：</string>
                    </property>
                   </widget>
                  </item>
@@ -394,12 +372,38 @@
                     </size>
                    </property>
                    <property name="text">
-                    <string>显示语法树</string>
+                    <string>生成语法树</string>
                    </property>
                   </widget>
                  </item>
                 </layout>
                </item>
+               <item>
+                <widget class="QTreeWidget" name="treeWidget_CST">
+                 <property name="font">
+                  <font>
+                   <family>JetBrains Mono NL</family>
+                   <pointsize>10</pointsize>
+                  </font>
+                 </property>
+                 <column>
+                  <property name="text">
+                   <string notr="true">1</string>
+                  </property>
+                 </column>
+                </widget>
+               </item>
+              </layout>
+             </item>
+            </layout>
+           </widget>
+           <widget class="QWidget" name="tab_4">
+            <attribute name="title">
+             <string>语法树</string>
+            </attribute>
+            <layout class="QHBoxLayout" name="horizontalLayout_21">
+             <item>
+              <layout class="QVBoxLayout" name="verticalLayout_9">
                <item>
                 <widget class="QTreeWidget" name="treeWidget_AST">
                  <column>

@@ -29,19 +29,19 @@
 #include <QDebug>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+    : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
     ui->tabWidget->setCurrentIndex(grammarTab);
 
-    //界面交互处理
+    // 界面交互处理
     ui->pushButton_eliminateLeftCommonFactor->setDisabled(true);
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
-    //ui->pushButton_CST->setDisabled(true);
+    ui->pushButton_CST->setDisabled(true);
+    ui->pushButton_AST->setDisabled(true);
 
     /*菜单栏与槽函数连接*/
     connect(ui->action_exit, &QAction::triggered, this, &MainWindow::exit);
@@ -72,11 +72,10 @@ void MainWindow::exit()
  */
 void MainWindow::printConsole(QString content)
 {
-    QString time=QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
+    QString time = QDateTime::currentDateTime().toString("[hh:mm:ss.zzz] ");
 
-    ui->plainTextEdit_console->appendPlainText(time+content);
+    ui->plainTextEdit_console->appendPlainText(time + content);
 }
-
 
 /**
  * @brief MainWindow::on_pushButton_open_clicked
@@ -84,27 +83,26 @@ void MainWindow::printConsole(QString content)
  */
 void MainWindow::on_pushButton_open_clicked()
 {
-    QString srcFilePath=QFileDialog::getOpenFileName(this,"选择文法文件（仅.txt类型）","/", "Files(*.txt)");
+    QString srcFilePath = QFileDialog::getOpenFileName(this, "选择文法文件（仅.txt类型）", "/", "Files(*.txt)");
     QFile srcFile(srcFilePath);
-    if(!srcFile.open(QIODevice::ReadOnly|QIODevice::Text))
+    if (!srcFile.open(QIODevice::ReadOnly | QIODevice::Text))
     {
-        QMessageBox::warning(NULL, "文件", "文件打开失败");
+        QMessageBox::warning(nullptr, "文件", "文件打开失败");
         return;
     }
     QTextStream textInput(&srcFile);
-    textInput.setEncoding(QStringConverter::Utf8);//设置编码，防止中文乱码
+    textInput.setEncoding(QStringConverter::Utf8); // 设置编码，防止中文乱码
 
     QString line;
     printConsole("读取文法文件...");
-    while(!textInput.atEnd())
+    while (!textInput.atEnd())
     {
-        line=textInput.readLine().toUtf8();//按行读取文件
-        m_grammarStr.append(line.trimmed()+'\n');
-        ui->plainTextEdit_edit->appendPlainText(line);//一行行显示
+        line = textInput.readLine().toUtf8(); // 按行读取文件
+        m_grammarStr.append(line.trimmed() + '\n');
+        ui->plainTextEdit_edit->appendPlainText(line); // 一行行显示
     }
     printConsole("读取完成...");
     srcFile.close();
-
 }
 
 /**
@@ -113,18 +111,18 @@ void MainWindow::on_pushButton_open_clicked()
  */
 void MainWindow::on_pushButton_save_clicked()
 {
-    QString tgtFilePath=QFileDialog::getSaveFileName(this,"选择保存路径","/");
+    QString tgtFilePath = QFileDialog::getSaveFileName(this, "选择保存路径", "/");
     QFile tgtFile(tgtFilePath);
-    if(!tgtFile.open(QIODevice::ReadWrite|QIODevice::Text|QIODevice::Truncate))
+    if (!tgtFile.open(QIODevice::ReadWrite | QIODevice::Text | QIODevice::Truncate))
     {
-        QMessageBox::warning(NULL, "文件", "文件保存失败");
+        QMessageBox::warning(nullptr, "文件", "文件保存失败");
         return;
     }
     QTextStream outputFile(&tgtFile);
-    QString tgStr=ui->plainTextEdit_edit->toPlainText();
-    outputFile<<tgStr;
+    QString tgStr = ui->plainTextEdit_edit->toPlainText();
+    outputFile << tgStr;
     tgtFile.close();
-    QMessageBox::information(NULL,"文件(saveGrammarRule)","文件保存成功");
+    QMessageBox::information(nullptr, "文件(saveGrammarRule)", "文件保存成功");
 }
 
 void MainWindow::on_pushButton_arrowChar_clicked()
@@ -166,14 +164,13 @@ void MainWindow::on_pushButton_process_clicked()
  */
 void MainWindow::on_pushButton_simplify_clicked()
 {
-    m_grammarStr=ui->plainTextEdit_edit->toPlainText();
+    m_grammarStr = ui->plainTextEdit_edit->toPlainText();
     BNFProcessor.initGrammar(m_grammarStr);
     BNFProcessor.simplifyGrammar();
     BNFProcessor.printGrammar(ui->plainTextEdit_simplified);
     ui->tabWidget->setCurrentIndex(simplifyTab);
 
     ui->pushButton_eliminateLeftRecursion->setEnabled(true);
-
 }
 
 /**
@@ -221,10 +218,10 @@ void MainWindow::on_pushButton_eliminateLeftCommonFactor_clicked()
 void MainWindow::on_pushButton_set_clicked()
 {
     BNFProcessor.firstNFollowSet();
-    BNFProcessor.printSet(ui->tableWidget_firstSet,true);
+    BNFProcessor.printSet(ui->tableWidget_firstSet, true);
     printConsole("First集计算完成");
 
-    BNFProcessor.printSet(ui->tableWidget_followSet,false);
+    BNFProcessor.printSet(ui->tableWidget_followSet, false);
     printConsole("Follow集计算完成");
 
     ui->tabWidget->setCurrentIndex(firstSetTab);
@@ -244,7 +241,6 @@ void MainWindow::on_pushButton_LL1_clicked()
     ui->pushButton_CST->setEnabled(true);
     printConsole("构建LL1表完成");
 }
-
 
 void MainWindow::on_pushButton_clearAll_clicked()
 {
@@ -273,28 +269,27 @@ void MainWindow::on_pushButton_clearAll_clicked()
     printConsole("所有操作已复位");
 }
 
-
 void MainWindow::on_pushButton_CST_clicked()
 {
-    QString language=ui->comboBox_language->currentText();
-    QString srcProg=ui->plainTextEdit_CST->toPlainText();
-    if(srcProg.isEmpty())
+    QString language = ui->comboBox_language->currentText();
+    QString srcProg = ui->plainTextEdit_CST->toPlainText();
+    if (srcProg.isEmpty())
     {
         ui->tabWidget->setCurrentIndex(syntaxTab);
-        QMessageBox::warning(NULL, "提示", "请输入源程序再进行语法分析");
+        QMessageBox::warning(nullptr, "提示", "请输入源程序再进行语法分析");
         return;
     }
-    bool passedFlag=BNFProcessor.LL1Parsing(srcProg,ui->plainTextEdit_console,language);
+    bool passedFlag = BNFProcessor.LL1Parsing(srcProg, ui->plainTextEdit_console, language);
 
     ui->tabWidget->setCurrentIndex(syntaxTab);
-    printConsole(language+"语言语法分析结束");
-    if(!passedFlag)
-        QMessageBox::warning(NULL, "LL1分析", "源程序语法有误，详情请查看控制台输出");
+    printConsole(language + "语言语法分析结束");
+    if (!passedFlag)
+        QMessageBox::warning(nullptr, "LL1分析", "源程序语法有误，详情请查看控制台输出");
     else
     {
         ui->tabWidget->setCurrentIndex(CSTTab);
         BNFProcessor.printParseTree(ui->treeWidget_CST);
-        printConsole("输出"+language+"分析树");
+        printConsole("输出" + language + "分析树");
     }
 }
 
@@ -304,8 +299,7 @@ void MainWindow::on_pushButton_CST_clicked()
  */
 void MainWindow::on_pushButton_AST_clicked()
 {
-    QString language=ui->comboBox_language->currentText();
-    BNFProcessor.printAST(ui->treeWidget_AST,language);
-    printConsole("输出"+language+"语法树");
+    QString language = ui->comboBox_language->currentText();
+    BNFProcessor.printAST(ui->treeWidget_AST, language);
+    printConsole("输出" + language + "语法树");
 }
-
