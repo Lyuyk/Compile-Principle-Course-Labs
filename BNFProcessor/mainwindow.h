@@ -65,11 +65,11 @@ private slots:
 
     void on_pushButton_clearConsole_clicked(); // 清空输出台
 
-    void on_pushButton_clearAll_clicked();
+    void on_pushButton_clearAll_clicked(); //复位槽函数
 
-    void on_pushButton_CST_clicked(); // 构造
+    void on_pushButton_CST_clicked(); // LL1分析并生成分析树
 
-    void on_pushButton_AST_clicked();
+    void on_pushButton_AST_clicked(); // 构造语法树并显示
 
 private:
     void exit();

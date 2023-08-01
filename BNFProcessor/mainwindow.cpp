@@ -266,9 +266,15 @@ void MainWindow::on_pushButton_clearAll_clicked()
     ui->pushButton_eliminateLeftRecursion->setDisabled(true);
     ui->pushButton_set->setDisabled(true);
     ui->pushButton_LL1->setDisabled(true);
+    ui->pushButton_CST->setDisabled(true);
+    ui->pushButton_AST->setDisabled(true);
     printConsole("所有操作已复位");
 }
 
+/**
+ * @brief MainWindow::on_pushButton_CST_clicked
+ * 语法分析槽函数
+ */
 void MainWindow::on_pushButton_CST_clicked()
 {
     QString language = ui->comboBox_language->currentText();
@@ -281,6 +287,7 @@ void MainWindow::on_pushButton_CST_clicked()
     }
     bool passedFlag = BNFProcessor.LL1Parsing(srcProg, ui->plainTextEdit_console, language);
 
+    ui->label_language->setText(language);//显示语言
     ui->tabWidget->setCurrentIndex(syntaxTab);
     printConsole(language + "语言语法分析结束");
     if (!passedFlag)
@@ -290,6 +297,7 @@ void MainWindow::on_pushButton_CST_clicked()
         ui->tabWidget->setCurrentIndex(CSTTab);
         BNFProcessor.printParseTree(ui->treeWidget_CST);
         printConsole("输出" + language + "分析树");
+        ui->pushButton_AST->setEnabled(true);
     }
 }
 
@@ -302,4 +310,5 @@ void MainWindow::on_pushButton_AST_clicked()
     QString language = ui->comboBox_language->currentText();
     BNFProcessor.printAST(ui->treeWidget_AST, language);
     printConsole("输出" + language + "语法树");
+    ui->tabWidget->setCurrentIndex(ASTTab);
 }
