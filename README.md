@@ -54,7 +54,7 @@ Contains the following 3 tasks ( 2023-Spring )
   - [x] Solve the first set & follow set (Presented in table forms)
   - [x] Construct LL(1) analysis table (Presented in table form)
   - [x] Use LL(1) table for (TINY Language’s) syntax analysis 
-    - [x] & then generate a :x:syntax tree(abandoned) ✔️analysis tree (Presented in tree form)
+    - [x] & then generate a syntax tree(TINY only) & analysis tree (both presented in tree form)
   
 - [x] Task3: Use mini-C Language’s  to test
   - [x] Use mini-C Language’s Lex to test & use at least one TINY’s source program to test the generated lexer
